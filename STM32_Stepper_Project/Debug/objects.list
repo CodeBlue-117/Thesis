@@ -75,6 +75,7 @@
 "./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.o"
 "./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_usart.o"
 "./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_wwdg.o"
+"./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_adc.o"
 "./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_fmc.o"
 "./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_fsmc.o"
 "./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_sdmmc.o"
