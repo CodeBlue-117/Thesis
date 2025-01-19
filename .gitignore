@@ -1,0 +1,14 @@
+# STM32CubeIDE
+.settings/
+*.cproject
+*.project
+*.launch
+*.db
+*.suo
+*.swp
+*.elf
+*.bin
+# Build folders
+build/
+Debug/
+Release/
