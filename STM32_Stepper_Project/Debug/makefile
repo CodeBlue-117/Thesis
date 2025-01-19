@@ -60,8 +60,8 @@ all: main-build
 main-build: STM32_Thesis_Stepper_Project.elf secondary-outputs
 
 # Tool invocations
-STM32_Thesis_Stepper_Project.elf STM32_Thesis_Stepper_Project.map: $(OBJS) $(USER_OBJS) C:\STM32ThesisProject\STM32_Thesis_Stepper_Project\STM32F410RBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "STM32_Thesis_Stepper_Project.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\STM32ThesisProject\STM32_Thesis_Stepper_Project\STM32F410RBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="STM32_Thesis_Stepper_Project.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+STM32_Thesis_Stepper_Project.elf STM32_Thesis_Stepper_Project.map: $(OBJS) $(USER_OBJS) C:\Users\jake-\Documents\GitHub\Thesis\STM32_Stepper_Project\STM32F410RBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "STM32_Thesis_Stepper_Project.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\jake-\Documents\GitHub\Thesis\STM32_Stepper_Project\STM32F410RBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="STM32_Thesis_Stepper_Project.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
