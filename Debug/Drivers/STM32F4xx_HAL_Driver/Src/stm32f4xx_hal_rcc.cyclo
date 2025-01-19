@@ -1,0 +1,14 @@
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c:240:13:HAL_RCC_DeInit	1
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c:251:26:HAL_RCC_OscConfig	81
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c:603:19:HAL_RCC_ClockConfig	90
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c:883:6:HAL_RCC_MCOConfig	17
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c:947:6:HAL_RCC_EnableCSS	1
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c:956:6:HAL_RCC_DisableCSS	1
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c:991:17:HAL_RCC_GetSysClockFreq	9
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c:1047:10:HAL_RCC_GetHCLKFreq	2
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c:1059:10:HAL_RCC_GetPCLK1Freq	2
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c:1071:10:HAL_RCC_GetPCLK2Freq	2
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c:1084:13:HAL_RCC_GetOscConfig	12
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c:1163:6:HAL_RCC_GetClockConfig	1
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c:1189:6:HAL_RCC_NMI_IRQHandler	2
+../Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c:1206:13:HAL_RCC_CSSCallback	1

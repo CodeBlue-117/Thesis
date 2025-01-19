@@ -1,0 +1,4 @@
+../Core/Src/example.c:93:6:MicrosteppingMotor_Example_01	16
+../Core/Src/example.c:235:10:BSP_ST1S14_PGOOD	1
+../Core/Src/example.c:254:10:usrPow	2
+../Core/Src/example.c:270:6:HAL_GPIO_EXTI_Callback	5

@@ -1,0 +1,14 @@
+../Core/Src/example_usart.c:147:12:USART_SplitTextString	13
+../Core/Src/example_usart.c:258:12:USART_CheckTextCommandBundle	71
+../Core/Src/example_usart.c:761:11:USART_DecodeTextString	9
+../Core/Src/example_usart.c:862:12:CompareTwoTextString	4
+../Core/Src/example_usart.c:887:12:str2num	5
+../Core/Src/example_usart.c:929:6:USART_TxWelcomeMessage	1
+../Core/Src/example_usart.c:949:6:USART_Transmit	2
+../Core/Src/example_usart.c:966:6:USART_CheckAppCmd	3
+../Core/Src/example_usart.c:988:6:USART_ITCharManager	5
+../Core/Src/example_usart.c:1026:6:USART_PrintRegisterValues	3
+../Core/Src/example_usart.c:1057:6:USART_PrintAllRegisterValues	3
+../Core/Src/example_usart.c:1077:6:Fill_L6470_DaisyChainMnemonic	3
+../Core/Src/example_usart.c:1115:6:num2str	5
+../Core/Src/example_usart.c:1154:10:num2hex	7
