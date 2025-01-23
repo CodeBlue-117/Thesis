@@ -33,9 +33,11 @@
   */
 
 #include "example.h"
-#include "example_usart.h"
+//#include "example_usart.h"
 #include "params.h"
 #include "xnucleoihm02a1.h"
+#include "stm32f4xx_hal.h"
+#include "xnucleoihm02a1_interface.h"
 
 /**
   * @addtogroup MicrosteppingMotor_Example
@@ -220,7 +222,7 @@ void MicrosteppingMotor_Example_01(void)
   }
   
   /* Switch on the user LED */
-    BSP_LED_On(LED2);
+//    BSP_LED_On(LED2);
 }
 
 /**
