@@ -45,6 +45,10 @@ extern "C" {
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
 
+extern ADC_HandleTypeDef hadc1;
+extern SPI_HandleTypeDef hspi1;
+extern UART_HandleTypeDef huart1;
+
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
@@ -63,10 +67,6 @@ void Error_Handler(void);
 #define B1_Pin GPIO_PIN_13
 #define B1_GPIO_Port GPIOC
 #define B1_EXTI_IRQn EXTI15_10_IRQn
-#define USART_TX_Pin GPIO_PIN_2
-#define USART_TX_GPIO_Port GPIOA
-#define USART_RX_Pin GPIO_PIN_3
-#define USART_RX_GPIO_Port GPIOA
 #define TMS_Pin GPIO_PIN_13
 #define TMS_GPIO_Port GPIOA
 #define TCK_Pin GPIO_PIN_14
