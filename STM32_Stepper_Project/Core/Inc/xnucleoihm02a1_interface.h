@@ -75,9 +75,9 @@
   #error "Please select an option!"
 #endif
 
-#define NUCLEO_USE_USER_LED     //!< Uncomment to enable the NUCLEO User LED feature.
-#define NUCLEO_USE_USER_BUTTON  //!< Uncomment to enable the NUCLEO User Button feature.
-#define NUCLEO_USE_USART        //!< Uncomment to enable the NUCLEO USART feature.
+//#define NUCLEO_USE_USER_LED     //!< Uncomment to enable the NUCLEO User LED feature.
+//#define NUCLEO_USE_USER_BUTTON  //!< Uncomment to enable the NUCLEO User Button feature.
+//#define NUCLEO_USE_USART        //!< Uncomment to enable the NUCLEO USART feature.
 
 //#define USE_ST1S14_PGOOD        //!< Uncomment to use ADC for reading PGOOD of ST1S14
 
@@ -99,9 +99,9 @@
 #endif
 #endif
 
-/* Redefined the data structures to address SPIx */
+///* Redefined the data structures to address SPIx */
 #if defined (NUCLEO_USE_SPI_1)
-  #define HSPI                                  hspi1   //!< The data structure for all further instances to SPI.
+//  #define HSPI                                  hspi1   //!< The data structure for all further instances to SPI.
 #elif defined (NUCLEO_USE_SPI_2)
   #define HSPI                                  hspi2
 #endif
@@ -179,10 +179,10 @@ typedef struct {
   * @{
   */
 
-extern ADC_HandleTypeDef hadc1;
-extern SPI_HandleTypeDef hspi1;
-extern SPI_HandleTypeDef hspi2;
-extern UART_HandleTypeDef huart2;
+
+//extern SPI_HandleTypeDef hspi1;
+//extern SPI_HandleTypeDef hspi2;
+//extern UART_HandleTypeDef huart2;
 extern sL6470_GPIO L6470_nSTBY_nRST_GPIO;
 extern sL6470_GPIO L6470_nBUSY_SYNC_GPIO;
 extern sL6470_GPIO L6470_nFLAG_GPIO;

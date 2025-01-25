@@ -111,10 +111,6 @@ void MicrosteppingMotor_Example_01(void)
   StepperMotorBoardHandle_t *StepperMotorBoardHandle;
   MotorParameterData_t *MotorParameterDataGlobal, *MotorParameterDataSingle;
   
-  #ifdef NUCLEO_USE_USART
-  USART_Transmit(&huart2, (uint8_t *)"Initial values for registers:\r\n");
-  USART_PrintAllRegisterValues();
-  #endif
 
   /* Setup each X-NUCLEO-IHM02A1 Expansion Board ******************************/
   
@@ -128,10 +124,6 @@ void MicrosteppingMotor_Example_01(void)
     StepperMotorBoardHandle->Config(MotorParameterDataSingle);
   }
   
-  #ifdef NUCLEO_USE_USART
-  USART_Transmit(&huart2, (uint8_t *)"Custom values for registers:\r\n");
-  USART_PrintAllRegisterValues();
-  #endif
   
   /****************************************************************************/
   

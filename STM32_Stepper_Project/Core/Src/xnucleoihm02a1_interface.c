@@ -34,7 +34,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "xnucleoihm02a1_interface.h"
-
+#include "main.h"
 /**
   * @addtogroup BSP
   * @{
@@ -58,11 +58,11 @@
 /**
   * @brief  The data structure for all further instances to ADC.
   */
-ADC_HandleTypeDef hadc1;
+
 /**
   * @brief  The data structure for all further instances to SPI1.
   */
-SPI_HandleTypeDef hspi1;
+//SPI_HandleTypeDef hspi1;
 /**
   * @brief  The data structure for all further instances to SPI2.
   */
@@ -107,35 +107,35 @@ void MX_USART2_Init(void);
   *         - APB2 Peripheral Clocks: 84 MHz
   *         - APB2 Timer Clocks: 84 MHz
   */
-void SystemClock_Config(void)
-{
-
-  RCC_OscInitTypeDef RCC_OscInitStruct;
-  RCC_ClkInitTypeDef RCC_ClkInitStruct;
-
-  __PWR_CLK_ENABLE();
-
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
-
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
-  RCC_OscInitStruct.HSICalibrationValue = 16;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 16;
-  RCC_OscInitStruct.PLL.PLLN = 336;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
-  RCC_OscInitStruct.PLL.PLLQ = 7;
-  HAL_RCC_OscConfig(&RCC_OscInitStruct);
-
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_SYSCLK|RCC_CLOCKTYPE_PCLK1;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-  HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2);
-
-}
+//void SystemClock_Config(void)
+//{
+//
+//  RCC_OscInitTypeDef RCC_OscInitStruct;
+//  RCC_ClkInitTypeDef RCC_ClkInitStruct;
+//
+//  __PWR_CLK_ENABLE();
+//
+//  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE2);
+//
+//  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+//  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+//  RCC_OscInitStruct.HSICalibrationValue = 16;
+//  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+//  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+//  RCC_OscInitStruct.PLL.PLLM = 16;
+//  RCC_OscInitStruct.PLL.PLLN = 336;
+//  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
+//  RCC_OscInitStruct.PLL.PLLQ = 7;
+//  HAL_RCC_OscConfig(&RCC_OscInitStruct);
+//
+//  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_SYSCLK|RCC_CLOCKTYPE_PCLK1;
+//  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+//  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+//  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
+//  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+//  HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2);
+//
+//}
 
 /**
   * @brief  This function initializes the GPIO MX.
@@ -374,18 +374,18 @@ void MX_SPI2_Init(void)
   *         - Parity:     None
   *         - Mode:       TX/RX
   */
-void MX_USART2_Init(void)
-{
-  huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
-  huart2.Init.WordLength = UART_WORDLENGTH_8B;
-  huart2.Init.StopBits = UART_STOPBITS_1;
-  huart2.Init.Parity = UART_PARITY_NONE;
-  huart2.Init.Mode = UART_MODE_TX_RX;
-  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
-  HAL_UART_Init(&huart2);
-}
+//void MX_USART2_Init(void)
+//{
+//  huart2.Instance = USART2;
+//  huart2.Init.BaudRate = 115200;
+//  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+//  huart2.Init.StopBits = UART_STOPBITS_1;
+//  huart2.Init.Parity = UART_PARITY_NONE;
+//  huart2.Init.Mode = UART_MODE_TX_RX;
+//  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+//  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+//  HAL_UART_Init(&huart2);
+//}
 
 /**
   * @brief  This function initializes the ADC MX
@@ -452,10 +452,10 @@ void NUCLEO_Board_Init(void)
   /* Initialize the SPI used by the X-NUCLEO-IHM02A1 */
   MX_SPI_Init();
   
-#ifdef NUCLEO_USE_USART
-  /* Initialize the USART peripheral */
-  MX_USART2_Init();
-#endif  
+//#ifdef NUCLEO_USE_USART
+//  /* Initialize the USART peripheral */
+//  MX_USART2_Init();
+//#endif
 
 #ifdef NUCLEO_USE_USER_LED
   /* Perform 3 repetition of blinking user LED at 50% duty cycle with 250 ms as period */
