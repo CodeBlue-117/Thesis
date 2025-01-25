@@ -15,6 +15,23 @@
   *
   ******************************************************************************
   */
+
+// ToDo: Define these GPIO pins and ports: void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+//{
+//  switch (GPIO_Pin)
+//  {
+//  case GPIO_PIN_13:
+//    BSP_EmergencyStop();
+//    break;
+//  case L6470_nBUSY_SYNC_GPIO_PIN:
+//    BSP_L6470_BusySynchEventManager();
+//    break;
+//  case L6470_nFLAG_GPIO_PIN:
+//    BSP_L6470_FlagEventManager();
+//    break;
+//  }
+
+
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
