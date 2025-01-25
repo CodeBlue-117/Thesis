@@ -47,7 +47,10 @@ extern "C" {
 
 extern ADC_HandleTypeDef hadc1;
 extern SPI_HandleTypeDef hspi1;
+extern SPI_HandleTypeDef hspi2;
 extern UART_HandleTypeDef huart1;
+
+extern ADC_ChannelConfTypeDef sConfig;
 
 /* USER CODE END EC */
 

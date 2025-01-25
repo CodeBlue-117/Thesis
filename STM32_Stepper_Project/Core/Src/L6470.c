@@ -1417,7 +1417,7 @@ void L6470_DaisyChainCommand(uint8_t* pL6470_DaisyChainSpiTxStruct, uint8_t* pL6
     /* Send the command via SPI */
 
     // ToDo: Verify that the first parameter is correct. It used to be HSPI but there are no references to that.
-    L6470_SPI_Communication(&hspi1, (pL6470_DaisyChainSpiTxStruct+(spibyte * L6470DAISYCHAINSIZE)), (pL6470_DaisyChainSpiRxStruct+(spibyte * L6470DAISYCHAINSIZE)), L6470DAISYCHAINSIZE, 10);
+    L6470_SPI_Communication(&HSPI, (pL6470_DaisyChainSpiTxStruct+(spibyte * L6470DAISYCHAINSIZE)), (pL6470_DaisyChainSpiRxStruct+(spibyte * L6470DAISYCHAINSIZE)), L6470DAISYCHAINSIZE, 10);
     
     /* Allow the device to decode the received command */
     L6470_nCS_HIGH();

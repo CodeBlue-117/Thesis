@@ -66,7 +66,7 @@
 /**
   * @brief  The data structure for all further instances to SPI2.
   */
-SPI_HandleTypeDef hspi2;
+
 
 /**
   * @}
@@ -78,13 +78,13 @@ SPI_HandleTypeDef hspi2;
   * @{
   */
 
-void SystemClock_Config(void);
-void MX_GPIO_Init(void);
-void MX_ADC1_Init(void);
-void MX_SPI_Init(void);
-void MX_SPI1_Init(void);
-void MX_SPI2_Init(void);
-void MX_USART2_Init(void);
+//void SystemClock_Config(void);
+//void MX_GPIO_Init(void);
+//void MX_ADC1_Init(void);
+//void MX_SPI_Init(void);
+//void MX_SPI1_Init(void);
+//void MX_SPI2_Init(void);
+// void MX_USART2_Init(void);
 
 /**
   * @}
@@ -159,15 +159,15 @@ void MX_GPIO_Init(void)
   * @note   It selects the @ref MX_SPI1_Init or @ref MX_SPI2_Init
   *         related to the defined macro @ref NUCLEO_USE_SPI_1 or @ref NUCLEO_USE_SPI_2.
   */
-void MX_SPI_Init(void)
-{
-#ifdef NUCLEO_USE_SPI_1
-  MX_SPI1_Init();
-#endif
-#ifdef NUCLEO_USE_SPI_2
-  MX_SPI2_Init();
-#endif
-}
+//void MX_SPI_Init(void)
+//{
+//#ifdef NUCLEO_USE_SPI_1
+//  MX_SPI1_Init();
+//#endif
+//#ifdef NUCLEO_USE_SPI_2
+//  MX_SPI2_Init();
+//#endif
+//}
 
 /**
   * @brief  This function initializes the SPI1 MX
@@ -182,89 +182,89 @@ void MX_SPI_Init(void)
   *         - CPHA 2nd Edge
   *         - Baud Rate lower than 5 MBits/s
   */
-void MX_SPI1_Init(void)
-{
-  #define MAX_BAUDRATE  5000000
-  uint32_t freq;
-  uint16_t freq_div;
-  uint32_t spi_baudrateprescaler;
-  
-  hspi1.Instance = SPI1;
-  hspi1.Init.Mode = SPI_MODE_MASTER;
-  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi1.Init.CLKPolarity = SPI_POLARITY_HIGH;
-  hspi1.Init.CLKPhase = SPI_PHASE_2EDGE;
-  hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi1.Init.TIMode = SPI_TIMODE_DISABLED;
-  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLED;
-  
-  freq = HAL_RCC_GetPCLK2Freq();
-  freq_div = (freq / MAX_BAUDRATE);
-  
-  if (freq_div < 2)
-  {
-    spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_2;
-  }
-  else
-  {
-    if (freq_div < 4)
-    {
-      spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_4;
-    }
-    else
-    {
-      if (freq_div < 8)
-      {
-        spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_8;
-      }
-      else
-      {
-        if (freq_div < 16)
-        {
-          spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_16;
-        }
-        else
-        {
-          if (freq_div < 32)
-          {
-            spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_32;
-          }
-          else
-          {
-            if (freq_div < 64)
-            {
-              spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_64;
-            }
-            else
-            {
-              if (freq_div < 128)
-              {
-                spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_128;
-              }
-              else
-              {
-                if (freq_div < 256)
-                {
-                  spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_256;
-                }
-                else
-                {
-                  /* the condition is not possible, you should reduce the CPU frequency */
-                  while(1);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  
-  hspi1.Init.BaudRatePrescaler = spi_baudrateprescaler;  // the baudrate will be lower than MAX_BAUDRATE (5 MBits/s)
-  HAL_SPI_Init(&hspi1);
-}
+//void MX_SPI1_Init(void)
+//{
+//  #define MAX_BAUDRATE  5000000
+//  uint32_t freq;
+//  uint16_t freq_div;
+//  uint32_t spi_baudrateprescaler;
+//
+//  hspi1.Instance = SPI1;
+//  hspi1.Init.Mode = SPI_MODE_MASTER;
+//  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+//  hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+//  hspi1.Init.CLKPolarity = SPI_POLARITY_HIGH;
+//  hspi1.Init.CLKPhase = SPI_PHASE_2EDGE;
+//  hspi1.Init.NSS = SPI_NSS_SOFT;
+//  hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+//  hspi1.Init.TIMode = SPI_TIMODE_DISABLED;
+//  hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLED;
+//
+//  freq = HAL_RCC_GetPCLK2Freq();
+//  freq_div = (freq / MAX_BAUDRATE);
+//
+//  if (freq_div < 2)
+//  {
+//    spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_2;
+//  }
+//  else
+//  {
+//    if (freq_div < 4)
+//    {
+//      spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_4;
+//    }
+//    else
+//    {
+//      if (freq_div < 8)
+//      {
+//        spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_8;
+//      }
+//      else
+//      {
+//        if (freq_div < 16)
+//        {
+//          spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_16;
+//        }
+//        else
+//        {
+//          if (freq_div < 32)
+//          {
+//            spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_32;
+//          }
+//          else
+//          {
+//            if (freq_div < 64)
+//            {
+//              spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_64;
+//            }
+//            else
+//            {
+//              if (freq_div < 128)
+//              {
+//                spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_128;
+//              }
+//              else
+//              {
+//                if (freq_div < 256)
+//                {
+//                  spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_256;
+//                }
+//                else
+//                {
+//                  /* the condition is not possible, you should reduce the CPU frequency */
+//                  while(1);
+//                }
+//              }
+//            }
+//          }
+//        }
+//      }
+//    }
+//  }
+//
+//  hspi1.Init.BaudRatePrescaler = spi_baudrateprescaler;  // the baudrate will be lower than MAX_BAUDRATE (5 MBits/s)
+//  HAL_SPI_Init(&hspi1);
+//}
 
 /**
   * @brief  This function initializes the SPI2 MX
@@ -279,89 +279,89 @@ void MX_SPI1_Init(void)
   *         - CPHA 2nd Edge
   *         - Baud Rate lower than 5 MBits/s
   */
-void MX_SPI2_Init(void)
-{
-  #define MAX_BAUDRATE  5000000
-  uint32_t freq;
-  uint16_t freq_div;
-  uint32_t spi_baudrateprescaler;
-  
-  hspi2.Instance = SPI2;
-  hspi2.Init.Mode = SPI_MODE_MASTER;
-  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi2.Init.CLKPolarity = SPI_POLARITY_HIGH;
-  hspi2.Init.CLKPhase = SPI_PHASE_2EDGE;
-  hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
-  hspi2.Init.TIMode = SPI_TIMODE_DISABLED;
-  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLED;
-  
-  freq = HAL_RCC_GetPCLK1Freq();
-  freq_div = (freq / MAX_BAUDRATE);
-  
-  if (freq_div < 2)
-  {
-    spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_2;
-  }
-  else
-  {
-    if (freq_div < 4)
-    {
-      spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_4;
-    }
-    else
-    {
-      if (freq_div < 8)
-      {
-        spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_8;
-      }
-      else
-      {
-        if (freq_div < 16)
-        {
-          spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_16;
-        }
-        else
-        {
-          if (freq_div < 32)
-          {
-            spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_32;
-          }
-          else
-          {
-            if (freq_div < 64)
-            {
-              spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_64;
-            }
-            else
-            {
-              if (freq_div < 128)
-              {
-                spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_128;
-              }
-              else
-              {
-                if (freq_div < 256)
-                {
-                  spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_256;
-                }
-                else
-                {
-                  /* the condition is not possible, you should reduce the CPU frequency */
-                  while(1);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  
-  hspi2.Init.BaudRatePrescaler = spi_baudrateprescaler; // the baudrate will be lower than MAX_BAUDRATE (5 MBits/s)
-  HAL_SPI_Init(&hspi2);
-}
+//void MX_SPI2_Init(void)
+//{
+//  #define MAX_BAUDRATE  5000000
+//  uint32_t freq;
+//  uint16_t freq_div;
+//  uint32_t spi_baudrateprescaler;
+//
+//  hspi2.Instance = SPI2;
+//  hspi2.Init.Mode = SPI_MODE_MASTER;
+//  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
+//  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+//  hspi2.Init.CLKPolarity = SPI_POLARITY_HIGH;
+//  hspi2.Init.CLKPhase = SPI_PHASE_2EDGE;
+//  hspi2.Init.NSS = SPI_NSS_SOFT;
+//  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+//  hspi2.Init.TIMode = SPI_TIMODE_DISABLED;
+//  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLED;
+//
+//  freq = HAL_RCC_GetPCLK1Freq();
+//  freq_div = (freq / MAX_BAUDRATE);
+//
+//  if (freq_div < 2)
+//  {
+//    spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_2;
+//  }
+//  else
+//  {
+//    if (freq_div < 4)
+//    {
+//      spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_4;
+//    }
+//    else
+//    {
+//      if (freq_div < 8)
+//      {
+//        spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_8;
+//      }
+//      else
+//      {
+//        if (freq_div < 16)
+//        {
+//          spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_16;
+//        }
+//        else
+//        {
+//          if (freq_div < 32)
+//          {
+//            spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_32;
+//          }
+//          else
+//          {
+//            if (freq_div < 64)
+//            {
+//              spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_64;
+//            }
+//            else
+//            {
+//              if (freq_div < 128)
+//              {
+//                spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_128;
+//              }
+//              else
+//              {
+//                if (freq_div < 256)
+//                {
+//                  spi_baudrateprescaler = SPI_BAUDRATEPRESCALER_256;
+//                }
+//                else
+//                {
+//                  /* the condition is not possible, you should reduce the CPU frequency */
+//                  while(1);
+//                }
+//              }
+//            }
+//          }
+//        }
+//      }
+//    }
+//  }
+//
+//  hspi2.Init.BaudRatePrescaler = spi_baudrateprescaler; // the baudrate will be lower than MAX_BAUDRATE (5 MBits/s)
+//  HAL_SPI_Init(&hspi2);
+//}
 
 /**
   * @brief  This function initializes the USART2 MX.
@@ -392,36 +392,36 @@ void MX_SPI2_Init(void)
   *
   * @note   It sets the <i>hadc</i> data structure for all further instances to ADC
 */
-void MX_ADC1_Init(void)
-{
-  ADC_ChannelConfTypeDef sConfig;
-
-  /* GPIO Ports Clock Enable */
-  __GPIOB_CLK_ENABLE();
-
-    /**Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion) 
-    */
-  hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCKPRESCALER_PCLK_DIV2;
-  hadc1.Init.Resolution = ADC_RESOLUTION12b;
-  hadc1.Init.ScanConvMode = DISABLE;
-  hadc1.Init.ContinuousConvMode = DISABLE;
-  hadc1.Init.DiscontinuousConvMode = DISABLE;
-  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 1;
-  hadc1.Init.DMAContinuousRequests = DISABLE;
-  hadc1.Init.EOCSelection = EOC_SINGLE_CONV;
-  HAL_ADC_Init(&hadc1);
-
-    /**Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time. 
-    */
-  sConfig.Channel = ADC_CHANNEL_8;
-  sConfig.Rank = 1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
-  HAL_ADC_ConfigChannel(&hadc1, &sConfig);
-
-}
+//void MX_ADC1_Init(void)
+//{
+//  ADC_ChannelConfTypeDef sConfig;
+//
+//  /* GPIO Ports Clock Enable */
+//  __GPIOB_CLK_ENABLE();
+//
+//    /**Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
+//    */
+//  hadc1.Instance = ADC1;
+//  hadc1.Init.ClockPrescaler = ADC_CLOCKPRESCALER_PCLK_DIV2;
+//  hadc1.Init.Resolution = ADC_RESOLUTION12b;
+//  hadc1.Init.ScanConvMode = DISABLE;
+//  hadc1.Init.ContinuousConvMode = DISABLE;
+//  hadc1.Init.DiscontinuousConvMode = DISABLE;
+//  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+//  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+//  hadc1.Init.NbrOfConversion = 1;
+//  hadc1.Init.DMAContinuousRequests = DISABLE;
+//  hadc1.Init.EOCSelection = EOC_SINGLE_CONV;
+//  HAL_ADC_Init(&hadc1);
+//
+//    /**Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+//    */
+//  sConfig.Channel = ADC_CHANNEL_8;
+//  sConfig.Rank = 1;
+//  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+//  HAL_ADC_ConfigChannel(&hadc1, &sConfig);
+//
+//}
 
 /**
   * @}
@@ -436,57 +436,58 @@ void MX_ADC1_Init(void)
   * @brief  This function initializes some peripherals of the NUCELO board
   *         (HAL, Clock, NVIC, LED and user button)
   */
-void NUCLEO_Board_Init(void)
-{
+//void NUCLEO_Board_Init(void)
+//{
   /* MCU Configuration----------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+//  HAL_Init();
 
   /* Configure the system clock */
-  SystemClock_Config();
+
+//  SystemClock_Config();
 
   /* Initialize all configured peripherals */
-  MX_GPIO_Init();
+  // MX_GPIO_Init();
   
   /* Initialize the SPI used by the X-NUCLEO-IHM02A1 */
-  MX_SPI_Init();
+  // MX_SPI_Init();
   
 //#ifdef NUCLEO_USE_USART
 //  /* Initialize the USART peripheral */
 //  MX_USART2_Init();
 //#endif
 
-#ifdef NUCLEO_USE_USER_LED
-  /* Perform 3 repetition of blinking user LED at 50% duty cycle with 250 ms as period */
-  User_LED_Blinking(3, 750);
-#endif
-}
+//#ifdef NUCLEO_USE_USER_LED
+//  /* Perform 3 repetition of blinking user LED at 50% duty cycle with 250 ms as period */
+//  User_LED_Blinking(3, 750);
+//#endif
+//}
 
 /**
   * @brief  Blinking user LED at 50% duty cycle.
   * @param  repetitions The number of  repetions.
   * @param  period_ms   The blinking period in ms.
   */
-void User_LED_Blinking(uint8_t repetitions, uint16_t period_ms)
-{
-  uint8_t r;
-  uint16_t half_period_ms;
-  
-  half_period_ms = period_ms >> 1;
-  
-  for (r=0; r<repetitions; r++)
-  {
-    /* Switch on the user LED */
-    BSP_LED_On(LED2);
-    /* ms delay */
-    HAL_Delay(half_period_ms);
-    /* Switch off the user LED */
-    BSP_LED_Off(LED2);
-    /* ms delay */
-    HAL_Delay(half_period_ms);
-  }
-}
+//void User_LED_Blinking(uint8_t repetitions, uint16_t period_ms)
+//{
+//  uint8_t r;
+//  uint16_t half_period_ms;
+//
+//  half_period_ms = period_ms >> 1;
+//
+//  for (r=0; r<repetitions; r++)
+//  {
+//    /* Switch on the user LED */
+//    BSP_LED_On(LED2);
+//    /* ms delay */
+//    HAL_Delay(half_period_ms);
+//    /* Switch off the user LED */
+//    BSP_LED_Off(LED2);
+//    /* ms delay */
+//    HAL_Delay(half_period_ms);
+//  }
+//}
 
 /**
   * @}

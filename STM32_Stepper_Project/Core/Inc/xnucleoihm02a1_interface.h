@@ -92,8 +92,8 @@
   */
 
 #ifdef NUCLEO_USE_SPI_1                 //!< in this case two options about the SPI_SCK are possible
-#define USE_PB3_AS_SCK                  //!< Uncomment to set PB3 as SPI SCK (SB34)
-//#define USE_PA5_AS_SCK                  //!< Uncomment to set PA5 as SPI SCK (SB12)
+// #define USE_PB3_AS_SCK                  //!< Uncomment to set PB3 as SPI SCK (SB34)
+#define USE_PA5_AS_SCK                  //!< Uncomment to set PA5 as SPI SCK (SB12)
 #if ((defined (USE_PB3_AS_SCK)) && (defined (USE_PA5_AS_SCK)))
   #error "Please select an option only!"
 #endif
@@ -101,7 +101,7 @@
 
 ///* Redefined the data structures to address SPIx */
 #if defined (NUCLEO_USE_SPI_1)
-//  #define HSPI                                  hspi1   //!< The data structure for all further instances to SPI.
+#define HSPI                                  hspi1   //!< The data structure for all further instances to SPI.
 #elif defined (NUCLEO_USE_SPI_2)
   #define HSPI                                  hspi2
 #endif

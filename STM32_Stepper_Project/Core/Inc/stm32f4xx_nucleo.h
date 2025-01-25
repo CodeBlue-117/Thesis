@@ -111,29 +111,26 @@ typedef enum
 /** @addtogroup STM32F4XX_NUCLEO_LOW_LEVEL_LED
   * @{
   */
+
+/*
 #define LEDn                                    1
 
 #define LED2_PIN                                GPIO_PIN_5
 #define LED2_GPIO_PORT                          GPIOA
 #define LED2_GPIO_CLK_ENABLE()                  __GPIOA_CLK_ENABLE()
-#define LED2_GPIO_CLK_DISABLE()                 __GPIOA_CLK_DISABLE()  
+#define LED2_GPIO_CLK_DISABLE()                 __GPIOA_CLK_DISABLE()
 
 #define LEDx_GPIO_CLK_ENABLE(__INDEX__)    do{if((__INDEX__) == 0) LED2_GPIO_CLK_ENABLE(); \
                                              }while(0)
 #define LEDx_GPIO_CLK_DISABLE(__INDEX__)    do{if((__INDEX__) == 0) LED2_GPIO_CLK_DISABLE(); \
-                                              }while(0)
-/**
-  * @}
-  */ 
-  
-/** @addtogroup STM32F4XX_NUCLEO_LOW_LEVEL_BUTTON
-  * @{
-  */  
+                                            }while(0)
+*/
+
+
+
+// @addtogroup STM32F4XX_NUCLEO_LOW_LEVEL_BUTTON
 #define BUTTONn                                 1  
 
-/**
-  * @brief Key push-button
-  */
 #define USER_BUTTON_PIN                         GPIO_PIN_13
 #define USER_BUTTON_GPIO_PORT                   GPIOC
 #define USER_BUTTON_GPIO_CLK_ENABLE()           __HAL_RCC_GPIOC_CLK_ENABLE()   
