@@ -59,15 +59,9 @@ typedef struct
 	GPIO_TypeDef*		gpio_cs_port;
 	uint16_t			gpio_cs_number;
 	SpeedPosTypeDef		speed_pos;
-}l6474TypeDef;
+};
 
-void l6474_enable(l6474TypeDef* stepper_motor);
-void l6474_disable(l6474TypeDef* stepper_motor);
-void l6474_init(l6474TypeDef* stepper_motor);
-void l6474_sel_vel(l6474TypeDef* stepper_motor, float vel);
-void l6474_set_steppersec(l6474TypeDef* stepper_motor, uint16_t step);
-void l6474_get_speed_pos(l6474TypeDef* stepper_motor);
-void l6474_read_status(l6474TypeDef* stepper_motor, uint16_t* status);
+
 
 
 

@@ -8,32 +8,9 @@
 #include "l6474.h"
 
 
-void l6474_set_vel(l6474TypeDef* stepper_motor, float vel)
-{
-	if(vel > 0)
-	{
-		if(stepper_motor->speed_pos.rad_speed <= 0)
-		{
-
-		}
-	}
-}
 
 
-void l6474_read_status(l6474TypeDef* stepper_motor, uint16_t* status)
-{
-	uint8_t reg_temp = STATUS_STEPPER;
-	l6474_transmit_spi(stepper_motor, &reg_temp, 1);
-	l6474_receive_spi(stepper_motor, (uint8_t *)status, 2);
-}
 
-
-void l6474_set_steppersec(l6474TypeDef* stepper_motor, uint16_t step)
-{
-	uint16_t arr = TIMER_FREQUENCY / step;
-	stepper_motor.tim_handler->Instance->ARR = (TIMER_FREQUENCY / step);
-	stepper_motor.tim_handler->Instance->CCR2 = arr / 2;
-}
 
 
 void l6474_get_speed_pos(l6474TypeDef* stepper_motor)

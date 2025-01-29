@@ -1,0 +1,44 @@
+/*
+ * l6474.c
+ *
+ *  Created on: Jan 28, 2025
+ *      Author: jake-
+ */
+#include "main.h"
+#include "l6474.h"
+
+
+
+
+
+
+
+
+
+
+
+
+
+static void l6474_receive_spi(l6474TypeDef* stepper_motor, uint8_t* data, uint8_t data_length)
+{
+	uint8_t data_raw = 0;
+	for(int i = 0; i < data_length; i++)
+	{
+		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
+		HAL_SPI_TransmitReceive(stepper_motor->hspi_l6474, &data_raw, data + i, 1, 1000);
+		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
+
+	}
+}
+
+
+static void l6474_transmit_spi(l6474TypeDef* stepper_motor, uint8_t* data, uint8_t data_length)
+{
+	for(int i = 0; i < data_length; i++)
+	{
+		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
+		HAL_SPI_Transmit(stepper_motor->hspi_l6474, data + i, 1, 1000);
+		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
+
+	}
+}

@@ -8,18 +8,6 @@
 #include "l6474.h"
 
 
-void l6474_set_vel(l6474TypeDef* stepper_motor, float vel)
-{
-	if(vel > 0)
-	{
-		if(stepper_motor->speed_pos.rad_speed <= 0)
-		{
-
-		}
-	}
-}
-
-
 void l6474_read_status(l6474TypeDef* stepper_motor, uint16_t* status)
 {
 	uint8_t reg_temp = STATUS_STEPPER;
