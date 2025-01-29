@@ -1,0 +1,26 @@
+/*
+ * l6474.h
+ *
+ *  Created on: Jan 28, 2025
+ *      Author: jake-
+ */
+
+#ifndef INC_L6474_H_
+#define INC_L6474_H_
+
+#include "main.h"
+
+#define MAX_ACCELERATION		60			// ??? Max acceleration per second ^ 2
+#define MAX_SPEED				200			// ??? Max speed per second
+#define MAX_CURRENT				0.5			// Max current of the stepper motor
+#define CURRENT_REFERENCE		0.30		// Current reference of the stepper motor
+#define STEPS_PER_REVOLUTION	3200	    // Steps per revolution
+#define TWOPI					6.283185f   // Two Pi value
+
+
+
+
+
+
+
+#endif /* INC_L6474_H_ */
