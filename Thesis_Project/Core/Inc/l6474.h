@@ -26,7 +26,7 @@
 #define TOFF_MIN				0x10		// Minimum off time
 #define ADC_OUT					0x12		// ADC output
 #define OCD_TH					0x13		// OCD threshold
-#define STEP_MODE`				0x16		// Step mode
+#define STEP_MODE				0x16		// Step mode
 #define ALARM_EN				0x17		// alarms enabled
 #define CONFIG					0x18		// CONFIG REGISTER
 
@@ -50,7 +50,7 @@ typedef struct
 typedef struct
 {
 	SPI_HandleTypeDef* 	hspi_l6474;
-	TIM_HandleTypeDef 	tim_handler;
+	TIM_HandleTypeDef* 	tim_handler;
 	uint32_t 			tim_channel;
 	GPIO_TypeDef*		gpio_dir_port;
 	uint16_t 			gpio_dir_number;

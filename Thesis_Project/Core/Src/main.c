@@ -21,7 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "l6474.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -31,6 +31,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+
+uint16_t status_step;
 
 /* USER CODE END PD */
 
@@ -48,6 +50,18 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
+static l6474TypeDef stepper_motor = {
+    .gpio_cs_number = STEPPER_SPI_CS_Pin,
+    .gpio_cs_port = STEPPER_SPI_CS_GPIO_Port,
+    .gpio_dir_number = STEPPER_DIR_Pin,
+    .gpio_dir_port = STEPPER_DIR_GPIO_Port,
+    .gpio_rst_number = STEPPER_RST_Pin,
+    .gpio_rst_port = STEPPER_RST_GPIO_Port,
+    .hspi_l6474 = &hspi1,
+    .tim_channel = TIM_CHANNEL_2,
+    .tim_handler = &htim3
+};
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -58,10 +72,14 @@ static void MX_SPI1_Init(void);
 static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 
+
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+float vel_temp = 6.28; // 1 rotation per second OR 60 rpm
 
 /* USER CODE END 0 */
 
@@ -99,12 +117,22 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
 
+  HAL_Delay(1000);
+  l6474_init(&stepper_motor);
+  l6474_enable(&stepper_motor);
+  HAL_Delay(2000);
+  l6474_sel_vel(&stepper_motor, vel_temp);
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  l6474_get_speed_pos(&stepper_motor);
+	  HAL_Delay(1);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
