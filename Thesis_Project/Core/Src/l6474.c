@@ -6,6 +6,7 @@
  */
 #include "main.h"
 #include "l6474.h"
+#include "stdio.h"
 
 
 static void l6474_receive_spi(l6474TypeDef* stepper_motor, uint8_t* data, uint8_t data_length);
@@ -116,7 +117,6 @@ void l6474_get_speed_pos(l6474TypeDef* stepper_motor)
 	}
 
 	stepper_motor->speed_pos.rad_pos = (TWOPI * (float)speed_raw) / (float)STEPS_PER_REVOLUTION;
-
 }
 
 
@@ -127,9 +127,14 @@ void l6474_receive_spi(l6474TypeDef* stepper_motor, uint8_t* data, uint8_t data_
 	for(int i = 0; i < data_length; i++)
 	{
 		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
-		HAL_SPI_TransmitReceive(stepper_motor->hspi_l6474, &data_raw, data + i, 1, 1000);
-		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
+		HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(stepper_motor->hspi_l6474, &data_raw, data + i, 1, 1000);
+		if(status != HAL_OK)
+		{
+			printf("Error receiving SPI\n\r");
+			while(1);
+		}
 
+		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
 	}
 }
 
@@ -140,7 +145,12 @@ void l6474_transmit_spi(l6474TypeDef* stepper_motor, uint8_t* data, uint8_t data
 	for(int i = 0; i < data_length; i++)
 	{
 		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
-		HAL_SPI_Transmit(stepper_motor->hspi_l6474, data + i, 1, 1000);
+		HAL_StatusTypeDef status =  HAL_SPI_Transmit(stepper_motor->hspi_l6474, data + i, 1, 1000);
+		if(status != HAL_OK)
+		{
+			printf("Error receiving SPI\n\r");
+			while(1);
+		}
 		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
 
 	}
