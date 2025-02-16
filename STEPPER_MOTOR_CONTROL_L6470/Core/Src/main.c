@@ -127,9 +127,14 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-//	  l6470_get_speed_pos(&motor_sets);
-//	  angular_position1 = motor_sets.motors[0].speed_pos.rad_pos;
-//	  angular_position2 = motor_sets.motors[1].speed_pos.rad_pos - motor_sets.motors[0].speed_pos.rad_pos;
+
+	  //////////////////////////////////////////////////////////////////////////////////
+	  l6470_get_speed_pos(&motor_sets);
+	  angular_position1 = motor_sets.motors[0].speed_pos.rad_pos;
+	  angular_position2 = motor_sets.motors[1].speed_pos.rad_pos - motor_sets.motors[0].speed_pos.rad_pos;
+	  //////////////////////////////////////////////////////////////////////////////////
+
+
 
 	  HAL_Delay(1);
     /* USER CODE END WHILE */

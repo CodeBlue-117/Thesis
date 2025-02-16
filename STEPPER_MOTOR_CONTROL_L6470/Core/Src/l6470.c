@@ -24,7 +24,7 @@ void l6470_enable(MotorSetTypedef* stepper_motor)
 		reg_temp[i] = RESET_DEVICE;
 	}
 
-	l6470_transmit_spi(stepper_motor, &reg_temp, NUMBER_OF_MOTORS);
+	l6470_transmit_spi(stepper_motor, reg_temp, NUMBER_OF_MOTORS);
 }
 /*
  * @brief disable l6470 motor driver
@@ -48,34 +48,70 @@ void l6470_disable(MotorSetTypedef* stepper_motor)
  */
 void l6470_init(MotorSetTypedef* stepper_motor)
 {
-	uint8_t reg_temp[4];
 
+
+	uint8_t reg_temp_1;
+	uint8_t reg_temp_3[3] = {0, 0, 0};
+	uint8_t reg_temp_4[4];
+
+
+	// Set the number of steps per revolution for each motor
 	for(int i = 0; i <= NUMBER_OF_MOTORS; i++)
 	{
 		stepper_motor ->motors[i].speed_pos.steps_per_rev = STEPS_PER_REVOLUTION;
 	}
+
 	// reset the driver
 	HAL_GPIO_WritePin(stepper_motor -> gpio_rst_port, stepper_motor -> gpio_rst_number, GPIO_PIN_RESET);
 	HAL_Delay(100);
 	HAL_GPIO_WritePin(stepper_motor ->gpio_rst_port, stepper_motor -> gpio_rst_number, GPIO_PIN_SET);
 	HAL_Delay(100);
+
+	// disable the driver
 	l6470_disable(stepper_motor);
 
-	// set KVAL values
-	reg_temp[0] = (uint8_t)((uint16_t)KVAL_HOLD_PERCENT * 255 / 100);
-	l6470_set_param(stepper_motor, KVAL_HOLD, reg_temp, 1);
-	reg_temp[0] = (uint8_t)((uint16_t)KVAL_RUN_PERCENT * 255 / 100);
-	l6470_set_param(stepper_motor, KVAL_RUN, reg_temp, 1);
-	reg_temp[0] = (uint8_t)((uint16_t)KVAL_ACCDEC_PERCENT * 255 / 100);
-	l6470_set_param(stepper_motor, KVAL_ACC, reg_temp, 1);
-	reg_temp[0] = (uint8_t)((uint16_t)KVAL_ACCDEC_PERCENT * 255 / 100);
-	l6470_set_param(stepper_motor, KVAL_ACC, reg_temp, 1);
+	// set CONFIG values
+
+	// Enable all alarms
+	reg_temp_1 = 0xFF;
+	l6470_set_param(stepper_motor, ALARM_EN, &reg_temp_1, 1);
+
+
+	// Set STEP_MODE Microstepping (The default is already set at 1/128 step, but we will issue the command anyways for testing)
+	reg_temp_1 = (uint8_t)ONE_HUNDRED_TWENTY_EIGHTH_STEP;
+	l6470_set_param(stepper_motor, STEP_MODE, &reg_temp_1, 1);
+
+
+	// Set the default ABS position to 0
+	// set all three bytes to zero for the 22 bit field (the upper 2 bits are ignored)
+	l6470_set_param(stepper_motor, ABS_POS, reg_temp_3, 3);
+
+	// Set the defautl EL position to 0
+	// set all three bytes to zero for the 22 bit field (the upper 2 bits are ignored)
+	l6470_set_param(stepper_motor, EL_POS, reg_temp_3, 3);
+
+
+	// Set the level for Holding Current
+	reg_temp_4[0] = (uint8_t)((uint16_t)KVAL_HOLD_PERCENT * 255 / 100);
+	l6470_set_param(stepper_motor, KVAL_HOLD, reg_temp_4, 1);
+
+	// Set the Current level for running at constant speed
+	reg_temp_4[0] = (uint8_t)((uint16_t)KVAL_RUN_PERCENT * 255 / 100);
+	l6470_set_param(stepper_motor, KVAL_RUN, reg_temp_4, 1);
+
+	// Set the Current level for acceleration
+	reg_temp_4[0] = (uint8_t)((uint16_t)KVAL_ACCDEC_PERCENT * 255 / 100);
+	l6470_set_param(stepper_motor, KVAL_ACC, reg_temp_4, 1);
+
+	// Set the current level for decceleration
+	reg_temp_4[0] = (uint8_t)((uint16_t)KVAL_ACCDEC_PERCENT * 255 / 100);
+	l6470_set_param(stepper_motor, KVAL_DEC , reg_temp_4, 1);
 
 	// set overcurrent threshold
-	reg_temp[0] = (uint8_t)(MAX_CURRENT / 375) + 1;
-	l6470_set_param(stepper_motor, OCD_TH, reg_temp, 1);
+	reg_temp_4[0] = (uint8_t)(MAX_CURRENT / 375) + 1;
+	l6470_set_param(stepper_motor, OCD_TH, reg_temp_4, 1);
 
-	// ToDo: set microstepping and disbale step clock mode
+	// ToDo: Set the Config register....
 
 	// initialize the spi buffers
 	stepper_motor -> spi_dma_busy = 0;
@@ -84,8 +120,6 @@ void l6470_init(MotorSetTypedef* stepper_motor)
 	{
 		stepper_motor->motors[i].stepper_id = i;
 	}
-
-
 
 }
 
@@ -168,11 +202,14 @@ void l6470_get_speed_pos(MotorSetTypedef* stepper_motor)
 static void l6470_set_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t *data, uint8_t data_length)
 {
 	uint8_t data_raw[NUMBER_OF_MOTORS];
+
 	for(int i = 0; i < NUMBER_OF_MOTORS; i++)
 	{
 		data_raw[i] = param;
 	}
+
 	l6470_transmit_spi( stepper_motor, data_raw,NUMBER_OF_MOTORS);
+
 	for(int i = 0; i < data_length; i++)
 	{
 		for(int j = 0; j < NUMBER_OF_MOTORS; j++)
