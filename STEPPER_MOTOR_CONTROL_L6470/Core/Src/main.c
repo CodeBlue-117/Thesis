@@ -68,7 +68,7 @@ static void MX_SPI1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-float vel_temp[2] = {-6, -6}; // 1 rot.sec;
+float vel_temp[2]; //  = {-6, -6}; // 1 rot.sec;
 float angular_position1,angular_position2;
 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef * hspi)
@@ -119,7 +119,25 @@ int main(void)
 
   l6470_enable(&motor_sets);
 
+/////////////////////////////////////////////////////////////////////////////////////////
+  // Forward at 1 rps
+  vel_temp[0] = 6;
+  vel_temp[1] = 6;
   l6470_set_vel(&motor_sets, vel_temp);
+
+  HAL_Delay(5000);
+
+  vel_temp[0] = -6;
+  vel_temp[1] = -6;
+  l6470_set_vel(&motor_sets, vel_temp);
+
+  HAL_Delay(5000);
+
+  l6470_disable(&motor_sets);
+
+  HAL_Delay(5000);
+////////////////////////////////////////////////////////////////////////////////////////
+
 
   /* USER CODE END 2 */
 
