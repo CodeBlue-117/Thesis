@@ -2,7 +2,7 @@
  * l6470.c
  *
  *  Created on: Dec 1, 2024
- *      Author: yerke
+ *      Author: Jake
  */
 #include <l6470.h>
 
@@ -133,7 +133,8 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
 	uint32_t speed;
 	for(int i = 0; i < NUMBER_OF_MOTORS; i++)
 	{
-		if(*(vel + i) > MAX_SPEED_RAD)
+
+		if(*(vel + i) > MAX_SPEED_RAD) // could use vel[i] instead of vel + i
 		{
 			*(vel + i) = MAX_SPEED_RAD;
 		}
@@ -141,6 +142,9 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
 		{
 			*(vel + i) = -MAX_SPEED_RAD;
 		}
+
+		/////////////////////////////////////////////////////////////////////////////
+
 		if(*(vel + i) > 0)
 		{
 			stepper_motor -> spd_tx_buffer[i] = (0x51);
@@ -150,14 +154,86 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
 			*(vel + i) = -(*(vel + i));
 			stepper_motor -> spd_tx_buffer[i] = (0x50);
 		}
+
+		/////////////////////////////////////////////////////////////////////////////
+
 		speed = (uint32_t)(*(vel + i) * STEPS_PER_REVOLUTION * 67.108864f / TWOPI);
+
+		/////////////////////////////////////////////////////////////////////////////
+
 		stepper_motor -> spd_tx_buffer[NUMBER_OF_MOTORS + i] = (uint8_t)(speed >> 16);
 		stepper_motor -> spd_tx_buffer[NUMBER_OF_MOTORS * 2 + i] = (uint8_t)(speed >> 8);
 		stepper_motor -> spd_tx_buffer[NUMBER_OF_MOTORS * 3 + i] = (uint8_t)(speed);
+
 	}
+
 	stepper_motor -> spi_tx_buffer_length = 4;
 	l6470_transmit_spi_dma(stepper_motor);
+
 }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void rotate_motor_individually(MotorSetTypedef* stepper_motor, int motor_num, float* vel)
+{
+    uint32_t speed;
+
+    // Ensure velocity is within bounds
+    if (*vel > MAX_SPEED_RAD)
+    {
+        *vel = MAX_SPEED_RAD;
+    }
+    else if (*vel < -MAX_SPEED_RAD)
+    {
+        *vel = -MAX_SPEED_RAD;
+    }
+
+    // Compute buffer index based on motor number
+    int dir_index = motor_num - 1;                   // Index for direction
+    int speed_index = NUMBER_OF_MOTORS + dir_index;  // Index for speed bytes
+
+    // Set direction
+    if (*vel > 0)
+    {
+        stepper_motor->spd_tx_buffer[dir_index] = 0x51; // CW
+    }
+    else
+    {
+        *vel = -*vel;  // Convert to positive for speed calculation
+        stepper_motor->spd_tx_buffer[dir_index] = 0x50; // CCW
+    }
+
+    // Compute speed
+    speed = (uint32_t)(*vel * STEPS_PER_REVOLUTION * 67.108864f / TWOPI);
+
+    // Store speed bytes
+    stepper_motor->spd_tx_buffer[speed_index] = (uint8_t)(speed >> 16);
+    stepper_motor->spd_tx_buffer[speed_index + NUMBER_OF_MOTORS] = (uint8_t)(speed >> 8);
+    stepper_motor->spd_tx_buffer[speed_index + NUMBER_OF_MOTORS * 2] = (uint8_t)(speed);
+
+    // Set SPI transmission length (only sending 4 bytes per call)
+    stepper_motor->spi_tx_buffer_length = 4;
+
+    // Transmit the data
+    l6470_transmit_spi_dma(stepper_motor);
+}
+
+void rotate_motor_1(MotorSetTypedef* stepper_motor, float* vel)
+{
+    rotate_motor_individually(stepper_motor, 1, vel);  // Rotate motor 1 CCW
+}
+
+void rotate_motor_2(MotorSetTypedef* stepper_motor, float* vel)
+{
+    rotate_motor_individually(stepper_motor, 2, vel);  // Rotate motor 2 CCW
+}
+
+void rotate_motor_3(MotorSetTypedef* stepper_motor, float* vel)
+{
+    rotate_motor_individually(stepper_motor, 3, vel);  // Rotate motor 3 CCW
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
  * @brief updates the stepper motor position (radians)

@@ -2,7 +2,7 @@
  * l6470.h
  *
  *  Created on: Dec 1, 2024
- *      Author: yerke
+ *      Author: Jake
  */
 
 #ifndef INC_L6470_H_
@@ -11,11 +11,11 @@
 #include "main.h"
 
 #define SPI_TX_BUFFER_LENGTH   8
-#define NUMBER_OF_MOTORS       2
+#define NUMBER_OF_MOTORS       3
 
 // Parameters
 #define MAX_ACCELERATION    		10  				/*!< max acceleration [rad/sec^2] 			*/
-#define MAX_SPEED_RAD    			10 * 6.28f 	// 5 * 6.28f 			/*!< max speed [rad / sec] 					*/
+#define MAX_SPEED_RAD    			60 * 6.28f 		// 5 * 6.28f 			/*!< max speed [rad / sec] 					*/
 #define MAX_CURRENT         		1.0 				/*!< Max Current of the stepper motor 		*/
 #define MICROSTEPPING               128					/*!< Number of microsteps per second	  	*/
 #define STEPS_PER_REVOLUTION  		200	                /*!< Steps per revolution 	*/
@@ -113,4 +113,7 @@ void l6470_set_steppersec(MotorSetTypedef stepper_motor,uint8_t motor_id, uint16
 void l6470_get_speed_pos(MotorSetTypedef* stepper_motor);
 void l6470_transmit_spi_dma(MotorSetTypedef* stepper_motor);
 uint16_t l6470_get_status(MotorSetTypedef* stepper_motor);
+void rotate_motor_1(MotorSetTypedef* stepper_motor, float* vel);
+void rotate_motor_2(MotorSetTypedef* stepper_motor, float* vel);
+void rotate_motor_3(MotorSetTypedef* stepper_motor, float* vel);
 #endif /* INC_L6470_H_ */
