@@ -1252,3 +1252,6 @@ Command-line arguments:  -os win32 -ws win32 -arch x86_64
 
 !ENTRY org.eclipse.cdt.core 1 0 2025-03-05 14:30:06.013
 !MESSAGE Indexed 'STEPPER_MOTOR_CONTROL_L6470' (23 sources, 120 headers) in 2.81 sec: 11,520 declarations; 43,056 references; 1 unresolved inclusions; 92 syntax errors; 240 unresolved names (0.44%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2025-03-05 14:37:04.300
+!MESSAGE Indexed 'STEPPER_MOTOR_CONTROL_L6470' (23 sources, 120 headers) in 2.16 sec: 11,520 declarations; 43,056 references; 1 unresolved inclusions; 92 syntax errors; 240 unresolved names (0.44%)
