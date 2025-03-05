@@ -65,7 +65,9 @@ static void MX_SPI1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-float vel_temp[2]; //  = {-6, -6}; // 1 rot.sec;
+//float vel_temp[3]; //  = {-6, -6, -6}; // 1 rot.sec;
+  float vel_temp;
+
 float angular_position1,angular_position2;
 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef * hspi)
@@ -118,8 +120,13 @@ int main(void)
 
 /////////////////////////////////////////////////////////////////////////////////////////
 //  // Forward at 1 rps
-  vel_temp[0] = 6;
-  vel_temp[1] = 6;
+
+  vel_temp = 6;
+
+//  vel_temp[0] = 6;
+//  vel_temp[1] = 6;
+//  vel_temp[2] = 6;
+
 //  l6470_set_vel(&motor_sets, vel_temp);
 //
 //  HAL_Delay(5000);
@@ -158,12 +165,9 @@ int main(void)
 //
 //  HAL_Delay(5000);
 ////////////////////////////////////////////////////////////////////////////////////////
+  rotate_motor_individually(&motor_sets, MOTOR1, vel_temp);
+  HAL_Delay(5000);
 
-  rotate_motor_1(&motor_sets, vel_temp);  // Rotate motor 1 CCW
-  // Wait a moment to observe the movement
-  rotate_motor_2(&motor_sets, vel_temp);  // Rotate motor 2 CCW
-  // Wait a moment to observe the movement
-  rotate_motor_3(&motor_sets, vel_temp);  // Rotate motor 3 CCW
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
@@ -175,9 +179,9 @@ int main(void)
   {
 
 	  //////////////////////////////////////////////////////////////////////////////////
-	  l6470_get_speed_pos(&motor_sets);
-	  angular_position1 = motor_sets.motors[0].speed_pos.rad_pos;
-	  angular_position2 = motor_sets.motors[1].speed_pos.rad_pos - motor_sets.motors[0].speed_pos.rad_pos;
+//	  l6470_get_speed_pos(&motor_sets);
+//	  angular_position1 = motor_sets.motors[0].speed_pos.rad_pos;
+//	  angular_position2 = motor_sets.motors[1].speed_pos.rad_pos - motor_sets.motors[0].speed_pos.rad_pos;
 	  //////////////////////////////////////////////////////////////////////////////////
 
 	  l6470_disable(&motor_sets);

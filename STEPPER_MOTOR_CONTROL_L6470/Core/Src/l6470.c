@@ -5,6 +5,8 @@
  *      Author: Jake
  */
 #include <l6470.h>
+#include <stdio.h>
+#include <string.h>
 
 
 
@@ -172,65 +174,150 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
 
 }
 
+// Cleaner Code
+//void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
+//{
+//    uint32_t speed;
+//
+//    for (int i = 0; i < NUMBER_OF_MOTORS; i++)
+//    {
+//        // Clamp velocity to the allowable range
+//        if (vel[i] > MAX_SPEED_RAD)
+//        {
+//            vel[i] = MAX_SPEED_RAD;
+//        }
+//        else if (vel[i] < -MAX_SPEED_RAD)
+//        {
+//            vel[i] = -MAX_SPEED_RAD;
+//        }
+//
+//        // Determine motor direction and store the corresponding command
+//        if (vel[i] > 0)
+//        {
+//            stepper_motor->spd_tx_buffer[i] = 0x51; // Forward direction
+//        }
+//        else
+//        {
+//            vel[i] = -vel[i]; // Convert negative speed to positive magnitude
+//            stepper_motor->spd_tx_buffer[i] = 0x50; // Reverse direction
+//        }
+//
+//        // Convert velocity to stepper motor speed format
+//        speed = (uint32_t)(vel[i] * STEPS_PER_REVOLUTION * 67.108864f / TWOPI);
+//
+//        // Store speed data in the transmission buffer
+//        stepper_motor->spd_tx_buffer[NUMBER_OF_MOTORS + i]     = (uint8_t)(speed >> 16);
+//        stepper_motor->spd_tx_buffer[NUMBER_OF_MOTORS * 2 + i] = (uint8_t)(speed >> 8);
+//        stepper_motor->spd_tx_buffer[NUMBER_OF_MOTORS * 3 + i] = (uint8_t)(speed);
+//    }
+//
+//    // Set SPI transmission buffer length and send data
+//    stepper_motor->spi_tx_buffer_length = 4;
+//    l6470_transmit_spi_dma(stepper_motor);
+//}
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void rotate_motor_individually(MotorSetTypedef* stepper_motor, int motor_num, float* vel)
+void rotate_motor_individually(MotorSetTypedef* stepper_motor, uint8_t motor_num, float vel)
 {
     uint32_t speed;
 
     // Ensure velocity is within bounds
-    if (*vel > MAX_SPEED_RAD)
+    if (vel > MAX_SPEED_RAD)
     {
-        *vel = MAX_SPEED_RAD;
+        vel = MAX_SPEED_RAD;
     }
-    else if (*vel < -MAX_SPEED_RAD)
+    else if (vel < -MAX_SPEED_RAD)
     {
-        *vel = -MAX_SPEED_RAD;
-    }
-
-    // Compute buffer index based on motor number
-    int dir_index = motor_num - 1;                   // Index for direction
-    int speed_index = NUMBER_OF_MOTORS + dir_index;  // Index for speed bytes
-
-    // Set direction
-    if (*vel > 0)
-    {
-        stepper_motor->spd_tx_buffer[dir_index] = 0x51; // CW
-    }
-    else
-    {
-        *vel = -*vel;  // Convert to positive for speed calculation
-        stepper_motor->spd_tx_buffer[dir_index] = 0x50; // CCW
+        vel = -MAX_SPEED_RAD;
     }
 
-    // Compute speed
-    speed = (uint32_t)(*vel * STEPS_PER_REVOLUTION * 67.108864f / TWOPI);
+    // Clear buffer before modifying
+    memset(stepper_motor->spd_tx_buffer, 0, sizeof(stepper_motor->spd_tx_buffer));
 
-    // Store speed bytes
-    stepper_motor->spd_tx_buffer[speed_index] = (uint8_t)(speed >> 16);
-    stepper_motor->spd_tx_buffer[speed_index + NUMBER_OF_MOTORS] = (uint8_t)(speed >> 8);
-    stepper_motor->spd_tx_buffer[speed_index + NUMBER_OF_MOTORS * 2] = (uint8_t)(speed);
+    // Motor 1
+    if (motor_num == 1)
+    {
+        // Set direction
+        if (vel > 0)
+        {
+            stepper_motor->spd_tx_buffer[0] = 0x51; // CW
+        }
+        else
+        {
+            vel = -vel;  // Convert to positive for speed calculation
+            stepper_motor->spd_tx_buffer[0] = 0x50; // CCW
+        }
 
-    // Set SPI transmission length (only sending 4 bytes per call)
-    stepper_motor->spi_tx_buffer_length = 4;
+        // Compute speed
+        speed = (uint32_t)(vel * STEPS_PER_REVOLUTION * 67.108864f / TWOPI);
 
-    // Transmit the data
+        // Store speed bytes for motor 1
+        stepper_motor->spd_tx_buffer[3] = (uint8_t)(speed >> 16);
+        stepper_motor->spd_tx_buffer[4] = (uint8_t)(speed >> 8);
+        stepper_motor->spd_tx_buffer[5] = (uint8_t)(speed);
+    }
+
+    // Motor 2
+    else if (motor_num == 2)
+    {
+        // Set direction
+        if (vel > 0)
+        {
+            stepper_motor->spd_tx_buffer[1] = 0x51; // CW
+        }
+        else
+        {
+            vel = -vel;  // Convert to positive for speed calculation
+            stepper_motor->spd_tx_buffer[1] = 0x50; // CCW
+        }
+
+        // Compute speed
+        speed = (uint32_t)(vel * STEPS_PER_REVOLUTION * 67.108864f / TWOPI);
+
+        // Store speed bytes for motor 2
+        stepper_motor->spd_tx_buffer[6] = (uint8_t)(speed >> 16);
+        stepper_motor->spd_tx_buffer[7] = (uint8_t)(speed >> 8);
+        stepper_motor->spd_tx_buffer[8] = (uint8_t)(speed);
+    }
+
+    // Motor 3
+    else if (motor_num == 3)
+    {
+        // Set direction
+        if (vel > 0)
+        {
+            stepper_motor->spd_tx_buffer[2] = 0x51; // CW
+        }
+        else
+        {
+            vel = -vel;  // Convert to positive for speed calculation
+            stepper_motor->spd_tx_buffer[2] = 0x50; // CCW
+        }
+
+        // Compute speed
+        speed = (uint32_t)(vel * STEPS_PER_REVOLUTION * 67.108864f / TWOPI);
+
+        // Store speed bytes for motor 3
+        stepper_motor->spd_tx_buffer[9] = (uint8_t)(speed >> 16);
+        stepper_motor->spd_tx_buffer[10] = (uint8_t)(speed >> 8);
+        stepper_motor->spd_tx_buffer[11] = (uint8_t)(speed);
+    }
+
+    else // Invalid motor number, handle this case
+    {
+        printf("Invalid motor number\n\r");
+        while(1)
+        {
+            ; // Stay stuck here
+        }
+    }
+
+    // Set SPI transmission length to cover all motors' data (4 bytes per motor)
+    stepper_motor->spi_tx_buffer_length = 4; // 3 motors, 12 bytes total
+
+    // Transmit the data via SPI
     l6470_transmit_spi_dma(stepper_motor);
-}
-
-void rotate_motor_1(MotorSetTypedef* stepper_motor, float* vel)
-{
-    rotate_motor_individually(stepper_motor, 1, vel);  // Rotate motor 1 CCW
-}
-
-void rotate_motor_2(MotorSetTypedef* stepper_motor, float* vel)
-{
-    rotate_motor_individually(stepper_motor, 2, vel);  // Rotate motor 2 CCW
-}
-
-void rotate_motor_3(MotorSetTypedef* stepper_motor, float* vel)
-{
-    rotate_motor_individually(stepper_motor, 3, vel);  // Rotate motor 3 CCW
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
