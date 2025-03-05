@@ -1234,3 +1234,21 @@ Caused by: java.lang.NullPointerException: Cannot invoke "org.eclipse.e4.ui.work
 	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
 	at org.eclipse.e4.core.internal.di.MethodRequestor.execute(MethodRequestor.java:58)
 	... 113 more
+!SESSION 2025-03-05 15:25:46.732 -----------------------------------------------
+eclipse.buildId=Version 1.18.0
+java.version=21.0.3
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=en_US
+Command-line arguments:  -os win32 -ws win32 -arch x86_64
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2025-03-05 15:25:57.734
+!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2025-03-05 15:25:57.735
+!MESSAGE Log4j2 initialized with config file C:\Users\jake-\Documents\GitHub\Thesis\.metadata\.log4j2.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2025-03-05 15:26:13.131
+!MESSAGE Started RMI Server, listening on port 41337
+
+!ENTRY org.eclipse.cdt.core 1 0 2025-03-05 15:26:16.877
+!MESSAGE Indexed 'STEPPER_MOTOR_CONTROL_L6470' (23 sources, 120 headers) in 2.92 sec: 11,547 declarations; 43,167 references; 1 unresolved inclusions; 92 syntax errors; 240 unresolved names (0.44%)
