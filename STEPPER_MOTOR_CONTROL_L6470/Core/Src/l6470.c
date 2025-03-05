@@ -2,7 +2,7 @@
  * l6470.c
  *
  *  Created on: Dec 1, 2024
- *      Author: Jake
+ *      Author: yerke
  */
 #include <l6470.h>
 
@@ -24,7 +24,7 @@ void l6470_enable(MotorSetTypedef* stepper_motor)
 		reg_temp[i] = RESET_DEVICE;
 	}
 
-	l6470_transmit_spi(stepper_motor, reg_temp, NUMBER_OF_MOTORS);
+	l6470_transmit_spi(stepper_motor, &reg_temp, NUMBER_OF_MOTORS);
 }
 /*
  * @brief disable l6470 motor driver
@@ -48,70 +48,34 @@ void l6470_disable(MotorSetTypedef* stepper_motor)
  */
 void l6470_init(MotorSetTypedef* stepper_motor)
 {
+	uint8_t reg_temp[4];
 
-
-	uint8_t reg_temp_1;
-	uint8_t reg_temp_3[3] = {0, 0, 0};
-	uint8_t reg_temp_4[4];
-
-
-	// Set the number of steps per revolution for each motor
 	for(int i = 0; i <= NUMBER_OF_MOTORS; i++)
 	{
 		stepper_motor ->motors[i].speed_pos.steps_per_rev = STEPS_PER_REVOLUTION;
 	}
-
 	// reset the driver
 	HAL_GPIO_WritePin(stepper_motor -> gpio_rst_port, stepper_motor -> gpio_rst_number, GPIO_PIN_RESET);
 	HAL_Delay(100);
 	HAL_GPIO_WritePin(stepper_motor ->gpio_rst_port, stepper_motor -> gpio_rst_number, GPIO_PIN_SET);
 	HAL_Delay(100);
-
-	// disable the driver
 	l6470_disable(stepper_motor);
 
-	// set CONFIG values
-
-	// Enable all alarms
-	reg_temp_1 = 0xFF;
-	l6470_set_param(stepper_motor, ALARM_EN, &reg_temp_1, 1);
-
-
-	// Set STEP_MODE Microstepping (The default is already set at 1/128 step, but we will issue the command anyways for testing)
-	reg_temp_1 = (uint8_t)ONE_HUNDRED_TWENTY_EIGHTH_STEP;
-	l6470_set_param(stepper_motor, STEP_MODE, &reg_temp_1, 1);
-
-
-	// Set the default ABS position to 0
-	// set all three bytes to zero for the 22 bit field (the upper 2 bits are ignored)
-	l6470_set_param(stepper_motor, ABS_POS, reg_temp_3, 3);
-
-	// Set the defautl EL position to 0
-	// set all three bytes to zero for the 22 bit field (the upper 2 bits are ignored)
-	l6470_set_param(stepper_motor, EL_POS, reg_temp_3, 3);
-
-
-	// Set the level for Holding Current
-	reg_temp_4[0] = (uint8_t)((uint16_t)KVAL_HOLD_PERCENT * 255 / 100);
-	l6470_set_param(stepper_motor, KVAL_HOLD, reg_temp_4, 1);
-
-	// Set the Current level for running at constant speed
-	reg_temp_4[0] = (uint8_t)((uint16_t)KVAL_RUN_PERCENT * 255 / 100);
-	l6470_set_param(stepper_motor, KVAL_RUN, reg_temp_4, 1);
-
-	// Set the Current level for acceleration
-	reg_temp_4[0] = (uint8_t)((uint16_t)KVAL_ACCDEC_PERCENT * 255 / 100);
-	l6470_set_param(stepper_motor, KVAL_ACC, reg_temp_4, 1);
-
-	// Set the current level for decceleration
-	reg_temp_4[0] = (uint8_t)((uint16_t)KVAL_ACCDEC_PERCENT * 255 / 100);
-	l6470_set_param(stepper_motor, KVAL_DEC , reg_temp_4, 1);
+	// set KVAL values
+	reg_temp[0] = (uint8_t)((uint16_t)KVAL_HOLD_PERCENT * 255 / 100);
+	l6470_set_param(stepper_motor, KVAL_HOLD, reg_temp, 1);
+	reg_temp[0] = (uint8_t)((uint16_t)KVAL_RUN_PERCENT * 255 / 100);
+	l6470_set_param(stepper_motor, KVAL_RUN, reg_temp, 1);
+	reg_temp[0] = (uint8_t)((uint16_t)KVAL_ACCDEC_PERCENT * 255 / 100);
+	l6470_set_param(stepper_motor, KVAL_ACC, reg_temp, 1);
+	reg_temp[0] = (uint8_t)((uint16_t)KVAL_ACCDEC_PERCENT * 255 / 100);
+	l6470_set_param(stepper_motor, KVAL_ACC, reg_temp, 1);
 
 	// set overcurrent threshold
-	reg_temp_4[0] = (uint8_t)(MAX_CURRENT / 375) + 1;
-	l6470_set_param(stepper_motor, OCD_TH, reg_temp_4, 1);
+	reg_temp[0] = (uint8_t)(MAX_CURRENT / 375) + 1;
+	l6470_set_param(stepper_motor, OCD_TH, reg_temp, 1);
 
-	// ToDo: Set the Config register....
+	// ToDo: set microstepping and disbale step clock mode
 
 	// initialize the spi buffers
 	stepper_motor -> spi_dma_busy = 0;
@@ -120,6 +84,8 @@ void l6470_init(MotorSetTypedef* stepper_motor)
 	{
 		stepper_motor->motors[i].stepper_id = i;
 	}
+
+
 
 }
 
@@ -133,8 +99,7 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
 	uint32_t speed;
 	for(int i = 0; i < NUMBER_OF_MOTORS; i++)
 	{
-
-		if(*(vel + i) > MAX_SPEED_RAD) // could use vel[i] instead of vel + i
+		if(*(vel + i) > MAX_SPEED_RAD)
 		{
 			*(vel + i) = MAX_SPEED_RAD;
 		}
@@ -142,9 +107,6 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
 		{
 			*(vel + i) = -MAX_SPEED_RAD;
 		}
-
-		/////////////////////////////////////////////////////////////////////////////
-
 		if(*(vel + i) > 0)
 		{
 			stepper_motor -> spd_tx_buffer[i] = (0x51);
@@ -154,86 +116,14 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
 			*(vel + i) = -(*(vel + i));
 			stepper_motor -> spd_tx_buffer[i] = (0x50);
 		}
-
-		/////////////////////////////////////////////////////////////////////////////
-
 		speed = (uint32_t)(*(vel + i) * STEPS_PER_REVOLUTION * 67.108864f / TWOPI);
-
-		/////////////////////////////////////////////////////////////////////////////
-
 		stepper_motor -> spd_tx_buffer[NUMBER_OF_MOTORS + i] = (uint8_t)(speed >> 16);
 		stepper_motor -> spd_tx_buffer[NUMBER_OF_MOTORS * 2 + i] = (uint8_t)(speed >> 8);
 		stepper_motor -> spd_tx_buffer[NUMBER_OF_MOTORS * 3 + i] = (uint8_t)(speed);
-
 	}
-
 	stepper_motor -> spi_tx_buffer_length = 4;
 	l6470_transmit_spi_dma(stepper_motor);
-
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-void rotate_motor_individually(MotorSetTypedef* stepper_motor, int motor_num, float* vel)
-{
-    uint32_t speed;
-
-    // Ensure velocity is within bounds
-    if (*vel > MAX_SPEED_RAD)
-    {
-        *vel = MAX_SPEED_RAD;
-    }
-    else if (*vel < -MAX_SPEED_RAD)
-    {
-        *vel = -MAX_SPEED_RAD;
-    }
-
-    // Compute buffer index based on motor number
-    int dir_index = motor_num - 1;                   // Index for direction
-    int speed_index = NUMBER_OF_MOTORS + dir_index;  // Index for speed bytes
-
-    // Set direction
-    if (*vel > 0)
-    {
-        stepper_motor->spd_tx_buffer[dir_index] = 0x51; // CW
-    }
-    else
-    {
-        *vel = -*vel;  // Convert to positive for speed calculation
-        stepper_motor->spd_tx_buffer[dir_index] = 0x50; // CCW
-    }
-
-    // Compute speed
-    speed = (uint32_t)(*vel * STEPS_PER_REVOLUTION * 67.108864f / TWOPI);
-
-    // Store speed bytes
-    stepper_motor->spd_tx_buffer[speed_index] = (uint8_t)(speed >> 16);
-    stepper_motor->spd_tx_buffer[speed_index + NUMBER_OF_MOTORS] = (uint8_t)(speed >> 8);
-    stepper_motor->spd_tx_buffer[speed_index + NUMBER_OF_MOTORS * 2] = (uint8_t)(speed);
-
-    // Set SPI transmission length (only sending 4 bytes per call)
-    stepper_motor->spi_tx_buffer_length = 4;
-
-    // Transmit the data
-    l6470_transmit_spi_dma(stepper_motor);
-}
-
-void rotate_motor_1(MotorSetTypedef* stepper_motor, float* vel)
-{
-    rotate_motor_individually(stepper_motor, 1, vel);  // Rotate motor 1 CCW
-}
-
-void rotate_motor_2(MotorSetTypedef* stepper_motor, float* vel)
-{
-    rotate_motor_individually(stepper_motor, 2, vel);  // Rotate motor 2 CCW
-}
-
-void rotate_motor_3(MotorSetTypedef* stepper_motor, float* vel)
-{
-    rotate_motor_individually(stepper_motor, 3, vel);  // Rotate motor 3 CCW
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*
  * @brief updates the stepper motor position (radians)
@@ -278,14 +168,11 @@ void l6470_get_speed_pos(MotorSetTypedef* stepper_motor)
 static void l6470_set_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t *data, uint8_t data_length)
 {
 	uint8_t data_raw[NUMBER_OF_MOTORS];
-
 	for(int i = 0; i < NUMBER_OF_MOTORS; i++)
 	{
 		data_raw[i] = param;
 	}
-
 	l6470_transmit_spi( stepper_motor, data_raw,NUMBER_OF_MOTORS);
-
 	for(int i = 0; i < data_length; i++)
 	{
 		for(int j = 0; j < NUMBER_OF_MOTORS; j++)

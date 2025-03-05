@@ -6,9 +6,12 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2024 Jake Price.
+  * Copyright (c) 2024 STMicroelectronics.
   * All rights reserved.
-
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
   *
   ******************************************************************************
   */
@@ -65,7 +68,7 @@ static void MX_SPI1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-float vel_temp[2]; //  = {-6, -6}; // 1 rot.sec;
+float vel_temp[2] = {-6, -6}; // 1 rot.sec;
 float angular_position1,angular_position2;
 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef * hspi)
@@ -116,56 +119,7 @@ int main(void)
 
   l6470_enable(&motor_sets);
 
-/////////////////////////////////////////////////////////////////////////////////////////
-//  // Forward at 1 rps
-  vel_temp[0] = 6;
-  vel_temp[1] = 6;
-//  l6470_set_vel(&motor_sets, vel_temp);
-//
-//  HAL_Delay(5000);
-//
-//  vel_temp[0] = 12; // 2 rps
-//  vel_temp[1] = 12;
-//  l6470_set_vel(&motor_sets, vel_temp);
-//
-//  HAL_Delay(5000);
-//
-//  vel_temp[0] = 24; // 2 rps
-//  vel_temp[1] = 24;
-//  l6470_set_vel(&motor_sets, vel_temp);
-//
-//  HAL_Delay(5000);
-//
-//  vel_temp[0] = -6; // -1 rps
-//  vel_temp[1] = -6;
-//  l6470_set_vel(&motor_sets, vel_temp);
-//
-//  HAL_Delay(5000);
-//
-//  vel_temp[0] = -12; // -2 rps
-//  vel_temp[1] = -12;
-//  l6470_set_vel(&motor_sets, vel_temp);
-//
-//  HAL_Delay(5000);
-//
-//  vel_temp[0] = -24; // 2 rps
-//  vel_temp[1] = -24;
-//  l6470_set_vel(&motor_sets, vel_temp);
-//
-//  HAL_Delay(5000);
-//
-//  l6470_disable(&motor_sets);
-//
-//  HAL_Delay(5000);
-////////////////////////////////////////////////////////////////////////////////////////
-
-  rotate_motor_1(&motor_sets, vel_temp);  // Rotate motor 1 CCW
-  // Wait a moment to observe the movement
-  rotate_motor_2(&motor_sets, vel_temp);  // Rotate motor 2 CCW
-  // Wait a moment to observe the movement
-  rotate_motor_3(&motor_sets, vel_temp);  // Rotate motor 3 CCW
-
-////////////////////////////////////////////////////////////////////////////////////////
+  l6470_set_vel(&motor_sets, vel_temp);
 
   /* USER CODE END 2 */
 
@@ -173,14 +127,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-	  //////////////////////////////////////////////////////////////////////////////////
-	  l6470_get_speed_pos(&motor_sets);
-	  angular_position1 = motor_sets.motors[0].speed_pos.rad_pos;
-	  angular_position2 = motor_sets.motors[1].speed_pos.rad_pos - motor_sets.motors[0].speed_pos.rad_pos;
-	  //////////////////////////////////////////////////////////////////////////////////
-
-	  l6470_disable(&motor_sets);
+//	  l6470_get_speed_pos(&motor_sets);
+//	  angular_position1 = motor_sets.motors[0].speed_pos.rad_pos;
+//	  angular_position2 = motor_sets.motors[1].speed_pos.rad_pos - motor_sets.motors[0].speed_pos.rad_pos;
 
 	  HAL_Delay(1);
     /* USER CODE END WHILE */
