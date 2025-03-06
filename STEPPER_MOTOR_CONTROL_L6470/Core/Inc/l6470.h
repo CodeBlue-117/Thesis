@@ -10,8 +10,8 @@
 
 #include "main.h"
 
-#define SPI_TX_BUFFER_LENGTH   8
-#define NUMBER_OF_MOTORS       3
+#define NUMBER_OF_MOTORS       2
+#define SPI_TX_BUFFER_LENGTH   4 * NUMBER_OF_MOTORS // 4 // 8 // 12 //4 * NUMBER_OF_MOTORS
 
 #define MOTOR1				   1
 #define MOTOR2				   2
@@ -120,6 +120,6 @@ void l6470_transmit_spi_dma(MotorSetTypedef* stepper_motor);
 uint16_t l6470_get_status(MotorSetTypedef* stepper_motor);
 
 void rotate_motor_individually(MotorSetTypedef* stepper_motor, uint8_t motor_num, float vel);
-
+void l6470_set_single_motor_vel(MotorSetTypedef* stepper_motor, float vel);
 
 #endif /* INC_L6470_H_ */
