@@ -39,17 +39,26 @@ uint16_t status_step;
 
 /* Private variables ---------------------------------------------------------*/
 SPI_HandleTypeDef hspi1;
+SPI_HandleTypeDef hspi2;
 DMA_HandleTypeDef hdma_spi1_rx;
 DMA_HandleTypeDef hdma_spi1_tx;
 
 /* USER CODE BEGIN PV */
 
-static MotorSetTypedef motor_sets = {
-		.gpio_cs_number = STEPPER_SPI_CS_Pin,
-		.gpio_cs_port = STEPPER_SPI_CS_GPIO_Port,
+static MotorSetTypedef motor_set_1 = {
+		.gpio_cs_number = STEPPER_SPI1_CS_Pin,
+		.gpio_cs_port = STEPPER_SPI1_CS_GPIO_Port,
 		.gpio_rst_number = STEPPER_RST_Pin,
 		.gpio_rst_port = STEPPER_RST_GPIO_Port,
 		.hspi_l6470 = &hspi1,
+};
+
+static MotorSetTypedef motor_set_2 = {
+		.gpio_cs_number = STEPPER_SPI2_CS_Pin,
+		.gpio_cs_port = STEPPER_SPI2_CS_GPIO_Port,
+		.gpio_rst_number = STEPPER_RST_Pin,
+		.gpio_rst_port = STEPPER_RST_GPIO_Port,
+		.hspi_l6470 = &hspi2,
 };
 /* USER CODE END PV */
 
@@ -58,7 +67,7 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_SPI1_Init(void);
-
+static void MX_SPI2_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -77,9 +86,14 @@ float vel_temp_3[3]; //  = {-6, -6, -6}; // 1 rot.sec;
 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef * hspi)
 {
-	if(hspi == motor_sets.hspi_l6470)
+	if(hspi == motor_set_1.hspi_l6470)
 	{
-		l6470_transmit_spi_dma(&motor_sets);
+		l6470_transmit_spi_dma(&motor_set_1);
+	}
+
+	else if(hspi == motor_set_2.hspi_l6470)
+	{
+		l6470_transmit_spi_dma(&motor_set_2);
 	}
 }
 /* USER CODE END 0 */
@@ -115,18 +129,21 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_SPI1_Init();
+  MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
 
   HAL_Delay(1000);
 
-  l6470_init(&motor_sets);
+  l6470_init(&motor_set_1);
+  l6470_init(&motor_set_2);
 
-  l6470_enable(&motor_sets);
+  l6470_enable(&motor_set_1);
+  l6470_enable(&motor_set_2);
 
 /////////////////////////////////////////////////////////////////////////////////////////
-  vel_temp_1 = 6; //  Forward at 1 rps
+  vel_temp_1 = -1; //  Forward at 1 rps
 /////////////////////////////////////////////////////////////////////////////////////////
-  vel_temp_2[0] = -6;
+  vel_temp_2[0] = 2;
   vel_temp_2[1] = 6;
 /////////////////////////////////////////////////////////////////////////////////////////
   vel_temp_3[0] = 6;
@@ -134,60 +151,8 @@ int main(void)
   vel_temp_3[2] = 6;
 /////////////////////////////////////////////////////////////////////////////////////////
 
-
-//  l6470_set_vel(&motor_sets, vel_temp);
-//
-//  HAL_Delay(5000);
-//
-//  vel_temp[0] = 12; // 2 rps
-//  vel_temp[1] = 12;
-//  l6470_set_vel(&motor_sets, vel_temp);
-//
-//  HAL_Delay(5000);
-//
-//  vel_temp[0] = 24; // 2 rps
-//  vel_temp[1] = 24;
-//  l6470_set_vel(&motor_sets, vel_temp);
-//
-//  HAL_Delay(5000);
-//
-//  vel_temp[0] = -6; // -1 rps
-//  vel_temp[1] = -6;
-//  l6470_set_vel(&motor_sets, vel_temp);
-//
-//  HAL_Delay(5000);
-//
-//  vel_temp[0] = -12; // -2 rps
-//  vel_temp[1] = -12;
-//  l6470_set_vel(&motor_sets, vel_temp);
-//
-//  HAL_Delay(5000);
-//
-//  vel_temp[0] = -24; // 2 rps
-//  vel_temp[1] = -24;
-//  l6470_set_vel(&motor_sets, vel_temp);
-//
-//  HAL_Delay(5000);
-//
-//  l6470_disable(&motor_sets);
-//
-//  HAL_Delay(5000);
-////////////////////////////////////////////////////////////////////////////////////////
-
-//  rotate_motor_individually(&motor_sets, MOTOR1, vel_temp);
-//  HAL_Delay(5000);
-
-//////////////////////////////////////////////////////////////////////////////////////////
-
-//    l6470_set_single_motor_vel(&motor_sets, 1.0);
-//    HAL_Delay(5000);
-//
-//    l6470_set_single_motor_vel(&motor_sets, -2.0);
-//    HAL_Delay(5000);
-
-////////////////////////////////////////////////////////////////////////////////////////
-
-  l6470_set_vel(&motor_sets, vel_temp_2);
+  l6470_set_vel(&motor_set_1, vel_temp_2);
+  l6470_set_vel(&motor_set_2, &vel_temp_1);
   HAL_Delay(5000);
 
   /* USER CODE END 2 */
@@ -198,12 +163,13 @@ int main(void)
   {
 
 	  //////////////////////////////////////////////////////////////////////////////////
-//	  l6470_get_speed_pos(&motor_sets);
-//	  angular_position1 = motor_sets.motors[0].speed_pos.rad_pos;
-//	  angular_position2 = motor_sets.motors[1].speed_pos.rad_pos - motor_sets.motors[0].speed_pos.rad_pos;
+//	  l6470_get_speed_pos(&motor_set_1);
+//	  angular_position1 = motor_set_1.motors[0].speed_pos.rad_pos;
+//	  angular_position2 = motor_set_1.motors[1].speed_pos.rad_pos - motor_set_1.motors[0].speed_pos.rad_pos;
 	  //////////////////////////////////////////////////////////////////////////////////
 
-	  l6470_disable(&motor_sets);
+	  l6470_disable(&motor_set_1);
+	  l6470_disable(&motor_set_2);
 
 	  HAL_Delay(1);
     /* USER CODE END WHILE */
@@ -298,6 +264,44 @@ static void MX_SPI1_Init(void)
 }
 
 /**
+  * @brief SPI2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI2_Init(void)
+{
+
+  /* USER CODE BEGIN SPI2_Init 0 */
+
+  /* USER CODE END SPI2_Init 0 */
+
+  /* USER CODE BEGIN SPI2_Init 1 */
+
+  /* USER CODE END SPI2_Init 1 */
+  /* SPI2 parameter configuration*/
+  hspi2.Instance = SPI2;
+  hspi2.Init.Mode = SPI_MODE_MASTER;
+  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi2.Init.CRCPolynomial = 10;
+  if (HAL_SPI_Init(&hspi2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI2_Init 2 */
+
+  /* USER CODE END SPI2_Init 2 */
+
+}
+
+/**
   * Enable DMA controller clock
   */
 static void MX_DMA_Init(void)
@@ -334,7 +338,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(STEPPER_SPI_CS_GPIO_Port, STEPPER_SPI_CS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, STEPPER_SPI1_CS_Pin|STEPPER_SPI2_CS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(STEPPER_RST_GPIO_Port, STEPPER_RST_Pin, GPIO_PIN_RESET);
@@ -359,12 +363,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : STEPPER_SPI_CS_Pin */
-  GPIO_InitStruct.Pin = STEPPER_SPI_CS_Pin;
+  /*Configure GPIO pins : STEPPER_SPI1_CS_Pin STEPPER_SPI2_CS_Pin */
+  GPIO_InitStruct.Pin = STEPPER_SPI1_CS_Pin|STEPPER_SPI2_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(STEPPER_SPI_CS_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pin : STEPPER_RST_Pin */
   GPIO_InitStruct.Pin = STEPPER_RST_Pin;
@@ -378,7 +382,8 @@ static void MX_GPIO_Init(void)
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
-  HAL_GPIO_WritePin(STEPPER_SPI_CS_GPIO_Port, STEPPER_SPI_CS_Pin, GPIO_PIN_SET);
+
+  HAL_GPIO_WritePin(STEPPER_SPI2_CS_GPIO_Port, STEPPER_SPI1_CS_Pin, GPIO_PIN_SET);
 /* USER CODE END MX_GPIO_Init_2 */
 }
 

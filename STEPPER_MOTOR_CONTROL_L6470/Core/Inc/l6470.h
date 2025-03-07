@@ -10,7 +10,7 @@
 
 #include "main.h"
 
-#define NUMBER_OF_MOTORS       2
+#define NUMBER_OF_MOTORS       2 // Should be able to use 2 here because the first shield uses 2 motors, the second shield uses 1, but can be configured for 2
 #define SPI_TX_BUFFER_LENGTH   4 * NUMBER_OF_MOTORS // 4 // 8 // 12 //4 * NUMBER_OF_MOTORS
 
 #define MOTOR1				   1

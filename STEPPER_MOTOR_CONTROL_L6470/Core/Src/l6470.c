@@ -51,11 +51,9 @@ void l6470_disable(MotorSetTypedef* stepper_motor)
 void l6470_init(MotorSetTypedef* stepper_motor)
 {
 
-
 	uint8_t reg_temp_1;
 	uint8_t reg_temp_3[3] = {0, 0, 0};
 	uint8_t reg_temp_4[4];
-
 
 	// Set the number of steps per revolution for each motor
 	for(int i = 0; i <= NUMBER_OF_MOTORS; i++)
@@ -389,7 +387,15 @@ static void l6470_receive_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uin
 {
 	uint8_t data_raw[data_length];
 	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
-	HAL_SPI_TransmitReceive(stepper_motor ->hspi_l6470, data_raw, data, data_length, 1000);
+	HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(stepper_motor ->hspi_l6470, data_raw, data, data_length, 1000);
+	if(status != HAL_OK)
+	{
+		printf("SPI RECEIVE ERROR!!!!!\n\r");
+		while(1)
+		{
+			;
+		}
+	}
 	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
 }
 /*
@@ -402,7 +408,15 @@ static void l6470_transmit_spi(MotorSetTypedef* stepper_motor, uint8_t* data, ui
 {
 	uint8_t receive_data[40];
 	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
-	HAL_SPI_TransmitReceive(stepper_motor ->hspi_l6470, data, receive_data, data_length, 1000);
+	HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(stepper_motor ->hspi_l6470, data, receive_data, data_length, 1000);
+	if(status != HAL_OK)
+	{
+		printf("SPI TRANSMIT ERROR!!!!!\n\r");
+		while(1)
+		{
+			;
+		}
+	}
 	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
 }
 
@@ -418,9 +432,17 @@ void l6470_transmit_spi_dma(MotorSetTypedef* stepper_motor)
 	{
 		HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
 
-		HAL_SPI_TransmitReceive_DMA(stepper_motor ->hspi_l6470, stepper_motor -> spd_tx_buffer +
+		HAL_StatusTypeDef status = HAL_SPI_TransmitReceive_DMA(stepper_motor ->hspi_l6470, stepper_motor -> spd_tx_buffer +
 				stepper_motor -> spi_tx_count * NUMBER_OF_MOTORS, stepper_motor -> spd_rx_buffer +
 				stepper_motor -> spi_tx_count * NUMBER_OF_MOTORS, NUMBER_OF_MOTORS);
+		if(status != HAL_OK)
+			{
+				printf("SPI TRANSMIT DMA ERROR!!!!!\n\r");
+				while(1)
+				{
+					;
+				}
+			}
 		stepper_motor -> spi_tx_count++;
 		stepper_motor -> spi_dma_busy = 1;
 	}
