@@ -163,6 +163,16 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
     // Set SPI transmission buffer length and send data
     stepper_motor->spi_tx_buffer_length = 4 * NUMBER_OF_MOTORS; /////////////////////////////////////////////////////////////// was 4
 
+    for(int i = 0; i < 16; i++)
+    {
+    	printf("stepper_motor->spd_tx_buffer[%d]: %02X\n\r", i,  stepper_motor->spd_tx_buffer[i]);
+    }
+
+    printf("stepper_motor->spi_tx_buffer_length: %d\n\r", stepper_motor->spi_tx_buffer_length);
+    printf("spd_tx_buffer LENGTH: %d\n\r", NUMBER_OF_MOTORS * SPI_TX_BUFFER_LENGTH);
+    printf("spi_tx_count: %d\n\r", stepper_motor->spi_tx_count);
+
+
     l6470_transmit_spi_dma(stepper_motor);
 }
 
