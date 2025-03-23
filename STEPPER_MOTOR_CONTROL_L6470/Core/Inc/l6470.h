@@ -105,8 +105,8 @@ typedef struct
 	l6470TypeDef        motors[MAX_NUMBER_OF_MOTORS];
 	uint8_t				num_motors;
 	uint8_t             spi_dma_busy;
-	uint8_t             spd_tx_buffer[SPI_TX_BUFFER_LENGTH];
-	uint8_t             spd_rx_buffer[SPI_RX_BUFFER_LENGTH];
+	uint8_t             spd_tx_buffer[SPI_TX_BUFFER_LENGTH * MAX_NUMBER_OF_MOTORS];
+	uint8_t             spd_rx_buffer[SPI_RX_BUFFER_LENGTH * MAX_NUMBER_OF_MOTORS];
 	uint8_t             spi_tx_count;
 	uint8_t             spi_tx_buffer_length;
 

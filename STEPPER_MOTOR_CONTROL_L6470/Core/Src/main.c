@@ -162,15 +162,19 @@ int main(void)
 /////////////////////////////////////////////////////////////////////////////////////////
   vel_temp_1 = -1; //  Forward at 1 rps
 
-  vel_temp_2[0] = 2;
+  vel_temp_2[0] = -2;
   vel_temp_2[1] = 6;
 /////////////////////////////////////////////////////////////////////////////////////////
 
-  printf("Hello World!\n\r");
+  printf("\n\r\n\r\n\rHello World!\n\r");
 
   l6470_set_vel(&motor_set_1, vel_temp_2);
 //  l6470_set_vel(&motor_set_2, &vel_temp_1);
   HAL_Delay(5000);
+
+
+  l6470_disable(&motor_set_1);
+  l6470_disable(&motor_set_2);
 
   /* USER CODE END 2 */
 
@@ -179,16 +183,12 @@ int main(void)
   while (1)
   {
 
-	  //////////////////////////////////////////////////////////////////////////////////
-//	  l6470_get_speed_pos(&motor_set_1);
-//	  angular_position1 = motor_set_1.motors[0].speed_pos.rad_pos;
-//	  angular_position2 = motor_set_1.motors[1].speed_pos.rad_pos - motor_set_1.motors[0].speed_pos.rad_pos;
-	  //////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////
+	//	  l6470_get_speed_pos(&motor_set_1);
+	//	  angular_position1 = motor_set_1.motors[0].speed_pos.rad_pos;
+	//	  angular_position2 = motor_set_1.motors[1].speed_pos.rad_pos - motor_set_1.motors[0].speed_pos.rad_pos;
+	//////////////////////////////////////////////////////////////////////////////////
 
-	  l6470_disable(&motor_set_1);
-	  l6470_disable(&motor_set_2);
-
-	  HAL_Delay(1);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

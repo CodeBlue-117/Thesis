@@ -24,9 +24,11 @@ void l6470_enable(MotorSetTypedef* stepper_motor)
 	for(int i = 0; i < stepper_motor->num_motors; i++)
 	{
 		reg_temp[i] = RESET_DEVICE;
+		HAL_Delay(10);
 	}
 
 	l6470_transmit_spi(stepper_motor, reg_temp, stepper_motor->num_motors);
+	HAL_Delay(10);
 }
 /*
  * @brief disable l6470 motor driver
@@ -42,6 +44,7 @@ void l6470_disable(MotorSetTypedef* stepper_motor)
 	}
 
 	l6470_transmit_spi(stepper_motor, reg_temp, stepper_motor->num_motors);
+	HAL_Delay(10);
 }
 
 /*
@@ -74,47 +77,67 @@ void l6470_init(MotorSetTypedef* stepper_motor)
 	reg_temp_1 = 0xFF;
 	l6470_set_param(stepper_motor, ALARM_EN, &reg_temp_1, 1);
 
+	HAL_Delay(10);
+
 	// Set STEP_MODE Microstepping (The default is already set at 1/128 step, but we will issue the command anyways for testing)
 	reg_temp_1 = (uint8_t)ONE_HUNDRED_TWENTY_EIGHTH_STEP;
 	l6470_set_param(stepper_motor, STEP_MODE, &reg_temp_1, 1);
+
+	HAL_Delay(10);
 
 	// Set the default ABS position to 0
 	// set all three bytes to zero for the 22 bit field (the upper 2 bits are ignored)
 	l6470_set_param(stepper_motor, ABS_POS, reg_temp_3, 3);
 
+	HAL_Delay(10);
+
 	// Set the default EL position to 0
 	// set all three bytes to zero for the 22 bit field (the upper 2 bits are ignored)
 	l6470_set_param(stepper_motor, EL_POS, reg_temp_3, 3);
+
+	HAL_Delay(10);
 
 	// Set the level for Holding Current
 	reg_temp_4[0] = (uint8_t)((uint16_t)KVAL_HOLD_PERCENT * 255 / 100);
 	l6470_set_param(stepper_motor, KVAL_HOLD, reg_temp_4, 1);
 
+	HAL_Delay(10);
+
 	// Set the Current level for running at constant speed
 	reg_temp_4[0] = (uint8_t)((uint16_t)KVAL_RUN_PERCENT * 255 / 100);
 	l6470_set_param(stepper_motor, KVAL_RUN, reg_temp_4, 1);
+
+	HAL_Delay(10);
 
 	// Set the Current level for acceleration
 	reg_temp_4[0] = (uint8_t)((uint16_t)KVAL_ACCDEC_PERCENT * 255 / 100);
 	l6470_set_param(stepper_motor, KVAL_ACC, reg_temp_4, 1);
 
+	HAL_Delay(10);
+
 	// Set the current level for decceleration
 	reg_temp_4[0] = (uint8_t)((uint16_t)KVAL_ACCDEC_PERCENT * 255 / 100);
 	l6470_set_param(stepper_motor, KVAL_DEC , reg_temp_4, 1);
 
+	HAL_Delay(10);
+
 	// set overcurrent threshold
 	reg_temp_4[0] = (uint8_t)(MAX_CURRENT / 375) + 1;
 	l6470_set_param(stepper_motor, OCD_TH, reg_temp_4, 1);
+
+	HAL_Delay(10);
 
 	// ToDo: Set the Config register....
 
 	// initialize the spi buffers
 	stepper_motor -> spi_dma_busy = 0;
 	stepper_motor -> spi_tx_count = 0;
+
 	for(int i = 0; i < stepper_motor->num_motors; i++)
 	{
 		stepper_motor->motors[i].stepper_id = i;
 	}
+	HAL_Delay(10);
 
 }
 
@@ -163,14 +186,14 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
     // Set SPI transmission buffer length and send data
     stepper_motor->spi_tx_buffer_length = 4 * stepper_motor->num_motors; /////////////////////////////////////////////////////////////// was 4
 
-    for(int i = 0; i < 16; i++)
+    for(int i = 0; i < stepper_motor->spi_tx_buffer_length; i++)
     {
     	printf("stepper_motor->spd_tx_buffer[%d]: %02X\n\r", i,  stepper_motor->spd_tx_buffer[i]);
     }
 
     printf("stepper_motor->spi_tx_buffer_length: %d\n\r", stepper_motor->spi_tx_buffer_length);
-    printf("spd_tx_buffer LENGTH: %d\n\r", MAX_NUMBER_OF_MOTORS * SPI_TX_BUFFER_LENGTH);
-    printf("spi_tx_count: %d\n\r", stepper_motor->spi_tx_count);
+	//    printf("spd_tx_buffer LENGTH: %d\n\r", MAX_NUMBER_OF_MOTORS * SPI_TX_BUFFER_LENGTH);
+	//    printf("spi_tx_count: %d\n\r", stepper_motor->spi_tx_count);
 
 
     l6470_transmit_spi_dma(stepper_motor);
@@ -376,6 +399,7 @@ static void l6470_set_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8
 	}
 
 	l6470_transmit_spi( stepper_motor, data_raw, stepper_motor->num_motors);
+	HAL_Delay(10);
 
 	for(int i = 0; i < data_length; i++)
 	{
@@ -384,6 +408,7 @@ static void l6470_set_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8
 			data_raw[j] = *(data + i);
 		}
 		l6470_transmit_spi( stepper_motor, data_raw, stepper_motor->num_motors);
+		HAL_Delay(10);
 	}
 }
 
@@ -398,14 +423,12 @@ static void l6470_receive_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uin
 	uint8_t data_raw[data_length];
 	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
 	HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(stepper_motor ->hspi_l6470, data_raw, data, data_length, 1000);
+
 	if(status != HAL_OK)
 	{
-		printf("SPI RECEIVE ERROR!!!!!\n\r");
-		while(1)
-		{
-			;
-		}
+		printf("SPI RECEIVE ERROR: %02X\n\r", status);
 	}
+
 	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
 }
 /*
@@ -421,12 +444,9 @@ static void l6470_transmit_spi(MotorSetTypedef* stepper_motor, uint8_t* data, ui
 	HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(stepper_motor ->hspi_l6470, data, receive_data, data_length, 1000);
 	if(status != HAL_OK)
 	{
-		printf("SPI TRANSMIT ERROR!!!!!\n\r");
-		while(1)
-		{
-			;
-		}
+		printf("SPI TRANSMIT ERROR: %02X\n\r", status);
 	}
+
 	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
 }
 
@@ -442,6 +462,26 @@ void l6470_transmit_spi_dma(MotorSetTypedef* stepper_motor)
 	{
 		HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
 
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+		printf("\n\r\n\r\n\r");
+
+		printf("SPI Handle Address: %p\n\r", (void *)stepper_motor->hspi_l6470);
+		printf("TX Buffer Addr: %p\n\r", (void *)(stepper_motor->spd_tx_buffer + stepper_motor->spi_tx_count * stepper_motor->num_motors));
+		printf("RX Buffer Addr: %p\n\r", (void *)(stepper_motor->spd_rx_buffer + stepper_motor->spi_tx_count * stepper_motor->num_motors));
+		printf("spi_tx_count: %d\n\r", stepper_motor->spi_tx_count);
+		printf("num_motors (Size): %d\n\r", stepper_motor->num_motors);
+
+		// Optional: Print the first few bytes of TX/RX buffers for verification
+		for (int i = 0; i < stepper_motor->num_motors; i++)
+		{
+		    printf("TX[%d]: 0x%02X, RX[%d]: 0x%02X\n\r",
+		           i, stepper_motor->spd_tx_buffer[stepper_motor->spi_tx_count * stepper_motor->num_motors + i],
+		           i, stepper_motor->spd_rx_buffer[stepper_motor->spi_tx_count * stepper_motor->num_motors + i]);
+		}
+
+		printf("\n\r\n\r\n\r");
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 		HAL_StatusTypeDef status = HAL_SPI_TransmitReceive_DMA(
 				stepper_motor ->hspi_l6470,
 				stepper_motor -> spd_tx_buffer + stepper_motor -> spi_tx_count * stepper_motor->num_motors,
@@ -449,16 +489,15 @@ void l6470_transmit_spi_dma(MotorSetTypedef* stepper_motor)
 				stepper_motor->num_motors);
 
 		if(status != HAL_OK)
-			{
-				printf("SPI TRANSMIT DMA ERROR!!!!!\n\r");
-				while(1)
-				{
-					;
-				}
-			}
+		{
+			printf("SPI TRANSMIT DMA ERROR: %02X\n\r", status);
+		}
+
 		stepper_motor -> spi_tx_count++;
 		stepper_motor -> spi_dma_busy = 1;
 	}
+
+	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
 }
 
 uint16_t l6470_get_status(MotorSetTypedef* stepper_motor)
@@ -468,9 +507,11 @@ uint16_t l6470_get_status(MotorSetTypedef* stepper_motor)
 
 	// transmit command
 	l6470_transmit_spi(stepper_motor, &tx_data, 2);
+	HAL_Delay(10);
 
 	// receive status register (2 bytes)
 	l6470_receive_spi(stepper_motor, rx_data, 2);
+	HAL_Delay(10);
 
 	// Combine bytes into a 16-bit status register
 	return ((uint16_t)rx_data[0] << 8) | rx_data[1];
