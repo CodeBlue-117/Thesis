@@ -57,6 +57,7 @@ static MotorSetTypedef motor_set_1 = {
 		.gpio_cs_port = STEPPER_SPI1_CS_GPIO_Port,
 		.gpio_rst_number = STEPPER_RST_Pin,
 		.gpio_rst_port = STEPPER_RST_GPIO_Port,
+		.num_motors = 2,
 		.hspi_l6470 = &hspi1,
 };
 
@@ -65,6 +66,7 @@ static MotorSetTypedef motor_set_2 = {
 		.gpio_cs_port = STEPPER_SPI2_CS_GPIO_Port,
 		.gpio_rst_number = STEPPER_RST_Pin,
 		.gpio_rst_port = STEPPER_RST_GPIO_Port,
+		.num_motors = 1,
 		.hspi_l6470 = &hspi2,
 };
 /* USER CODE END PV */
@@ -85,16 +87,16 @@ int __io_putchar(int ch)
     return ch;
 }
 
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 float vel_temp_1;
 float vel_temp_2[2];
-float vel_temp_3[3]; //  = {-6, -6, -6}; // 1 rot.sec;
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -159,13 +161,9 @@ int main(void)
 
 /////////////////////////////////////////////////////////////////////////////////////////
   vel_temp_1 = -1; //  Forward at 1 rps
-/////////////////////////////////////////////////////////////////////////////////////////
-  vel_temp_2[0] = 0;
+
+  vel_temp_2[0] = 2;
   vel_temp_2[1] = 6;
-/////////////////////////////////////////////////////////////////////////////////////////
-  vel_temp_3[0] = 6;
-  vel_temp_3[1] = 6;
-  vel_temp_3[2] = 6;
 /////////////////////////////////////////////////////////////////////////////////////////
 
   printf("Hello World!\n\r");
