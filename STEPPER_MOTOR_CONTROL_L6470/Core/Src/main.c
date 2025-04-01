@@ -12,6 +12,10 @@
   *
   ******************************************************************************
   */
+
+// ToDo: Check the Status register when the battery is plugged in and program is running to determine cause of red light
+
+
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -20,6 +24,7 @@
 /* USER CODE BEGIN Includes */
 #include "l6470.h"
 #include <stdio.h>
+#include "stm32f4xx_it.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,9 +53,6 @@ DMA_HandleTypeDef hdma_spi2_tx;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
-
-
 
 static MotorSetTypedef motor_set_1 = {
 		.gpio_cs_number = STEPPER_SPI1_CS_Pin,
@@ -85,6 +87,16 @@ int __io_putchar(int ch)
 {
     HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
     return ch;
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if(GPIO_Pin == B1_Pin)
+	{
+		printf("USER PUSH BUTTON SELECTED!!!\n\r");
+	}
+
+
 }
 
 /* USER CODE END PFP */
@@ -160,16 +172,16 @@ int main(void)
   l6470_enable(&motor_set_2);
 
 /////////////////////////////////////////////////////////////////////////////////////////
-  vel_temp_1 = 0; //  Forward at 1 rps
+  vel_temp_1 = 1; //  Forward at 1 rps
 
-  vel_temp_2[0] = 0;
+  vel_temp_2[0] = 3;
   vel_temp_2[1] = 6;
 /////////////////////////////////////////////////////////////////////////////////////////
 
   printf("\n\r\n\r\n\rHello World!\n\r");
 
   l6470_set_vel(&motor_set_1, vel_temp_2);
-  HAL_Delay(5);
+  //HAL_Delay(5);  // ToDo: Do we need this delay?
   l6470_set_vel(&motor_set_2, &vel_temp_1);
   HAL_Delay(5000);
 

@@ -184,11 +184,11 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
     }
 
     // Set SPI transmission buffer length and send data
-    stepper_motor->spi_tx_buffer_length = 4 * stepper_motor->num_motors; /////////////////////////////////////////////////////////////// was 4
+    stepper_motor->spi_tx_buffer_length = 4; // * stepper_motor->num_motors; /////////////////////////////////////////////////////////////// was 4
 
-    for(int i = 0; i < stepper_motor->spi_tx_buffer_length; i++)
+    for(int i = 0; i < (4 * stepper_motor->num_motors); i++)
     {
-    	printf("stepper_motor->spd_tx_buffer[%d]: %02X\n\r", i,  stepper_motor->spd_tx_buffer[i]);
+    	printf("stepper_motor->spd_tx_buffer[%d]: %02X\n\r\n\r", i,  stepper_motor->spd_tx_buffer[i]);
     }
 
     printf("stepper_motor->spi_tx_buffer_length: %d\n\r", stepper_motor->spi_tx_buffer_length);
@@ -463,13 +463,13 @@ void l6470_transmit_spi_dma(MotorSetTypedef* stepper_motor)
 		HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
-		printf("\n\r\n\r\n\r");
+		printf("\n\r\n\r");
 
-		printf("SPI Handle Address: %p\n\r", (void *)stepper_motor->hspi_l6470);
-		printf("TX Buffer Addr: %p\n\r", (void *)(stepper_motor->spd_tx_buffer + stepper_motor->spi_tx_count * stepper_motor->num_motors));
-		printf("RX Buffer Addr: %p\n\r", (void *)(stepper_motor->spd_rx_buffer + stepper_motor->spi_tx_count * stepper_motor->num_motors));
+//		printf("SPI Handle Address: %p\n\r", (void *)stepper_motor->hspi_l6470);
+//		printf("TX Buffer Addr: %p\n\r", (void *)(stepper_motor->spd_tx_buffer + stepper_motor->spi_tx_count * stepper_motor->num_motors));
+//		printf("RX Buffer Addr: %p\n\r", (void *)(stepper_motor->spd_rx_buffer + stepper_motor->spi_tx_count * stepper_motor->num_motors));
 		printf("spi_tx_count: %d\n\r", stepper_motor->spi_tx_count);
-		printf("num_motors (Size): %d\n\r", stepper_motor->num_motors);
+//		printf("num_motors (Size): %d\n\r", stepper_motor->num_motors);
 
 		// Optional: Print the first few bytes of TX/RX buffers for verification
 		for (int i = 0; i < stepper_motor->num_motors; i++)
