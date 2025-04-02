@@ -54,6 +54,17 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
+float wheel_radius 		= 44.25; // each wheel has a radius of 44.25mm
+float omniBody_radius 	= 88.1; // The omni body has a radius of 88.1mm
+
+uint8_t pushButtonCallCount = 0;
+
+float vel_temp_1[2];		// motor 3, 1
+float vel_temp_2;			// motor 2
+
+const float J[3][3] = {{-1, 0.5, 0.5}, {0, 0.866, -0.866}, {-0.333, -0.333, -0.333}};
+const float J_Inv[3][3] = {{-0.667, 0, -1}, {0.333, 0.577, -1}, {0.333, -0.577, -1}};
+
 static MotorSetTypedef motor_set_1 = {
 		.gpio_cs_number = STEPPER_SPI1_CS_Pin,
 		.gpio_cs_port = STEPPER_SPI1_CS_GPIO_Port,
@@ -71,6 +82,8 @@ static MotorSetTypedef motor_set_2 = {
 		.num_motors = 1,
 		.hspi_l6470 = &hspi2,
 };
+
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -80,7 +93,13 @@ static void MX_DMA_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_USART2_UART_Init(void);
+
 /* USER CODE BEGIN PFP */
+void forward_motion(void);
+void backward_motion(void);
+void left_motion(void);
+void right_motion(void);
+
 
 // Redirect printf() to USART2
 int __io_putchar(int ch)
@@ -94,25 +113,47 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	if(GPIO_Pin == B1_Pin)
 	{
 		printf("USER PUSH BUTTON SELECTED!!!\n\r");
+//
+//		if(pushButtonCallCount == 0)
+//		{
+//			pushButtonCallCount++;
+//			forward_motion();
+//		}
+//		else if(pushButtonCallCount == 1)
+//		{
+//			pushButtonCallCount++;
+//			backward_motion();
+//		}
+//		else if(pushButtonCallCount == 2)
+//		{
+//			pushButtonCallCount++;
+//			left_motion();
+//		}
+//		else if(pushButtonCallCount == 3)
+//		{
+//			pushButtonCallCount++;
+//			right_motion();
+//		}
+//
+//		else
+//		{
+//			pushButtonCallCount = 0;
+//		}
+//
+//        // Clear the EXTI interrupt flag
+//        __HAL_GPIO_EXTI_CLEAR_IT(GPIO_Pin);
+//
+//        HAL_Delay(10);
+
 	}
 
-
+	return;
 }
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-float vel_temp_1;
-float vel_temp_2[2];
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-// float angular_position1,angular_position2;
 
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef * hspi)
 {
@@ -126,6 +167,66 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef * hspi)
 		l6470_transmit_spi_dma(&motor_set_2);
 	}
 }
+
+void omni_drive(float Vx, float Vy, float omega, float r)
+{
+
+	float w[3] = {0}; // wheel velocities [w1, w2, w3]
+	float V[3] = {Vx, Vy, omega};
+
+	// Matrix multiplication
+	for(int i = 0; i < 3; i++)
+	{
+		w[i] = 0.0f;
+		for(int j = 0; j < 3; j++)
+		{
+			w[i] = J_Inv[i][j] * V[j];
+		}
+	}
+
+	// Send velocities to motors
+	float vel_temp_1[2] = {w[2] * r, w[0] * r}; // Motor 3 and motor 1 on motor_set_1
+	float vel_temp_2 = w[1] * r;				// motor 2 on motor_set_2
+
+	// Transmit velocities to motor driver
+	l6470_set_vel(&motor_set_1, vel_temp_1);
+	HAL_Delay(5);
+	l6470_set_vel(&motor_set_2, &vel_temp_2);
+	HAL_Delay(5000);
+
+
+}
+
+void forward_motion(void)
+{
+
+	printf("Forward\n\r");
+	HAL_Delay(10);
+	// omni_drive(0.0f, 6.0f, 0.0f, wheel_radius);
+}
+
+void backward_motion(void)
+{
+	printf("Backward\n\r");
+	HAL_Delay(10);
+	// omni_drive(0.0f, -6.0f, 0.0f, wheel_radius);
+}
+
+void left_motion(void)
+{
+	printf("Left\n\r");
+	HAL_Delay(10);
+	// omni_drive(-6.0f, 0.0f, 0.0f, wheel_radius);
+}
+
+void right_motion(void)
+{
+	printf("Right\n\r");
+	HAL_Delay(10);
+	// omni_drive(6.0f, 0.0f, 0.0f, wheel_radius);
+}
+
+
 /* USER CODE END 0 */
 
 /**
@@ -172,18 +273,17 @@ int main(void)
   l6470_enable(&motor_set_2);
 
 /////////////////////////////////////////////////////////////////////////////////////////
-  vel_temp_1 = 1; //  Forward at 1 rps
-
-  vel_temp_2[0] = 3;
-  vel_temp_2[1] = 6;
+//  // 6 = 1rps
+//  vel_temp_1[0] = 6; // motor 3
+//  vel_temp_1[1] = 6; // motor 1
+//
+//  vel_temp_2 = 0; 	// motor 2
 /////////////////////////////////////////////////////////////////////////////////////////
 
-  printf("\n\r\n\r\n\rHello World!\n\r");
-
-  l6470_set_vel(&motor_set_1, vel_temp_2);
-  //HAL_Delay(5);  // ToDo: Do we need this delay?
-  l6470_set_vel(&motor_set_2, &vel_temp_1);
-  HAL_Delay(5000);
+//  l6470_set_vel(&motor_set_1, vel_temp_1);
+//  //HAL_Delay(5);  // ToDo: Do we need this delay?
+//  l6470_set_vel(&motor_set_2, &vel_temp_2);
+//  HAL_Delay(5000);
 
 //  uint8_t status1 = l6470_get_status(&motor_set_1);
 //  printf("status1: %02X\n\r", status1);
@@ -192,8 +292,8 @@ int main(void)
 //  printf("status2: %02X\n\r", status2);
 
 
-  l6470_disable(&motor_set_1);
-  l6470_disable(&motor_set_2);
+//  l6470_disable(&motor_set_1);
+//  l6470_disable(&motor_set_2);
 
   /* USER CODE END 2 */
 
@@ -201,6 +301,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+	  HAL_Delay(5);
 
 	//////////////////////////////////////////////////////////////////////////////////
 	//	  l6470_get_speed_pos(&motor_set_1);
