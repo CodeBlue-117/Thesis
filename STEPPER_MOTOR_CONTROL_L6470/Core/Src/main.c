@@ -25,6 +25,8 @@
 #include "l6470.h"
 #include <stdio.h>
 #include "stm32f4xx_it.h"
+#include "stdint.h"
+#include "stdbool.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,6 +55,8 @@ DMA_HandleTypeDef hdma_spi2_tx;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
+
+bool buttonFlag = false;
 
 float wheel_radius 		= 44.25; // each wheel has a radius of 44.25mm
 float omniBody_radius 	= 88.1; // The omni body has a radius of 88.1mm
@@ -108,48 +112,27 @@ int __io_putchar(int ch)
     return ch;
 }
 
+#define DEBOUNCE_DELAY 50  // 50ms debounce time
+
+uint32_t lastPressTime = 0;
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-	if(GPIO_Pin == B1_Pin)
-	{
-		printf("USER PUSH BUTTON SELECTED!!!\n\r");
-//
-//		if(pushButtonCallCount == 0)
-//		{
-//			pushButtonCallCount++;
-//			forward_motion();
-//		}
-//		else if(pushButtonCallCount == 1)
-//		{
-//			pushButtonCallCount++;
-//			backward_motion();
-//		}
-//		else if(pushButtonCallCount == 2)
-//		{
-//			pushButtonCallCount++;
-//			left_motion();
-//		}
-//		else if(pushButtonCallCount == 3)
-//		{
-//			pushButtonCallCount++;
-//			right_motion();
-//		}
-//
-//		else
-//		{
-//			pushButtonCallCount = 0;
-//		}
-//
-//        // Clear the EXTI interrupt flag
-//        __HAL_GPIO_EXTI_CLEAR_IT(GPIO_Pin);
-//
-//        HAL_Delay(10);
+    if(GPIO_Pin == B1_Pin)
+    {
+        uint32_t currentTime = HAL_GetTick();  // Get current system time
 
-	}
+        // Check if the debounce period has passed
+        if((currentTime - lastPressTime) >= DEBOUNCE_DELAY)
+        {
+            lastPressTime = currentTime; // Update last press time
+            printf("USER PUSH BUTTON SELECTED!!!\n\r");
 
-	return;
+            buttonFlag = true;
+
+        }
+    }
 }
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -302,7 +285,38 @@ int main(void)
   while (1)
   {
 
-	  HAL_Delay(5);
+
+	  if(buttonFlag == true)
+	  {
+		  	buttonFlag = false;
+
+		  	if(pushButtonCallCount == 0)
+			{
+				pushButtonCallCount++;
+				forward_motion();
+			}
+			else if(pushButtonCallCount == 1)
+			{
+				pushButtonCallCount++;
+				backward_motion();
+			}
+			else if(pushButtonCallCount == 2)
+			{
+				pushButtonCallCount++;
+				left_motion();
+			}
+			else if(pushButtonCallCount == 3)
+			{
+				pushButtonCallCount++;
+				right_motion();
+			}
+			else
+			{
+				pushButtonCallCount = 0;
+			}
+	  }
+
+//	  HAL_Delay(5);
 
 	//////////////////////////////////////////////////////////////////////////////////
 	//	  l6470_get_speed_pos(&motor_set_1);
