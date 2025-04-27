@@ -18,17 +18,17 @@
 #define MOTOR2				   			2
 #define MOTOR3				   			3
 
-
+// Max speed according to the 17HS08-1004S NEMA 17 pull-out torque sheet is 12.5 rev/s
 // Parameters
 #define MAX_ACCELERATION    			10  				/*!< max acceleration [rad/sec^2] 			*/
-#define MAX_SPEED_RAD    				60 * 6.28f 			// 5 * 6.28f 			/*!< max speed [rad / sec] 					*/
+#define MAX_SPEED_RAD    				164 // (max speed capable by Nema17 - 12.5rev/s = 2500 steeps/sec ) // 1023(max speed capable by l6470) // 60 * 6.28f // 5 * 6.28f 			/*!< max speed [rad / sec] 					*/
 #define MAX_CURRENT         			1.0 				/*!< Max Current of the stepper motor 		*/
-#define MICROSTEPPING               	128					/*!< Number of microsteps per second	  	*/
+#define MICROSTEPPING               	16 // 128					/*!< Number of microsteps per second	  	*/
 #define STEPS_PER_REVOLUTION  			200	                /*!< Steps per revolution 	*/
 #define TWOPI                       	6.283185f			/*!< Two pi value 			*/
-#define KVAL_HOLD_PERCENT           	30
-#define KVAL_RUN_PERCENT            	50
-#define KVAL_ACCDEC_PERCENT         	70
+#define KVAL_HOLD_PERCENT           	70
+#define KVAL_RUN_PERCENT            	100
+#define KVAL_ACCDEC_PERCENT         	100
 #define DEFAULT_ZERO_POS				0
 
 // Microstepping Modes
@@ -49,6 +49,7 @@
 #define SOFT_HIZ						0xA0
 #define HARD_HIZ						0xA8
 #define GET_STATUS						0xD0
+#define GET_PARAM						0x20
 
 // Register Addresses
 #define ABS_POS							0x01 /*!< Current position    */////////////////// Done
@@ -120,8 +121,10 @@ void l6470_set_steppersec(MotorSetTypedef stepper_motor,uint8_t motor_id, uint16
 void l6470_get_speed_pos(MotorSetTypedef* stepper_motor);
 void l6470_transmit_spi_dma(MotorSetTypedef* stepper_motor);
 uint16_t l6470_get_status(MotorSetTypedef* stepper_motor);
+void l6470_receive_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t data_length);
+void l6470_transmit_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t data_length);
+void l6470_set_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t *data, uint8_t data_length);
+uint16_t l6470_get_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t data_length);
 
-void rotate_motor_individually(MotorSetTypedef* stepper_motor, uint8_t motor_num, float vel);
-void l6470_set_single_motor_vel(MotorSetTypedef* stepper_motor, float vel);
 
 #endif /* INC_L6470_H_ */

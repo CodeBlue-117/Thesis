@@ -57,13 +57,12 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 
 bool buttonFlag = false;
-
-float wheel_radius 		= 44.25; // each wheel has a radius of 44.25mm
-float omniBody_radius 	= 88.1; // The omni body has a radius of 88.1mm
-
 uint8_t pushButtonCallCount = 0;
 
-float vel_temp_1[2];		// motor 3, 1
+float wheel_radius 		= 44.25; // each wheel has a radius of 44.25mm ToDo: Update this
+float omniBody_radius 	= 88.1; // The omni body has a radius of 88.1mm ToDo: Update this
+
+float vel_temp_1[2];		// motor 3, 1 ToDo: Verify these configs
 float vel_temp_2;			// motor 2
 
 const float J[3][3] = {{-1, 0.5, 0.5}, {0, 0.866, -0.866}, {-0.333, -0.333, -0.333}};
@@ -97,13 +96,11 @@ static void MX_DMA_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_USART2_UART_Init(void);
-
 /* USER CODE BEGIN PFP */
 void forward_motion(void);
 void backward_motion(void);
 void left_motion(void);
 void right_motion(void);
-
 
 // Redirect printf() to USART2
 int __io_putchar(int ch)
@@ -163,13 +160,16 @@ void omni_drive(float Vx, float Vy, float omega, float r)
 		w[i] = 0.0f;
 		for(int j = 0; j < 3; j++)
 		{
-			w[i] = J_Inv[i][j] * V[j];
+			w[i] += J_Inv[i][j] * V[j];
 		}
 	}
 
-	// Send velocities to motors
-	float vel_temp_1[2] = {w[2] * r, w[0] * r}; // Motor 3 and motor 1 on motor_set_1
-	float vel_temp_2 = w[1] * r;				// motor 2 on motor_set_2
+	float vel_temp_1[2] = {w[2], w[0]}; // Motor 3 and motor 1 on motor_set_1
+	float vel_temp_2 = w[1];				// motor 2 on motor_set_2
+
+	printf("vel_temp_1[0]: %f\n\r", vel_temp_1[0]);
+	printf("vel_temp_1[1]: %f\n\r", vel_temp_1[1]);
+	printf("vel_temp_2: %f\n\r", vel_temp_2);
 
 	// Transmit velocities to motor driver
 	l6470_set_vel(&motor_set_1, vel_temp_1);
@@ -177,36 +177,34 @@ void omni_drive(float Vx, float Vy, float omega, float r)
 	l6470_set_vel(&motor_set_2, &vel_temp_2);
 	HAL_Delay(5000);
 
-
 }
 
 void forward_motion(void)
 {
-
 	printf("Forward\n\r");
 	HAL_Delay(10);
-	// omni_drive(0.0f, 6.0f, 0.0f, wheel_radius);
+	omni_drive(0.0f, 6.0f, 0.0f, wheel_radius);
 }
 
 void backward_motion(void)
 {
 	printf("Backward\n\r");
 	HAL_Delay(10);
-	// omni_drive(0.0f, -6.0f, 0.0f, wheel_radius);
+	omni_drive(0.0f, -6.0f, 0.0f, wheel_radius);
 }
 
 void left_motion(void)
 {
 	printf("Left\n\r");
 	HAL_Delay(10);
-	// omni_drive(-6.0f, 0.0f, 0.0f, wheel_radius);
+	omni_drive(-6.0f, 0.0f, 0.0f, wheel_radius);
 }
 
 void right_motion(void)
 {
 	printf("Right\n\r");
 	HAL_Delay(10);
-	// omni_drive(6.0f, 0.0f, 0.0f, wheel_radius);
+	omni_drive(6.0f, 0.0f, 0.0f, wheel_radius);
 }
 
 
@@ -247,7 +245,50 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  // HAL_Delay(1000);
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//  uint16_t configValue = 0 ;
+
+  uint16_t status1 = 0;
+  uint16_t status2 = 0;
+
+  printf("\n\r\n\r\n\r");
+
+  status1 = l6470_get_status(&motor_set_1);
+  printf("BEFORE: l6470_get_status 1: %04X\n\r", status1);
+
+  status2 = l6470_get_status(&motor_set_2);
+  printf("BEFORE: l6470_get_status 2:  %04X\n\r", status2);
+//
+//  readParam1 = l6470_get_param(&motor_set_1, ALARM_EN, 4);
+//  printf("BEFORE: motorSet1: ALARM_EN: %lu\n\r", readParam1);
+//
+//  readParam1 = l6470_get_param(&motor_set_1, STEP_MODE, 4);
+//  printf("BEFORE: motorSet1: STEP_MODE: %luX\n\r", readParam1);
+//
+//  readParam1 = l6470_get_param(&motor_set_1, KVAL_RUN, 4);
+//  printf("BEFORE: motorSet1: KVAL_RUN: %lu\n\r", readParam1);
+//
+//  readParam1 = l6470_get_param(&motor_set_1, CONFIG, 4);
+//  printf("BEFORE: motorSet1: CONFIG: %lu\n\r", readParam1);
+//
+//  readParam2 = l6470_get_param(&motor_set_2, ALARM_EN, 4);
+//  printf("BEFORE: motorSet2: ALARM_EN: %lu\n\r", readParam2);
+//
+//  readParam2 = l6470_get_param(&motor_set_2, STEP_MODE, 4);
+//  printf("BEFORE: motorSet2: STEP_MODE: %lu\n\r", readParam2);
+//
+//  readParam2 = l6470_get_param(&motor_set_2, KVAL_RUN, 4);
+//  printf("BEFORE: motorSet2: KVAL_RUN: %lu\n\r", readParam2);
+
+  HAL_Delay(100);
+
+  uint16_t readParam2 = l6470_get_param(&motor_set_2, CONFIG, 2);
+  printf("BEFORE: l6470_get_param 2 CONFIG: %04X\n\r", readParam2);
+
+  HAL_Delay(100);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   l6470_init(&motor_set_1);
   l6470_init(&motor_set_2);
@@ -255,28 +296,52 @@ int main(void)
   l6470_enable(&motor_set_1);
   l6470_enable(&motor_set_2);
 
-/////////////////////////////////////////////////////////////////////////////////////////
-//  // 6 = 1rps
-//  vel_temp_1[0] = 6; // motor 3
-//  vel_temp_1[1] = 6; // motor 1
+  HAL_Delay(100);
+
+ ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  status1 = l6470_get_status(&motor_set_1);
+  printf("AFTER: l6470_get_status 1: %02X\n\r", status1);
+
+  status2 = l6470_get_status(&motor_set_2);
+  printf("AFTER: l6470_get_status 2: %02X\n\r", status2);
+
+//  readParam1 = l6470_get_param(&motor_set_1, ALARM_EN, 4);
+//  printf("AFTER: motorSet1: ALARM_EN: %lu\n\r", readParam1);
 //
-//  vel_temp_2 = 0; 	// motor 2
-/////////////////////////////////////////////////////////////////////////////////////////
-
-//  l6470_set_vel(&motor_set_1, vel_temp_1);
-//  //HAL_Delay(5);  // ToDo: Do we need this delay?
-//  l6470_set_vel(&motor_set_2, &vel_temp_2);
-//  HAL_Delay(5000);
-
-//  uint8_t status1 = l6470_get_status(&motor_set_1);
-//  printf("status1: %02X\n\r", status1);
+//  readParam1 = l6470_get_param(&motor_set_1, STEP_MODE, 4);
+//  printf("AFTER: motorSet1: STEP_MODE: %lu\n\r", readParam1);
 //
-//  uint8_t status2 = l6470_get_status(&motor_set_2);
-//  printf("status2: %02X\n\r", status2);
+//  readParam1 = l6470_get_param(&motor_set_1, KVAL_RUN, 4);
+//  printf("AFTER: motorSet1: KVAL_RUN: %lu\n\r", readParam1);
+//
+//  readParam1 = l6470_get_param(&motor_set_1, CONFIG, 4);
+//  printf("AFTER: motorSet1: CONFIG: %lu\n\r", readParam1);
+//
+//  readParam2 = l6470_get_param(&motor_set_2, ALARM_EN, 4);
+//  printf("AFTER: motorSet2: ALARM_EN: %lu\n\r", readParam2);
+//
+//  readParam2 = l6470_get_param(&motor_set_2, STEP_MODE, 4);
+//  printf("AFTER: motorSet2: STEP_MODE: %lu\n\r", readParam2);
+//
+//  readParam2 = l6470_get_param(&motor_set_2, KVAL_RUN, 4);
+//  printf("AFTER: motorSet2: KVAL_RUN: %lu\n\r", readParam2);
 
+  readParam2 = l6470_get_param(&motor_set_2, CONFIG, 2);
+  printf("AFTER: l6470_get_param 2 CONFIG: %04X\n\r", readParam2);
 
-//  l6470_disable(&motor_set_1);
-//  l6470_disable(&motor_set_2);
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // testing Code (KEEP)
+  //  // 6 = 1rps
+  //  vel_temp_1[0] = 6; // motor 3
+  //  vel_temp_1[1] = 6; // motor 1
+  //
+  //  vel_temp_2 = 0; 	// motor 2
+
+  //  l6470_set_vel(&motor_set_1, vel_temp_1);
+  //  //HAL_Delay(5);  // ToDo: Do we need this delay?
+  //  l6470_set_vel(&motor_set_2, &vel_temp_2);
+  //  HAL_Delay(5000);
+///////////////////////////////////////////////////////////
 
   /* USER CODE END 2 */
 
@@ -285,40 +350,67 @@ int main(void)
   while (1)
   {
 
-
 	  if(buttonFlag == true)
 	  {
 		  	buttonFlag = false;
 
 		  	if(pushButtonCallCount == 0)
 			{
-				pushButtonCallCount++;
-				forward_motion();
+		  		  l6470_enable(&motor_set_1);
+		  		  l6470_enable(&motor_set_2);
+
+		  		  HAL_Delay(500);
+		  		  pushButtonCallCount++;
+		  		  forward_motion();
+
+		  		  l6470_disable(&motor_set_1);
+		  		  l6470_disable(&motor_set_2);
 			}
 			else if(pushButtonCallCount == 1)
 			{
-				pushButtonCallCount++;
-				backward_motion();
+				  l6470_enable(&motor_set_1);
+				  l6470_enable(&motor_set_2);
+
+				  HAL_Delay(500);
+				  pushButtonCallCount++;
+				  backward_motion();
+
+				  l6470_disable(&motor_set_1);
+				  l6470_disable(&motor_set_2);
+
 			}
 			else if(pushButtonCallCount == 2)
 			{
-				pushButtonCallCount++;
-				left_motion();
+				  l6470_enable(&motor_set_1);
+				  l6470_enable(&motor_set_2);
+
+				  HAL_Delay(500);
+				  pushButtonCallCount++;
+				  left_motion();
+
+				  l6470_disable(&motor_set_1);
+				  l6470_disable(&motor_set_2);
 			}
 			else if(pushButtonCallCount == 3)
 			{
-				pushButtonCallCount++;
-				right_motion();
+				  l6470_enable(&motor_set_1);
+				  l6470_enable(&motor_set_2);
+
+				  HAL_Delay(500);
+				  pushButtonCallCount++;
+				  right_motion();
+
+				  l6470_disable(&motor_set_1);
+				  l6470_disable(&motor_set_2);
 			}
 			else
 			{
 				pushButtonCallCount = 0;
 			}
+
 	  }
 
-//	  HAL_Delay(5);
-
-	//////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////// OLD CODE FOR POSITION
 	//	  l6470_get_speed_pos(&motor_set_1);
 	//	  angular_position1 = motor_set_1.motors[0].speed_pos.rad_pos;
 	//	  angular_position2 = motor_set_1.motors[1].speed_pos.rad_pos - motor_set_1.motors[0].speed_pos.rad_pos;
