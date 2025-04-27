@@ -249,16 +249,16 @@ int main(void)
 
 //  uint16_t configValue = 0 ;
 
-  uint16_t status1 = 0;
-  uint16_t status2 = 0;
+//  uint16_t status1 = 0;
+//  uint16_t status2 = 0;
 
   printf("\n\r\n\r\n\r");
 
-  status1 = l6470_get_status(&motor_set_1);
-  printf("BEFORE: l6470_get_status 1: %04X\n\r", status1);
-
-  status2 = l6470_get_status(&motor_set_2);
-  printf("BEFORE: l6470_get_status 2:  %04X\n\r", status2);
+//  status1 = l6470_get_status(&motor_set_1);
+//  printf("BEFORE: l6470_get_status 1: %04X\n\r", status1);
+//
+//  status2 = l6470_get_status(&motor_set_2);
+//  printf("BEFORE: l6470_get_status 2:  %04X\n\r", status2);
 //
 //  readParam1 = l6470_get_param(&motor_set_1, ALARM_EN, 4);
 //  printf("BEFORE: motorSet1: ALARM_EN: %lu\n\r", readParam1);
@@ -283,8 +283,8 @@ int main(void)
 
   HAL_Delay(100);
 
-  uint16_t readParam2 = l6470_get_param(&motor_set_2, CONFIG, 2);
-  printf("BEFORE: l6470_get_param 2 CONFIG: %04X\n\r", readParam2);
+  uint16_t readParam2 = l6470_get_param_1_Byte(&motor_set_2, ACC, 2);
+  printf("\n\r\n\rBEFORE ACC: %04X\n\r", readParam2);
 
   HAL_Delay(100);
 
@@ -298,12 +298,12 @@ int main(void)
 
   HAL_Delay(100);
 
- ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  status1 = l6470_get_status(&motor_set_1);
-  printf("AFTER: l6470_get_status 1: %02X\n\r", status1);
-
-  status2 = l6470_get_status(&motor_set_2);
-  printf("AFTER: l6470_get_status 2: %02X\n\r", status2);
+// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//  status1 = l6470_get_status(&motor_set_1);
+//  printf("AFTER: l6470_get_status 1: %02X\n\r", status1);
+//
+//  status2 = l6470_get_status(&motor_set_2);
+//  printf("AFTER: l6470_get_status 2: %02X\n\r", status2);
 
 //  readParam1 = l6470_get_param(&motor_set_1, ALARM_EN, 4);
 //  printf("AFTER: motorSet1: ALARM_EN: %lu\n\r", readParam1);
@@ -326,8 +326,7 @@ int main(void)
 //  readParam2 = l6470_get_param(&motor_set_2, KVAL_RUN, 4);
 //  printf("AFTER: motorSet2: KVAL_RUN: %lu\n\r", readParam2);
 
-  readParam2 = l6470_get_param(&motor_set_2, CONFIG, 2);
-  printf("AFTER: l6470_get_param 2 CONFIG: %04X\n\r", readParam2);
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // testing Code (KEEP)
@@ -349,6 +348,11 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+	  readParam2 = l6470_get_param_1_Byte(&motor_set_2, ACC, 2);
+	  printf("AFTER ACC: %04X\n\r", readParam2);
+
+	  HAL_Delay(100);
 
 	  if(buttonFlag == true)
 	  {

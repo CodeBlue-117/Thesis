@@ -287,40 +287,62 @@ void l6470_set_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t *dat
 //	HAL_Delay(10);
 //}
 
-uint16_t l6470_get_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t data_length)
+uint16_t l6470_get_param_1_Byte(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t data_length)
 {
+    // tx_data: sending the command byte (0x20 | param) for both motors in the chain
+//    uint8_t tx_data[4] = { 0x20 | param, 0x20 | param, 0x00, 0x00 };  // Command for both L6470s (daisy chain)
+//    uint8_t tx_data[4] = { (0x20 | param), (0x20 | param), (0x20 | param), (0x20 | param) };
+    uint8_t tx_data[2] = { 0x2B, 0x2B };
+	//uint8_t tx_data[2] = { 0x00 };
+	uint8_t rx_data[2] = { 0x00 };
 
-	uint8_t tx_data[2] = {0x00, 0x20 | param};
-	uint8_t rx_data[2] = { 0 };
+    // Step 1: Send command to both L6470s in the daisy chain
+    HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);  // Select the motor (CS low)
 
-	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
+    // Step 2: Transmit the command and receive the response (2 for each motor)
+    HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx_data, rx_data, 2, 1000);  // 4 bytes: 2 for command, 2 for response data
+    if (status != HAL_OK)
+    {
+        printf("SPI TRANSMIT ERROR: %02X\n\r", status);
+        return -1;  // Return error if SPI transmission fails
+    }
 
-	HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(stepper_motor ->hspi_l6470, tx_data, rx_data, 2, 1000); // 3 bytes, 1 for command, 2 for data
-	if(status != HAL_OK)
-	{
-		printf("SPI TRANSMIT ERROR: %02X\n\r", status);
-		return -1;
-	}
+    // Step 3: CS must be pulled high to let the L6470 process the command and prepare the response
+    HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);  // Deselect the motor (CS high)
 
-	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
+    HAL_Delay(5);
 
-	HAL_Delay(10);
+    tx_data[0] = 0x00;
+    tx_data[1] = 0x00;
 
-	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
 
-	status = HAL_SPI_TransmitReceive(stepper_motor ->hspi_l6470, tx_data, rx_data, 2, 1000); // 3 bytes, 1 for command, 2 for data
-	if(status != HAL_OK)
-	{
-		printf("SPI TRANSMIT ERROR: %02X\n\r", status);
-		return -1;
-	}
+    HAL_Delay(5);
 
-	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
+    // Step 4: After CS is high, we need to pull CS low again before reading the response from the devices
+    HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);  // Select motor again (CS low)
 
-	// Combine bytes into a 16-bit status register
-	return ((uint16_t)rx_data[1] << 8) | rx_data[0];
+    // Step 5: Receive the response from both motors (daisy chain will shift out the response data)
+    status = HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx_data, rx_data, 2, 1000);  // 4 bytes: Read back the response data
+    if (status != HAL_OK)
+    {
+        printf("SPI RECEIVE ERROR: %02X\n\r", status);
+        return -1;  // Return error if SPI receive fails
+    }
+
+    // Step 6: CS is pulled high after receiving the response
+    HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);  // Deselect the motor (CS high)
+
+    // Step 7: Combine the received bytes into 16-bit values for both motors
+    uint16_t motor1_value = ((uint16_t)rx_data[2] << 8) | rx_data[3];  // Response for motor 1 (MSB and LSB)
+    // uint16_t motor2_value = ((uint16_t)rx_data[2] << 8) | rx_data[3];  // Response for motor 2 (MSB and LSB)
+//
+//    // Debug: Print out the values for both motors (for verification)
+//    printf("Motor 1 PARAM: 0x%04X\n", motor1_value);
+//    printf("Motor 2 PARAM: 0x%04X\n", motor2_value);
+
+    // Step 8: Return the value for motor 1 (or motor 2, depending on which you need)
+    return motor1_value;  // Or return motor2_value if you want the second motor's value
 }
-
 /*
  * @brief receiving data through spi
  * @param stepper_motor: stepper motor handler

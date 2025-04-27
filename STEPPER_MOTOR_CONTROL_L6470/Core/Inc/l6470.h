@@ -124,7 +124,6 @@ uint16_t l6470_get_status(MotorSetTypedef* stepper_motor);
 void l6470_receive_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t data_length);
 void l6470_transmit_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t data_length);
 void l6470_set_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t *data, uint8_t data_length);
-uint16_t l6470_get_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t data_length);
-
+uint16_t l6470_get_param_1_Byte(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t data_length);
 
 #endif /* INC_L6470_H_ */
