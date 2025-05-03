@@ -275,13 +275,20 @@ int main(void)
   uint8_t step_mode_val = 0x07;   // 1/128 microsteps
   uint8_t new_mode_val  = 0x03;   // 1/8 microsteps
 
-  uint8_t before = l6470_get_param(&motor_set_2, 0x16);
-  printf("\n\rSTEP_MODE before: 0x%02X\n\r", before);
+  uint32_t before = l6470_get_param(&motor_set_2, STEP_MODE, 1);
+  printf("\n\rSTEP_MODE before: %lu\n\r", before);
 
-  l6470_set_param(&motor_set_2, 0x16, &new_mode_val, 1);
+  l6470_set_param(&motor_set_2, STEP_MODE, &new_mode_val, 1);
 
-  uint8_t after = l6470_get_param(&motor_set_2, 0x16);
-  printf("STEP_MODE after:  0x%02X\n\r\n\r", after);
+  uint32_t after = l6470_get_param(&motor_set_2, STEP_MODE, 1);
+  printf("STEP_MODE after1:  %lu\n\r\n\r", after);
+
+  new_mode_val = 0x07;
+  l6470_set_param(&motor_set_2, STEP_MODE, &new_mode_val, 1);
+
+  after = l6470_get_param(&motor_set_2, STEP_MODE, 1);
+  printf("STEP_MODE after2:  %lu\n\r\n\r", after);
+
 
 
   /* USER CODE END 2 */
