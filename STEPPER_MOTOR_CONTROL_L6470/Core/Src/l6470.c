@@ -201,6 +201,7 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
 }
 
 
+
 /*
  * @brief updates the stepper motor position (radians)
  * @param stepper_motor: stepper motor handler
@@ -230,6 +231,7 @@ void l6470_get_speed_pos(MotorSetTypedef* stepper_motor)
 		}
 		stepper_motor->motors[i].speed_pos.rad_pos = speed_raw;
 	}
+
 	for(int i = 0; i < stepper_motor->num_motors; i++)
 	{
 		stepper_motor -> spd_tx_buffer[i] = ABS_POS | 0x20;
@@ -238,89 +240,82 @@ void l6470_get_speed_pos(MotorSetTypedef* stepper_motor)
 		stepper_motor -> spd_tx_buffer[i + 3 * stepper_motor->num_motors] = NOP;
 		stepper_motor -> spd_tx_buffer[i + 4 * stepper_motor->num_motors] = NOP;
 	}
+
 	stepper_motor -> spi_tx_buffer_length = 4;
 	l6470_transmit_spi_dma(stepper_motor);
+
 }
 
 void l6470_set_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t *value, uint8_t length)
 {
-
     if (length < 1 || length > 3)
     {
-        printf("GET_PARAM: Invalid length: %d\n\r", length);
+        printf("SET_PARAM: Invalid length: %d\n\r", length);
         return;
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    uint8_t tx_data[2] = { 0x00, param & 0x1F }; // Motor2 NOP, Motor1 command
-    uint8_t rx_data[2] = {0};
+    uint8_t tx[2] = { 0x00, param };  // Motor2 NOP, Motor1 CMD
+    uint8_t rx[2] = { 0 };
 
-    // Send command byte
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
-    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx_data, rx_data, 2, 1000);
-    HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
     HAL_Delay(1);
+    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, 1000);
+    HAL_Delay(1);
+    HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
+    HAL_Delay(2);
 
-    // Send each data byte (MSB first)
     for (int i = 0; i < length; i++)
     {
-        tx_data[0] = 0x00;         // Motor2 NOP
-        tx_data[1] = value[i];     // Motor1 data byte
-
-        rx_data[0] = 0;
-        rx_data[1] = 0;
+        tx[0] = 0x00;
+        tx[1] = value[i];  // MSB first
+        rx[0] = rx[1] = 0;
 
         HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
-        HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx_data, rx_data, 2, 1000);
-        HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
         HAL_Delay(1);
+        HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, 1000);
+        HAL_Delay(1);
+        HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
+        HAL_Delay(2);
     }
-
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 }
 
 uint32_t l6470_get_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t length)
 {
-
     if (length < 1 || length > 3)
     {
         printf("GET_PARAM: Invalid length: %d\n\r", length);
         return 0xFFFFFFFF;
     }
 
-    uint8_t tx_cmd[2] = {
-        0x00,                          // Motor2: NOP
-        0x20 | (param & 0x1F)          // Motor1: GetParam = 0x20 | (param & 0x1F)
-    };
-    uint8_t rx_cmd[2] = {0};
+    uint8_t tx[2] = { 0x00, 0x20 | param };
+    uint8_t rx[2] = { 0 };
 
-    // Send the GetParam command byte
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
-    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx_cmd, rx_cmd, 2, 1000);
-    HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
     HAL_Delay(1);
+    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, 1000);
+    HAL_Delay(1);
+    HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
+    HAL_Delay(2);
 
-    // Read response bytes one at a time
     uint32_t result = 0;
     for (int i = 0; i < length; i++)
     {
-        tx_cmd[0] = 0x00;  // Motor2: NOP
-        tx_cmd[1] = 0x00;  // Motor1: dummy byte
-
-        rx_cmd[0] = 0;
-        rx_cmd[1] = 0;
+        tx[0] = tx[1] = 0;
+        rx[0] = rx[1] = 0;
 
         HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
-        HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx_cmd, rx_cmd, 2, 1000);
-        HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
         HAL_Delay(1);
+        HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, 1000);
+        HAL_Delay(1);
+        HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
+        HAL_Delay(2);
 
-        result = (result << 8) | rx_cmd[1];  // Accumulate Motor1 byte
+        result = (result << 8) | rx[1];
+        printf("Byte %d read: 0x%02X\n\r", i, rx[1]);
     }
 
+    printf("Raw result: 0x%06lX\n\r", result);
     return result;
-
 }
 
 /*

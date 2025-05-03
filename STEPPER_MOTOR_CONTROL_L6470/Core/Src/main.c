@@ -272,24 +272,19 @@ int main(void)
 
 ///////////////////////////////////////////////////////////
 
-  uint8_t step_mode_val = 0x07;   // 1/128 microsteps
-  uint8_t new_mode_val  = 0x03;   // 1/8 microsteps
+  uint8_t acc_val[2] = { 0xCA, 0xFE }; // Expected raw: 0xCAFE
 
-  uint32_t before = l6470_get_param(&motor_set_2, STEP_MODE, 1);
-  printf("\n\rSTEP_MODE before: %lu\n\r", before);
+  // Read-before
+  uint32_t before = l6470_get_param(&motor_set_2, ACC, 2);
+  printf("ACC before: 0x%04lX (%lu)\n\r\n\r", before, before);
 
-  l6470_set_param(&motor_set_2, STEP_MODE, &new_mode_val, 1);
+  // Write test value
+  printf("Writing ACC: MSB=0x%02X LSB=0x%02X\n\r", acc_val[0], acc_val[1]);
+  l6470_set_param(&motor_set_2, ACC, acc_val, 2);
 
-  uint32_t after = l6470_get_param(&motor_set_2, STEP_MODE, 1);
-  printf("STEP_MODE after1:  %lu\n\r\n\r", after);
-
-  new_mode_val = 0x07;
-  l6470_set_param(&motor_set_2, STEP_MODE, &new_mode_val, 1);
-
-  after = l6470_get_param(&motor_set_2, STEP_MODE, 1);
-  printf("STEP_MODE after2:  %lu\n\r\n\r", after);
-
-
+  // Read-after
+  uint32_t after = l6470_get_param(&motor_set_2, ACC, 2);
+  printf("ACC after:  0x%04lX (%lu)\n\r\n\r", after, after);
 
   /* USER CODE END 2 */
 
@@ -439,8 +434,8 @@ static void MX_SPI1_Init(void)
   hspi1.Init.Mode = SPI_MODE_MASTER;
   hspi1.Init.Direction = SPI_DIRECTION_2LINES;
   hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi1.Init.CLKPolarity = SPI_POLARITY_HIGH;
+  hspi1.Init.CLKPhase = SPI_PHASE_2EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
   hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
@@ -477,8 +472,8 @@ static void MX_SPI2_Init(void)
   hspi2.Init.Mode = SPI_MODE_MASTER;
   hspi2.Init.Direction = SPI_DIRECTION_2LINES;
   hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
-  hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
-  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi2.Init.CLKPolarity = SPI_POLARITY_HIGH;
+  hspi2.Init.CLKPhase = SPI_PHASE_2EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
   hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
