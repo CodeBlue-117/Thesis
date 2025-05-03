@@ -49,9 +49,9 @@ void l6470_disable(MotorSetTypedef* stepper_motor)
 void l6470_init(MotorSetTypedef* stepper_motor)
 {
 
-	uint8_t reg_temp_1;
-	uint8_t reg_temp_3[3] = {0, 0, 0};
-	uint8_t reg_temp_4[4];
+//	uint8_t reg_temp_1;
+//	uint8_t reg_temp_3[3] = {0, 0, 0};
+//	uint8_t reg_temp_4[4];
 
 	// Set the number of steps per revolution for each motor
 	for(int i = 0; i < stepper_motor->num_motors; i++)
@@ -67,64 +67,64 @@ void l6470_init(MotorSetTypedef* stepper_motor)
 
 	// disable the driver
 	l6470_disable(stepper_motor);
-
-	// Enable all alarms
-	reg_temp_1 = 0xFF;
-	l6470_set_param(stepper_motor, ALARM_EN, &reg_temp_1, 1);
-
-	HAL_Delay(10);
-
-	// Set STEP_MODE Microstepping (The default is already set at 1/128 step, but we will issue the command anyways for testing)
-	reg_temp_1 = (uint8_t)ONE_HUNDRED_TWENTY_EIGHTH_STEP;
-	l6470_set_param(stepper_motor, STEP_MODE, &reg_temp_1, 1);
-
-	HAL_Delay(10);
-
-	// Set the default ABS position to 0
-	// set all three bytes to zero for the 22 bit field (the upper 2 bits are ignored)
-	l6470_set_param(stepper_motor, ABS_POS, reg_temp_3, 3);
-
-	HAL_Delay(10);
-
-	// Set the default EL position to 0
-	// set all three bytes to zero for the 22 bit field (the upper 2 bits are ignored)
-	l6470_set_param(stepper_motor, EL_POS, reg_temp_3, 3);
-
-	HAL_Delay(10);
-
-	// Set the level for Holding Current
-	reg_temp_4[0] = (uint8_t)((uint16_t)KVAL_HOLD_PERCENT * 255 / 100);
-	l6470_set_param(stepper_motor, KVAL_HOLD, reg_temp_4, 1);
-
-	HAL_Delay(10);
-
-	// Set the Current level for running at constant speed
-	reg_temp_4[0] = (uint8_t)((uint16_t)KVAL_RUN_PERCENT * 255 / 100);
-	l6470_set_param(stepper_motor, KVAL_RUN, reg_temp_4, 1);
-
-	HAL_Delay(10);
-
-	// Set the Current level for acceleration
-	reg_temp_4[0] = (uint8_t)((uint16_t)KVAL_ACCDEC_PERCENT * 255 / 100);
-	l6470_set_param(stepper_motor, KVAL_ACC, reg_temp_4, 1);
-
-	HAL_Delay(10);
-
-	// Set the current level for decceleration
-	reg_temp_4[0] = (uint8_t)((uint16_t)KVAL_ACCDEC_PERCENT * 255 / 100);
-	l6470_set_param(stepper_motor, KVAL_DEC , reg_temp_4, 1);
-
-	HAL_Delay(10);
-
-	// set overcurrent threshold
-	reg_temp_4[0] = (uint8_t)(MAX_CURRENT / 375) + 1;
-	l6470_set_param(stepper_motor, OCD_TH, reg_temp_4, 1);
-
-	HAL_Delay(10);
-
-	// Set the CONFIG register with max torque slew rate (POW_SR = 00 = 320 V/µs)
-	uint8_t config_val[2] = { 0x2E, 0x88 };  // MSB first: 0x2888
-	l6470_set_param(stepper_motor, CONFIG, config_val, 4);
+//
+//	// Enable all alarms
+//	reg_temp_1 = 0xFF;
+//	l6470_set_param(stepper_motor, ALARM_EN, &reg_temp_1, 1);
+//
+//	HAL_Delay(10);
+//
+//	// Set STEP_MODE Microstepping (The default is already set at 1/128 step, but we will issue the command anyways for testing)
+//	reg_temp_1 = (uint8_t)ONE_HUNDRED_TWENTY_EIGHTH_STEP;
+//	l6470_set_param(stepper_motor, STEP_MODE, &reg_temp_1, 1);
+//
+//	HAL_Delay(10);
+//
+//	// Set the default ABS position to 0
+//	// set all three bytes to zero for the 22 bit field (the upper 2 bits are ignored)
+//	l6470_set_param(stepper_motor, ABS_POS, reg_temp_3, 3);
+//
+//	HAL_Delay(10);
+//
+//	// Set the default EL position to 0
+//	// set all three bytes to zero for the 22 bit field (the upper 2 bits are ignored)
+//	l6470_set_param(stepper_motor, EL_POS, reg_temp_3, 3);
+//
+//	HAL_Delay(10);
+//
+//	// Set the level for Holding Current
+//	reg_temp_4[0] = (uint8_t)((uint16_t)KVAL_HOLD_PERCENT * 255 / 100);
+//	l6470_set_param(stepper_motor, KVAL_HOLD, reg_temp_4, 1);
+//
+//	HAL_Delay(10);
+//
+//	// Set the Current level for running at constant speed
+//	reg_temp_4[0] = (uint8_t)((uint16_t)KVAL_RUN_PERCENT * 255 / 100);
+//	l6470_set_param(stepper_motor, KVAL_RUN, reg_temp_4, 1);
+//
+//	HAL_Delay(10);
+//
+//	// Set the Current level for acceleration
+//	reg_temp_4[0] = (uint8_t)((uint16_t)KVAL_ACCDEC_PERCENT * 255 / 100);
+//	l6470_set_param(stepper_motor, KVAL_ACC, reg_temp_4, 1);
+//
+//	HAL_Delay(10);
+//
+//	// Set the current level for decceleration
+//	reg_temp_4[0] = (uint8_t)((uint16_t)KVAL_ACCDEC_PERCENT * 255 / 100);
+//	l6470_set_param(stepper_motor, KVAL_DEC , reg_temp_4, 1);
+//
+//	HAL_Delay(10);
+//
+//	// set overcurrent threshold
+//	reg_temp_4[0] = (uint8_t)(MAX_CURRENT / 375) + 1;
+//	l6470_set_param(stepper_motor, OCD_TH, reg_temp_4, 1);
+//
+//	HAL_Delay(10);
+//
+//	// Set the CONFIG register with max torque slew rate (POW_SR = 00 = 320 V/µs)
+//	uint8_t config_val[2] = { 0x2E, 0x88 };  // MSB first: 0x2888
+//	l6470_set_param(stepper_motor, CONFIG, config_val, 4);
 
 	HAL_Delay(10);
 
@@ -242,107 +242,53 @@ void l6470_get_speed_pos(MotorSetTypedef* stepper_motor)
 	l6470_transmit_spi_dma(stepper_motor);
 }
 
-
-void l6470_set_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t *data, uint8_t data_length)
+void l6470_set_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t *value, uint8_t length)
 {
-	uint8_t data_raw[stepper_motor->num_motors];
-
-	for(int i = 0; i < stepper_motor->num_motors; i++)
-	{
-		data_raw[i] = param;
-	}
-
-	l6470_transmit_spi( stepper_motor, data_raw, stepper_motor->num_motors);
-	HAL_Delay(10);
-
-	for(int i = 0; i < data_length; i++)
-	{
-		for(int j = 0; j < stepper_motor->num_motors; j++)
-		{
-			data_raw[j] = *(data + i);
-		}
-		l6470_transmit_spi( stepper_motor, data_raw, stepper_motor->num_motors);
-		HAL_Delay(10);
-	}
-}
-//
-//void l6470_set_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t *data, uint8_t data_length)
-//{
-//
-//	uint8_t tx_data[4] = { 0 };
-//
-//	tx_data[3] = param;
-//
-//	// Copy value bytes into tx_data (data_length can be 1-3 bytes)
-//	for(int i = 0; i < data_length; i++)
-//	{
-//		tx_data[i + 1] = data[i];
-//	}
-//
-//	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
-//
-//	l6470_transmit_spi(stepper_motor, tx_data, data_length);
-//
-//	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
-//	HAL_Delay(10);
-//}
-
-uint16_t l6470_get_param_1_Byte(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t data_length)
-{
-    // tx_data: sending the command byte (0x20 | param) for both motors in the chain
-//    uint8_t tx_data[4] = { 0x20 | param, 0x20 | param, 0x00, 0x00 };  // Command for both L6470s (daisy chain)
-//    uint8_t tx_data[4] = { (0x20 | param), (0x20 | param), (0x20 | param), (0x20 | param) };
-    uint8_t tx_data[2] = { 0x2B, 0x2B };
-	//uint8_t tx_data[2] = { 0x00 };
-	uint8_t rx_data[2] = { 0x00 };
-
-    // Step 1: Send command to both L6470s in the daisy chain
-    HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);  // Select the motor (CS low)
-
-    // Step 2: Transmit the command and receive the response (2 for each motor)
-    HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx_data, rx_data, 2, 1000);  // 4 bytes: 2 for command, 2 for response data
-    if (status != HAL_OK)
-    {
-        printf("SPI TRANSMIT ERROR: %02X\n\r", status);
-        return -1;  // Return error if SPI transmission fails
+    if (length != 1) {
+        printf("SET_PARAM: Invalid length: %d\n", length);
+        return;
     }
 
-    // Step 3: CS must be pulled high to let the L6470 process the command and prepare the response
-    HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);  // Deselect the motor (CS high)
+    uint8_t tx_data[4] = {
+        0x00,        // Motor2: NOP
+        0x00,        // Motor2: filler
+        param & 0x1F, // Motor1: command
+        value[0]     // Motor1: value
+    };
+    uint8_t rx_data[4] = {0};
 
-    HAL_Delay(5);
-
-    tx_data[0] = 0x00;
-    tx_data[1] = 0x00;
-
-
-    HAL_Delay(5);
-
-    // Step 4: After CS is high, we need to pull CS low again before reading the response from the devices
-    HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);  // Select motor again (CS low)
-
-    // Step 5: Receive the response from both motors (daisy chain will shift out the response data)
-    status = HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx_data, rx_data, 2, 1000);  // 4 bytes: Read back the response data
-    if (status != HAL_OK)
-    {
-        printf("SPI RECEIVE ERROR: %02X\n\r", status);
-        return -1;  // Return error if SPI receive fails
-    }
-
-    // Step 6: CS is pulled high after receiving the response
-    HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);  // Deselect the motor (CS high)
-
-    // Step 7: Combine the received bytes into 16-bit values for both motors
-    uint16_t motor1_value = ((uint16_t)rx_data[2] << 8) | rx_data[3];  // Response for motor 1 (MSB and LSB)
-    // uint16_t motor2_value = ((uint16_t)rx_data[2] << 8) | rx_data[3];  // Response for motor 2 (MSB and LSB)
-//
-//    // Debug: Print out the values for both motors (for verification)
-//    printf("Motor 1 PARAM: 0x%04X\n", motor1_value);
-//    printf("Motor 2 PARAM: 0x%04X\n", motor2_value);
-
-    // Step 8: Return the value for motor 1 (or motor 2, depending on which you need)
-    return motor1_value;  // Or return motor2_value if you want the second motor's value
+    HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
+    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx_data, rx_data, 4, 1000);
+    HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
+    HAL_Delay(1);
 }
+
+uint8_t l6470_get_param(MotorSetTypedef* stepper_motor, uint8_t param)
+{
+    uint8_t tx_cmd[4] = {
+        0x00,                          // Motor2: NOP
+        0x00,                          // Motor2: filler
+        0x20 | (param & 0x1F),         // Motor1: GetParam
+        0x00                           // Motor1: dummy for read
+    };
+    uint8_t rx_cmd[4] = {0};
+
+    HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
+    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx_cmd, rx_cmd, 4, 1000);
+    HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
+    HAL_Delay(1);
+
+    uint8_t tx_dummy[4] = {0, 0, 0, 0};
+    uint8_t rx_data[4] = {0};
+
+    HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
+    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx_dummy, rx_data, 4, 1000);
+    HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
+    HAL_Delay(1);
+
+    return rx_data[3]; // Motor1 is last in chain
+}
+
 /*
  * @brief receiving data through spi
  * @param stepper_motor: stepper motor handler

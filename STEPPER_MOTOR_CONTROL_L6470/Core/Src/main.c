@@ -245,49 +245,6 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//  uint16_t configValue = 0 ;
-
-//  uint16_t status1 = 0;
-//  uint16_t status2 = 0;
-
-  printf("\n\r\n\r\n\r");
-
-//  status1 = l6470_get_status(&motor_set_1);
-//  printf("BEFORE: l6470_get_status 1: %04X\n\r", status1);
-//
-//  status2 = l6470_get_status(&motor_set_2);
-//  printf("BEFORE: l6470_get_status 2:  %04X\n\r", status2);
-//
-//  readParam1 = l6470_get_param(&motor_set_1, ALARM_EN, 4);
-//  printf("BEFORE: motorSet1: ALARM_EN: %lu\n\r", readParam1);
-//
-//  readParam1 = l6470_get_param(&motor_set_1, STEP_MODE, 4);
-//  printf("BEFORE: motorSet1: STEP_MODE: %luX\n\r", readParam1);
-//
-//  readParam1 = l6470_get_param(&motor_set_1, KVAL_RUN, 4);
-//  printf("BEFORE: motorSet1: KVAL_RUN: %lu\n\r", readParam1);
-//
-//  readParam1 = l6470_get_param(&motor_set_1, CONFIG, 4);
-//  printf("BEFORE: motorSet1: CONFIG: %lu\n\r", readParam1);
-//
-//  readParam2 = l6470_get_param(&motor_set_2, ALARM_EN, 4);
-//  printf("BEFORE: motorSet2: ALARM_EN: %lu\n\r", readParam2);
-//
-//  readParam2 = l6470_get_param(&motor_set_2, STEP_MODE, 4);
-//  printf("BEFORE: motorSet2: STEP_MODE: %lu\n\r", readParam2);
-//
-//  readParam2 = l6470_get_param(&motor_set_2, KVAL_RUN, 4);
-//  printf("BEFORE: motorSet2: KVAL_RUN: %lu\n\r", readParam2);
-
-  HAL_Delay(100);
-
-  uint16_t readParam2 = l6470_get_param_1_Byte(&motor_set_2, ACC, 2);
-  printf("\n\r\n\rBEFORE ACC: %04X\n\r", readParam2);
-
-  HAL_Delay(100);
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   l6470_init(&motor_set_1);
@@ -298,49 +255,34 @@ int main(void)
 
   HAL_Delay(100);
 
-// ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//  status1 = l6470_get_status(&motor_set_1);
-//  printf("AFTER: l6470_get_status 1: %02X\n\r", status1);
-//
-//  status2 = l6470_get_status(&motor_set_2);
-//  printf("AFTER: l6470_get_status 2: %02X\n\r", status2);
-
-//  readParam1 = l6470_get_param(&motor_set_1, ALARM_EN, 4);
-//  printf("AFTER: motorSet1: ALARM_EN: %lu\n\r", readParam1);
-//
-//  readParam1 = l6470_get_param(&motor_set_1, STEP_MODE, 4);
-//  printf("AFTER: motorSet1: STEP_MODE: %lu\n\r", readParam1);
-//
-//  readParam1 = l6470_get_param(&motor_set_1, KVAL_RUN, 4);
-//  printf("AFTER: motorSet1: KVAL_RUN: %lu\n\r", readParam1);
-//
-//  readParam1 = l6470_get_param(&motor_set_1, CONFIG, 4);
-//  printf("AFTER: motorSet1: CONFIG: %lu\n\r", readParam1);
-//
-//  readParam2 = l6470_get_param(&motor_set_2, ALARM_EN, 4);
-//  printf("AFTER: motorSet2: ALARM_EN: %lu\n\r", readParam2);
-//
-//  readParam2 = l6470_get_param(&motor_set_2, STEP_MODE, 4);
-//  printf("AFTER: motorSet2: STEP_MODE: %lu\n\r", readParam2);
-//
-//  readParam2 = l6470_get_param(&motor_set_2, KVAL_RUN, 4);
-//  printf("AFTER: motorSet2: KVAL_RUN: %lu\n\r", readParam2);
-
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
   // testing Code (KEEP)
-  //  // 6 = 1rps
+  //  6 = 1rps
   //  vel_temp_1[0] = 6; // motor 3
   //  vel_temp_1[1] = 6; // motor 1
-  //
+
   //  vel_temp_2 = 0; 	// motor 2
 
   //  l6470_set_vel(&motor_set_1, vel_temp_1);
-  //  //HAL_Delay(5);  // ToDo: Do we need this delay?
+  //  HAL_Delay(5);  // ToDo: Do we need this delay?
   //  l6470_set_vel(&motor_set_2, &vel_temp_2);
   //  HAL_Delay(5000);
+
 ///////////////////////////////////////////////////////////
+
+  uint8_t step_mode_val = 0x07;  // 1/128 microsteps
+  uint8_t new_mode_val  = 0x03;   // 1/8 microsteps
+
+  uint8_t before = l6470_get_param(&motor_set_2, 0x16);
+  printf("\n\rSTEP_MODE before: 0x%02X\n\r", before);
+
+  l6470_set_param(&motor_set_2, 0x16, &new_mode_val, 1);
+
+  uint8_t after = l6470_get_param(&motor_set_2, 0x16);
+  printf("STEP_MODE after:  0x%02X\n\r\n\r", after);
+
 
   /* USER CODE END 2 */
 
@@ -348,9 +290,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-	  readParam2 = l6470_get_param_1_Byte(&motor_set_2, ACC, 2);
-	  printf("AFTER ACC: %04X\n\r", readParam2);
 
 	  HAL_Delay(100);
 
@@ -496,7 +435,7 @@ static void MX_SPI1_Init(void)
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi1.Init.NSS = SPI_NSS_SOFT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -534,7 +473,7 @@ static void MX_SPI2_Init(void)
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
