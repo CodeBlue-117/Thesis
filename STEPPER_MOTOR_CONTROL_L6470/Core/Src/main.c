@@ -272,7 +272,7 @@ int main(void)
 
 ///////////////////////////////////////////////////////////
 
-  uint8_t step_mode_val = 0x07;  // 1/128 microsteps
+  uint8_t step_mode_val = 0x07;   // 1/128 microsteps
   uint8_t new_mode_val  = 0x03;   // 1/8 microsteps
 
   uint8_t before = l6470_get_param(&motor_set_2, 0x16);
