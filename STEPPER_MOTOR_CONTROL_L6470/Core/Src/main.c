@@ -250,6 +250,8 @@ int main(void)
   l6470_init(&motor_set_1);
   l6470_init(&motor_set_2);
 
+  HAL_Delay(100);
+
   l6470_enable(&motor_set_1);
   l6470_enable(&motor_set_2);
 
@@ -259,32 +261,19 @@ int main(void)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   // testing Code (KEEP)
-  //  6 = 1rps
-  //  vel_temp_1[0] = 6; // motor 3
-  //  vel_temp_1[1] = 6; // motor 1
+  // 6 = 1rps
+    vel_temp_1[0] = 6; // motor 3
+    vel_temp_1[1] = 0; // motor 1
 
-  //  vel_temp_2 = 0; 	// motor 2
+    vel_temp_2 = 0; 	// motor 2
 
-  //  l6470_set_vel(&motor_set_1, vel_temp_1);
-  //  HAL_Delay(5);  // ToDo: Do we need this delay?
-  //  l6470_set_vel(&motor_set_2, &vel_temp_2);
-  //  HAL_Delay(5000);
+    l6470_set_vel(&motor_set_1, vel_temp_1);
+    HAL_Delay(5000);  // ToDo: Do we need this delay?
+
+//    l6470_set_vel(&motor_set_2, &vel_temp_2);
+//    HAL_Delay(5000);
 
 ///////////////////////////////////////////////////////////
-
-  uint8_t acc_val[2] = { 0xCA, 0xFE }; // Expected raw: 0xCAFE
-
-  // Read-before
-  uint32_t before = l6470_get_param(&motor_set_2, ACC, 2);
-  printf("ACC before: 0x%04lX (%lu)\n\r\n\r", before, before);
-
-  // Write test value
-  printf("Writing ACC: MSB=0x%02X LSB=0x%02X\n\r", acc_val[0], acc_val[1]);
-  l6470_set_param(&motor_set_2, ACC, acc_val, 2);
-
-  // Read-after
-  uint32_t after = l6470_get_param(&motor_set_2, ACC, 2);
-  printf("ACC after:  0x%04lX (%lu)\n\r\n\r", after, after);
 
   /* USER CODE END 2 */
 

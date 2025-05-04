@@ -23,10 +23,10 @@
 #define MAX_ACCELERATION    			10  				/*!< max acceleration [rad/sec^2] 			*/
 #define MAX_SPEED_RAD    				164 // (max speed capable by Nema17 - 12.5rev/s = 2500 steeps/sec ) // 1023(max speed capable by l6470) // 60 * 6.28f // 5 * 6.28f 			/*!< max speed [rad / sec] 					*/
 #define MAX_CURRENT         			1.0 				/*!< Max Current of the stepper motor 		*/
-#define MICROSTEPPING               	16 // 128					/*!< Number of microsteps per second	  	*/
+#define MICROSTEPPING               	128					/*!< Number of microsteps per second	  	*/
 #define STEPS_PER_REVOLUTION  			200	                /*!< Steps per revolution 	*/
 #define TWOPI                       	6.283185f			/*!< Two pi value 			*/
-#define KVAL_HOLD_PERCENT           	70
+#define KVAL_HOLD_PERCENT           	75
 #define KVAL_RUN_PERCENT            	100
 #define KVAL_ACCDEC_PERCENT         	100
 #define DEFAULT_ZERO_POS				0
