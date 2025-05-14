@@ -11,8 +11,8 @@
 #include "main.h"
 
 #define MAX_NUMBER_OF_MOTORS        	2
-#define SPI_TX_BUFFER_LENGTH  			4 * MAX_NUMBER_OF_MOTORS
-#define SPI_RX_BUFFER_LENGTH  			4 * MAX_NUMBER_OF_MOTORS
+#define SINGLE_MOTOR_BUFFER_LENGTH  	4
+// #define SPI_RX_BUFFER_LENGTH  			4 * MAX_NUMBER_OF_MOTORS
 
 #define MOTOR1				   			1
 #define MOTOR2				   			2
@@ -106,12 +106,13 @@ typedef struct
 	l6470TypeDef        motors[MAX_NUMBER_OF_MOTORS];
 	uint8_t				num_motors;
 	uint8_t             spi_dma_busy;
-	uint8_t             spd_tx_buffer[SPI_TX_BUFFER_LENGTH * MAX_NUMBER_OF_MOTORS];
-	uint8_t             spd_rx_buffer[SPI_RX_BUFFER_LENGTH * MAX_NUMBER_OF_MOTORS];
+	uint8_t             spd_tx_buffer[SINGLE_MOTOR_BUFFER_LENGTH * 2];
+	uint8_t             spd_rx_buffer[SINGLE_MOTOR_BUFFER_LENGTH * 2];
 	uint8_t             spi_tx_count;
 	uint8_t             spi_tx_buffer_length;
 
 }MotorSetTypedef;
+
 
 void l6470_enable(MotorSetTypedef* stepper_motor);
 void l6470_disable(MotorSetTypedef* stepper_motor);

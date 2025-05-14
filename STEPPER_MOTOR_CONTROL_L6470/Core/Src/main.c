@@ -69,19 +69,20 @@ const float J[3][3] = {{-1, 0.5, 0.5}, {0, 0.866, -0.866}, {-0.333, -0.333, -0.3
 const float J_Inv[3][3] = {{-0.667, 0, -1}, {0.333, 0.577, -1}, {0.333, -0.577, -1}};
 
 static MotorSetTypedef motor_set_1 = {
+		.gpio_rst_port = STEPPER_RST_GPIO_Port,
 		.gpio_cs_number = STEPPER_SPI1_CS_Pin,
 		.gpio_cs_port = STEPPER_SPI1_CS_GPIO_Port,
 		.gpio_rst_number = STEPPER_RST_Pin,
-		.gpio_rst_port = STEPPER_RST_GPIO_Port,
 		.num_motors = 2,
 		.hspi_l6470 = &hspi1,
 };
 
 static MotorSetTypedef motor_set_2 = {
+		.gpio_rst_port = STEPPER_RST_GPIO_Port,
 		.gpio_cs_number = STEPPER_SPI2_CS_Pin,
 		.gpio_cs_port = STEPPER_SPI2_CS_GPIO_Port,
 		.gpio_rst_number = STEPPER_RST_Pin,
-		.gpio_rst_port = STEPPER_RST_GPIO_Port,
+
 		.num_motors = 1,
 		.hspi_l6470 = &hspi2,
 };
@@ -139,12 +140,12 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef * hspi)
 {
 	if(hspi == motor_set_1.hspi_l6470)
 	{
-		l6470_transmit_spi_dma(&motor_set_1);
+		printf("MOTOR SET 1 SPI COMPLETE\n\r");
 	}
 
 	else if(hspi == motor_set_2.hspi_l6470)
 	{
-		l6470_transmit_spi_dma(&motor_set_2);
+		printf("MOTOR SET 2 SPI COMPLETE\n\r");
 	}
 }
 
@@ -257,21 +258,26 @@ int main(void)
 
   HAL_Delay(100);
 
+///////////////////////////////////////////////////////////
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  	  // testing Code (KEEP)
+  	  // 6 = 1rps
+    vel_temp_1[0] = 3; // motor 2
+    vel_temp_1[1] = 3; // motor 3
 
-  // testing Code (KEEP)
-  // 6 = 1rps
-    vel_temp_1[0] = 0; // motor 2
-    vel_temp_1[1] = 0; // motor 3
+    vel_temp_2 = 6; 	// motor 1 ----
 
-    vel_temp_2 = 6; 	// motor 1 ---- TODO: need to troubleshoot
+    uint16_t stat = l6470_get_status(&motor_set_1);
+    printf("\n\rM1 Status: 0x%04X\n\r", stat);
 
-    l6470_set_vel(&motor_set_2, &vel_temp_2);
-    HAL_Delay(5000);  // ToDo: Do we need this delay?
+    l6470_set_vel(&motor_set_1, vel_temp_1);
+    HAL_Delay(1000);  // ToDo: Do we need this delay?
 
 //    l6470_set_vel(&motor_set_2, &vel_temp_2);
 //    HAL_Delay(5000);
+
+//    stat = l6470_get_status(&motor_set_2);
+//    printf("M2 Status: 0x%04X\n\r", stat);
 
 ///////////////////////////////////////////////////////////
 
