@@ -63,7 +63,7 @@ float wheel_radius 		= 44.25; // each wheel has a radius of 44.25mm ToDo: Update
 float omniBody_radius 	= 88.1; // The omni body has a radius of 88.1mm ToDo: Update this
 
 float vel_temp_1[2];		// motor 2, 3
-float vel_temp_2[2];			// motor 1
+float vel_temp_2[2];			// motor 1 (second element, had to troubleshoot)
 
 const float J[3][3] = {{-1, 0.5, 0.5}, {0, 0.866, -0.866}, {-0.333, -0.333, -0.333}};
 const float J_Inv[3][3] = {{-0.667, 0, -1}, {0.333, 0.577, -1}, {0.333, -0.577, -1}};
@@ -166,17 +166,17 @@ void omni_drive(float Vx, float Vy, float omega, float r)
 		}
 	}
 
-	float vel_temp_1[2] = {w[2], w[0]}; // Motor 3 and motor 1 on motor_set_1
-	float vel_temp_2 = w[1];				// motor 2 on motor_set_2
+	float vel_temp_1[2] = {w[1], w[2]}; // Motor 3 and motor 1 on motor_set_1
+	float vel_temp_2[2] = {0, w[0]};				// motor 2 on motor_set_2
 
 	printf("vel_temp_1[0]: %f\n\r", vel_temp_1[0]);
 	printf("vel_temp_1[1]: %f\n\r", vel_temp_1[1]);
-	printf("vel_temp_2: %f\n\r", vel_temp_2);
+	printf("vel_temp_2[1: %f\n\r", vel_temp_2[1]);
 
 	// Transmit velocities to motor driver
 	l6470_set_vel(&motor_set_1, vel_temp_1);
 	HAL_Delay(5);
-	l6470_set_vel(&motor_set_2, &vel_temp_2);
+	l6470_set_vel(&motor_set_2, vel_temp_2);
 	HAL_Delay(5000);
 
 }
@@ -261,24 +261,18 @@ int main(void)
 
 ///////////////////////////////////////////////////////////
 
-
-
   	  // testing Code (KEEP)
   	  // 6 = 1rps
     vel_temp_1[0] = 6; // motor 2
     vel_temp_1[1] = 6; // motor 3
 
-    vel_temp_2[0] = 6; 	// motor 1 ----
-    vel_temp_2[1] = 6; 	// motor 1 ----
-
-    uint16_t stat = l6470_get_status(&motor_set_1);
-    printf("\n\rM1 Status: 0x%04X\n\r", stat);
+    vel_temp_2[0] = 0; 	// NOT CONNECTED
+    vel_temp_2[1] = 6; 	// motor 1
 
     l6470_set_vel(&motor_set_1, vel_temp_1);
     l6470_set_vel(&motor_set_2, vel_temp_2);
 
-
-    HAL_Delay(5000);  // ToDo: Do we need this delay?
+    HAL_Delay(1000);  // ToDo: Do we need this delay?
 
     l6470_soft_stop(&motor_set_1);
     l6470_soft_stop(&motor_set_2);
