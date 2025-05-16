@@ -58,7 +58,7 @@ void l6470_init(MotorSetTypedef* stepper_motor)
         stepper_motor->motors[i].speed_pos.steps_per_rev = STEPS_PER_REVOLUTION;
     }
 
-    // Reset the driver
+    // Reset the driver TODO: verify that this is correct because red light turns on here
     HAL_GPIO_WritePin(stepper_motor->gpio_rst_port, stepper_motor->gpio_rst_number, GPIO_PIN_RESET);
     HAL_Delay(100);
     HAL_GPIO_WritePin(stepper_motor->gpio_rst_port, stepper_motor->gpio_rst_number, GPIO_PIN_SET);
@@ -129,8 +129,8 @@ void l6470_init(MotorSetTypedef* stepper_motor)
     HAL_Delay(10);
 
     // Initialize SPI buffers
-    stepper_motor->spi_dma_busy = 0;
-    stepper_motor->spi_tx_count = 0;
+    stepper_motor->spi_dma_busy = 0; // TODO: Unused?
+    stepper_motor->spi_tx_count = 0; // TODO: Unused?
 
     for (int i = 0; i < stepper_motor->num_motors; i++)
     {
@@ -138,18 +138,6 @@ void l6470_init(MotorSetTypedef* stepper_motor)
     }
 
     HAL_Delay(10);
-}
-
-
-void set_speed(MotorSetTypedef* stepper_motor, float* vel)
-{
-
-	uint32_t speed;
-
-
-
-
-
 }
 
 /* @brief This function is to set rotational velocity at radians per angle
@@ -188,6 +176,8 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
         // Convert velocity to stepper motor speed format
         speed = (uint32_t)(vel[i] * STEPS_PER_REVOLUTION * 67.108864f / TWOPI);
 
+        printf("SPEED: %lu\n\r", speed);
+
         // Store speed data in the transmission buffer
         stepper_motor->spd_tx_buffer[stepper_motor->num_motors + i]     = (uint8_t)(speed >> 16);
         stepper_motor->spd_tx_buffer[stepper_motor->num_motors * 2 + i] = (uint8_t)(speed >> 8);
@@ -202,6 +192,7 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
     {
         printf("TX[%d] = 0x%02X\n\r", i, stepper_motor->spd_tx_buffer[i]);
     }
+
 
     l6470_transmit_spi(stepper_motor, stepper_motor->spd_tx_buffer, sizeof(stepper_motor->spd_tx_buffer));
     // l6470_transmit_spi_dma(stepper_motor);
@@ -273,7 +264,7 @@ void l6470_set_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t *val
 
     for (int i = 0; i < length; i++)
     {
-        tx[0] = 0x00;
+        tx[0] = 0x00;  // TODO: Check to make sure this works with a single chip and double chip config
         tx[1] = value[i];  // MSB first
         rx[0] = rx[1] = 0;
 
@@ -355,28 +346,19 @@ void l6470_transmit_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t d
 
 	uint8_t receive_data[data_length]; // NOT USED
 
-	for (int i = 0; i < data_length; i++)
+	for (int i = 0; i < 4 * stepper_motor->num_motors; i+=2)
 	{
 
 		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
 		HAL_Delay(1);
-		HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, data[i], receive_data, data_length, 1000);
+
+		HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, &data[i], receive_data, 2, 1000);
+
 		HAL_Delay(1);
 		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
-		HAL_Delay(2);
+		HAL_Delay(1);
 
 	}
-
-
-//	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
-//
-//	HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(stepper_motor ->hspi_l6470, data, receive_data, data_length, 1000);
-//	if(status != HAL_OK)
-//	{
-//		printf("SPI TRANSMIT ERROR: %02X\n\r", status);
-//	}
-//
-//	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_SET);
 
 }
 

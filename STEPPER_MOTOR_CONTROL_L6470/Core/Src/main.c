@@ -262,8 +262,8 @@ int main(void)
 
   	  // testing Code (KEEP)
   	  // 6 = 1rps
-    vel_temp_1[0] = 3; // motor 2
-    vel_temp_1[1] = 3; // motor 3
+    vel_temp_1[0] = 6; // motor 2
+    vel_temp_1[1] = 6; // motor 3
 
     vel_temp_2 = 6; 	// motor 1 ----
 
