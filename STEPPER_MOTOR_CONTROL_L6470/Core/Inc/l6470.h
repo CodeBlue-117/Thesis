@@ -126,5 +126,6 @@ void l6470_receive_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t da
 void l6470_transmit_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t data_length);
 void l6470_set_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t *value, uint8_t length);
 uint32_t l6470_get_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t length);
+void l6470_soft_stop(MotorSetTypedef* stepper_motor);
 
 #endif /* INC_L6470_H_ */

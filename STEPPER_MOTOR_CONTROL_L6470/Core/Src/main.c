@@ -103,6 +103,7 @@ void backward_motion(void);
 void left_motion(void);
 void right_motion(void);
 
+
 // Redirect printf() to USART2
 int __io_putchar(int ch)
 {
@@ -271,7 +272,9 @@ int main(void)
     printf("\n\rM1 Status: 0x%04X\n\r", stat);
 
     l6470_set_vel(&motor_set_1, vel_temp_1);
-    HAL_Delay(1000);  // ToDo: Do we need this delay?
+    HAL_Delay(5000);  // ToDo: Do we need this delay?
+
+    l6470_soft_stop(&motor_set_1);
 
 //    l6470_set_vel(&motor_set_2, &vel_temp_2);
 //    HAL_Delay(5000);

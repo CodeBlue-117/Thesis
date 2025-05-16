@@ -176,7 +176,7 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
         // Convert velocity to stepper motor speed format
         speed = (uint32_t)(vel[i] * STEPS_PER_REVOLUTION * 67.108864f / TWOPI);
 
-        printf("SPEED: %lu\n\r", speed);
+        // printf("SPEED: %lu\n\r", speed);
 
         // Store speed data in the transmission buffer
         stepper_motor->spd_tx_buffer[stepper_motor->num_motors + i]     = (uint8_t)(speed >> 16);
@@ -184,22 +184,24 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
         stepper_motor->spd_tx_buffer[stepper_motor->num_motors * 3 + i] = (uint8_t)(speed);
     }
 
-    // These two lines are important for a **single DMA shot**
-    stepper_motor->spi_tx_buffer_length = 1;  // One transfer of full buffer
-    stepper_motor->spi_tx_count = 0;
-
-    for (int i = 0; i < 4 * stepper_motor->num_motors; i++)
-    {
-        printf("TX[%d] = 0x%02X\n\r", i, stepper_motor->spd_tx_buffer[i]);
-    }
-
+//    for (int i = 0; i < 4 * stepper_motor->num_motors; i++)
+//    {
+//        printf("TX[%d] = 0x%02X\n\r", i, stepper_motor->spd_tx_buffer[i]);
+//    }
 
     l6470_transmit_spi(stepper_motor, stepper_motor->spd_tx_buffer, sizeof(stepper_motor->spd_tx_buffer));
     // l6470_transmit_spi_dma(stepper_motor);
 }
 
+void l6470_soft_stop(MotorSetTypedef* stepper_motor)
+{
+	uint8_t softStopCommand = 0xB0;
 
+	uint8_t tx_buffer[2] = { softStopCommand, softStopCommand };
 
+	l6470_transmit_spi(stepper_motor, tx_buffer, 2);
+
+}
 /*
  * @brief updates the stepper motor position (radians)
  * @param stepper_motor: stepper motor handler
@@ -312,7 +314,7 @@ uint32_t l6470_get_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t 
         printf("Byte %d read: 0x%02X\n\r", i, rx[1]);
     }
 
-    printf("Raw result: 0x%06lX\n\r", result);
+    // printf("Raw result: 0x%06lX\n\r", result);
     return result;
 }
 
