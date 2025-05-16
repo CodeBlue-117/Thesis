@@ -24,6 +24,9 @@ void l6470_enable(MotorSetTypedef* stepper_motor)
 
 	l6470_transmit_spi(stepper_motor, reg_temp, stepper_motor->num_motors);
 	HAL_Delay(10);
+
+	uint32_t conf = l6470_get_param(stepper_motor, CONFIG, 2);  // ✅ Uses the argument passed in
+	printf("CONFIG read in enable(): 0x%04lX\n\r", conf);
 }
 /*
  * @brief disable l6470 motor driver

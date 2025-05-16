@@ -63,12 +63,12 @@ float wheel_radius 		= 44.25; // each wheel has a radius of 44.25mm ToDo: Update
 float omniBody_radius 	= 88.1; // The omni body has a radius of 88.1mm ToDo: Update this
 
 float vel_temp_1[2];		// motor 2, 3
-float vel_temp_2;			// motor 1
+float vel_temp_2[2];			// motor 1
 
 const float J[3][3] = {{-1, 0.5, 0.5}, {0, 0.866, -0.866}, {-0.333, -0.333, -0.333}};
 const float J_Inv[3][3] = {{-0.667, 0, -1}, {0.333, 0.577, -1}, {0.333, -0.577, -1}};
 
-static MotorSetTypedef motor_set_1 = {
+MotorSetTypedef motor_set_1 = {
 		.gpio_rst_port = STEPPER_RST_GPIO_Port,
 		.gpio_cs_number = STEPPER_SPI1_CS_Pin,
 		.gpio_cs_port = STEPPER_SPI1_CS_GPIO_Port,
@@ -77,13 +77,13 @@ static MotorSetTypedef motor_set_1 = {
 		.hspi_l6470 = &hspi1,
 };
 
-static MotorSetTypedef motor_set_2 = {
+MotorSetTypedef motor_set_2 = {
 		.gpio_rst_port = STEPPER_RST_GPIO_Port,
 		.gpio_cs_number = STEPPER_SPI2_CS_Pin,
 		.gpio_cs_port = STEPPER_SPI2_CS_GPIO_Port,
 		.gpio_rst_number = STEPPER_RST_Pin,
 
-		.num_motors = 1,
+		.num_motors = 2,
 		.hspi_l6470 = &hspi2,
 };
 
@@ -261,26 +261,27 @@ int main(void)
 
 ///////////////////////////////////////////////////////////
 
+
+
   	  // testing Code (KEEP)
   	  // 6 = 1rps
     vel_temp_1[0] = 6; // motor 2
     vel_temp_1[1] = 6; // motor 3
 
-    vel_temp_2 = 6; 	// motor 1 ----
+    vel_temp_2[0] = 6; 	// motor 1 ----
+    vel_temp_2[1] = 6; 	// motor 1 ----
 
     uint16_t stat = l6470_get_status(&motor_set_1);
     printf("\n\rM1 Status: 0x%04X\n\r", stat);
 
     l6470_set_vel(&motor_set_1, vel_temp_1);
+    l6470_set_vel(&motor_set_2, vel_temp_2);
+
+
     HAL_Delay(5000);  // ToDo: Do we need this delay?
 
     l6470_soft_stop(&motor_set_1);
-
-//    l6470_set_vel(&motor_set_2, &vel_temp_2);
-//    HAL_Delay(5000);
-
-//    stat = l6470_get_status(&motor_set_2);
-//    printf("M2 Status: 0x%04X\n\r", stat);
+    l6470_soft_stop(&motor_set_2);
 
 ///////////////////////////////////////////////////////////
 
