@@ -59,7 +59,7 @@ UART_HandleTypeDef huart2;
 bool buttonFlag = false;
 uint8_t pushButtonCallCount = 0;
 
-float wheel_radius 		= 44.25; // each wheel has a radius of 44.25mm ToDo: Update this
+float wheel_radius 		= 29.69; // each wheel has a radius of 44.25mm ToDo: Update this
 float omniBody_radius 	= 88.1; // The omni body has a radius of 88.1mm ToDo: Update this
 
 float vel_temp_1[2];		// motor 2, 3
