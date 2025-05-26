@@ -13,7 +13,9 @@
   ******************************************************************************
   */
 
-// ToDo: Check the Status register when the battery is plugged in and program is running to determine cause of red light
+// TODO: Verify get_param and set_param for both chips (one motor and two motors)
+// TODO: Write DMA function
+// TODO: Write function to simulate acceleration
 
 
 /* USER CODE END Header */
