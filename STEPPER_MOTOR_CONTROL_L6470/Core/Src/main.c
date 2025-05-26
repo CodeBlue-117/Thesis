@@ -125,7 +125,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
         if((currentTime - lastPressTime) >= DEBOUNCE_DELAY)
         {
             lastPressTime = currentTime; // Update last press time
-            printf("USER PUSH BUTTON SELECTED!!!\n\r");
+            // printf("USER PUSH BUTTON SELECTED!!!\n\r");
 
             buttonFlag = true;
 
@@ -167,45 +167,45 @@ void omni_drive(float Vx, float Vy, float omega, float r)
 	}
 
 	float vel_temp_1[2] = {w[1], w[2]}; // Motor 3 and motor 1 on motor_set_1
-	float vel_temp_2[2] = {0, w[0]};				// motor 2 on motor_set_2
+	float vel_temp_2[2] = {0, w[0]};    // motor 2 on motor_set_2
 
-	printf("vel_temp_1[0]: %f\n\r", vel_temp_1[0]);
+	printf("\n\rvel_temp_1[0]: %f\n\r", vel_temp_1[0]);
 	printf("vel_temp_1[1]: %f\n\r", vel_temp_1[1]);
 	printf("vel_temp_2[1: %f\n\r", vel_temp_2[1]);
 
 	// Transmit velocities to motor driver
 	l6470_set_vel(&motor_set_1, vel_temp_1);
-	HAL_Delay(5);
+	// HAL_Delay(5);
 	l6470_set_vel(&motor_set_2, vel_temp_2);
-	HAL_Delay(5000);
+
 
 }
 
 void forward_motion(void)
 {
-	printf("Forward\n\r");
-	HAL_Delay(10);
+	// printf("Forward\n\r");
+	// HAL_Delay(1);
 	omni_drive(0.0f, 6.0f, 0.0f, wheel_radius);
 }
 
 void backward_motion(void)
 {
-	printf("Backward\n\r");
-	HAL_Delay(10);
+	// printf("Backward\n\r");
+	// HAL_Delay(1);
 	omni_drive(0.0f, -6.0f, 0.0f, wheel_radius);
 }
 
 void left_motion(void)
 {
-	printf("Left\n\r");
-	HAL_Delay(10);
+	// printf("Left\n\r");
+	// HAL_Delay(1);
 	omni_drive(-6.0f, 0.0f, 0.0f, wheel_radius);
 }
 
 void right_motion(void)
 {
-	printf("Right\n\r");
-	HAL_Delay(10);
+	// printf("Right\n\r");
+	// HAL_Delay(1);
 	omni_drive(6.0f, 0.0f, 0.0f, wheel_radius);
 }
 
@@ -270,9 +270,10 @@ int main(void)
     vel_temp_2[1] = 6; 	// motor 1
 
     l6470_set_vel(&motor_set_1, vel_temp_1);
+    HAL_Delay(5);
     l6470_set_vel(&motor_set_2, vel_temp_2);
 
-    HAL_Delay(1000);  // ToDo: Do we need this delay?
+    HAL_Delay(1000);
 
     l6470_soft_stop(&motor_set_1);
     l6470_soft_stop(&motor_set_2);
@@ -286,7 +287,7 @@ int main(void)
   while (1)
   {
 
-	  HAL_Delay(100);
+	  // HAL_Delay(1);
 
 	  if(buttonFlag == true)
 	  {
@@ -297,9 +298,11 @@ int main(void)
 		  		  l6470_enable(&motor_set_1);
 		  		  l6470_enable(&motor_set_2);
 
-		  		  HAL_Delay(500);
+		  		  // HAL_Delay(5);
 		  		  pushButtonCallCount++;
 		  		  forward_motion();
+
+		  		  HAL_Delay(3000);
 
 		  		  l6470_disable(&motor_set_1);
 		  		  l6470_disable(&motor_set_2);
@@ -309,9 +312,11 @@ int main(void)
 				  l6470_enable(&motor_set_1);
 				  l6470_enable(&motor_set_2);
 
-				  HAL_Delay(500);
+				  // HAL_Delay(5);
 				  pushButtonCallCount++;
 				  backward_motion();
+
+				  HAL_Delay(3000);
 
 				  l6470_disable(&motor_set_1);
 				  l6470_disable(&motor_set_2);
@@ -322,9 +327,11 @@ int main(void)
 				  l6470_enable(&motor_set_1);
 				  l6470_enable(&motor_set_2);
 
-				  HAL_Delay(500);
+				  // HAL_Delay(5);
 				  pushButtonCallCount++;
 				  left_motion();
+
+				  HAL_Delay(3000);
 
 				  l6470_disable(&motor_set_1);
 				  l6470_disable(&motor_set_2);
@@ -334,9 +341,11 @@ int main(void)
 				  l6470_enable(&motor_set_1);
 				  l6470_enable(&motor_set_2);
 
-				  HAL_Delay(500);
+				  // HAL_Delay(5);
 				  pushButtonCallCount++;
 				  right_motion();
+
+				  HAL_Delay(3000);
 
 				  l6470_disable(&motor_set_1);
 				  l6470_disable(&motor_set_2);

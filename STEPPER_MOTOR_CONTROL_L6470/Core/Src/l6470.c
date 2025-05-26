@@ -19,14 +19,14 @@ void l6470_enable(MotorSetTypedef* stepper_motor)
 	for(int i = 0; i < stepper_motor->num_motors; i++)
 	{
 		reg_temp[i] = RESET_DEVICE;
-		HAL_Delay(10);
+		// HAL_Delay(10);
 	}
 
 	l6470_transmit_spi(stepper_motor, reg_temp, stepper_motor->num_motors);
-	HAL_Delay(10);
+	// HAL_Delay(10);
 
-	uint32_t conf = l6470_get_param(stepper_motor, CONFIG, 2);  // ✅ Uses the argument passed in
-	printf("CONFIG read in enable(): 0x%04lX\n\r", conf);
+	// uint32_t conf = l6470_get_param(stepper_motor, CONFIG, 2);  // ✅ Uses the argument passed in
+	// printf("CONFIG read in enable(): 0x%04lX\n\r", conf);
 }
 /*
  * @brief disable l6470 motor driver
@@ -42,7 +42,7 @@ void l6470_disable(MotorSetTypedef* stepper_motor)
 	}
 
 	l6470_transmit_spi(stepper_motor, reg_temp, stepper_motor->num_motors);
-	HAL_Delay(10);
+	// HAL_Delay(10);
 }
 
 /*
@@ -314,7 +314,7 @@ uint32_t l6470_get_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t 
         HAL_Delay(2);
 
         result = (result << 8) | rx[1];
-        printf("Byte %d read: 0x%02X\n\r", i, rx[1]);
+        // printf("Byte %d read: 0x%02X\n\r", i, rx[1]);
     }
 
     // printf("Raw result: 0x%06lX\n\r", result);
