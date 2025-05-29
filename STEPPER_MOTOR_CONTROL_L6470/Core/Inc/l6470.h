@@ -116,7 +116,9 @@ typedef struct
 
 void l6470_enable(MotorSetTypedef* stepper_motor);
 void l6470_disable(MotorSetTypedef* stepper_motor);
-void l6470_init(MotorSetTypedef* stepper_motor);
+void l6470_init_chip_1(MotorSetTypedef* stepper_motor);
+void l6470_init_chip_2(MotorSetTypedef* stepper_motor);
+
 void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel);
 void l6470_set_steppersec(MotorSetTypedef stepper_motor,uint8_t motor_id, uint16_t step);
 void l6470_get_speed_pos(MotorSetTypedef* stepper_motor);
@@ -124,8 +126,13 @@ void l6470_transmit_spi_dma(MotorSetTypedef* stepper_motor);
 uint16_t l6470_get_status(MotorSetTypedef* stepper_motor);
 void l6470_receive_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t data_length);
 void l6470_transmit_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t data_length);
-void l6470_set_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t *value, uint8_t length);
+void l6470_set_param_chip_1(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t *value, uint8_t length);
+void l6470_set_param_chip_2(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t *value, uint8_t length);
+
 uint32_t l6470_get_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t length);
 void l6470_soft_stop(MotorSetTypedef* stepper_motor);
+
+void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
+
 
 #endif /* INC_L6470_H_ */

@@ -104,6 +104,9 @@ void forward_motion(void);
 void backward_motion(void);
 void left_motion(void);
 void right_motion(void);
+void l6470_get_param_chip_1(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t length);
+void l6470_get_param_chip_2(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t length);
+void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 
 
 // Redirect printf() to USART2
@@ -249,36 +252,59 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  l6470_init(&motor_set_1);
-  l6470_init(&motor_set_2);
-
   HAL_Delay(100);
 
-  l6470_enable(&motor_set_1);
+  l6470_enable(&motor_set_1); // TODO: May need to make two different types for this enable function?? (Probably not, I think its ok)
   l6470_enable(&motor_set_2);
 
   HAL_Delay(100);
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  HAL_Delay(50); // Let L6470 settle after reset
+  l6470_sync_daisy_chain(&motor_set_1);
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////
+
+  l6470_get_param_chip_1(&motor_set_1, CONFIG, 2);
+
+  l6470_init_chip_1(&motor_set_1);
+
+  l6470_get_param_chip_1(&motor_set_1, CONFIG, 2);
+
+  ///////////////////////////////////
+
+  l6470_get_param_chip_2(&motor_set_2, CONFIG, 2);
+
+  l6470_init_chip_2(&motor_set_2);
+
+  l6470_get_param_chip_2(&motor_set_2, CONFIG, 2);
+
+ ////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
 ///////////////////////////////////////////////////////////
 
-  	  // testing Code (KEEP)
-  	  // 6 = 1rps
-    vel_temp_1[0] = 6; // motor 2
-    vel_temp_1[1] = 6; // motor 3
-
-    vel_temp_2[0] = 0; 	// NOT CONNECTED
-    vel_temp_2[1] = 6; 	// motor 1
-
-    l6470_set_vel(&motor_set_1, vel_temp_1);
-    HAL_Delay(5);
-    l6470_set_vel(&motor_set_2, vel_temp_2);
-
-    HAL_Delay(1000);
-
-    l6470_soft_stop(&motor_set_1);
-    l6470_soft_stop(&motor_set_2);
+//  	  // testing Code (KEEP)
+//  	  // 6 = 1rps
+//    vel_temp_1[0] = 6; // motor 2
+//    vel_temp_1[1] = 6; // motor 3
+//
+//    vel_temp_2[0] = 0; 	// NOT CONNECTED
+//    vel_temp_2[1] = 6; 	// motor 1
+//
+//    l6470_set_vel(&motor_set_1, vel_temp_1);
+//    HAL_Delay(5);
+//    l6470_set_vel(&motor_set_2, vel_temp_2);
+//
+//    HAL_Delay(1000);
+//
+//    l6470_soft_stop(&motor_set_1);
+//    l6470_soft_stop(&motor_set_2);
 
 ///////////////////////////////////////////////////////////
 
