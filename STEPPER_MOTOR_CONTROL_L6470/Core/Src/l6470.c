@@ -473,11 +473,11 @@ void l6470_get_param_chip_1(MotorSetTypedef* stepper_motor, uint8_t param, uint8
         result_motor1 = (result_motor1 << 8) | rx[0];  // Motor1 (first in chain)
         result_motor2 = (result_motor2 << 8) | rx[1];  // Motor2 (second in chain)
 
-        printf("Byte %d - Motor1: 0x%04X  Motor2: 0x%04X\n\r", i, rx[0], rx[1]);
+        // printf("Byte %d - Motor1: 0x%04X  Motor2: 0x%04X\n\r", i, rx[0], rx[1]);
     }
 
-    printf("Motor1 result: 0x%06lX\n\r", result_motor1);
-    printf("Motor2 result: 0x%06lX\n\r", result_motor2);
+    // printf("Motor1 result: 0x%06lX\n\r", result_motor1);
+    // printf("Motor2 result: 0x%06lX\n\r", result_motor2);
 }
 
 
@@ -514,10 +514,10 @@ uint32_t l6470_get_param_chip_2(MotorSetTypedef* stepper_motor, uint8_t param, u
         HAL_Delay(2);
 
         result = (result << 8) | rx[1];
-        printf("Byte %d read: 0x%04X\n\r", i, rx[1]);
+        // printf("Byte %d read: 0x%04X\n\r", i, rx[1]);
     }
 
-    printf("Raw result: 0x%06lX\n\r", result);
+    // printf("Raw result: 0x%06lX\n\r", result);
     return result;
 }
 

@@ -147,12 +147,12 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef * hspi)
 {
 	if(hspi == motor_set_1.hspi_l6470)
 	{
-		printf("MOTOR SET 1 SPI COMPLETE\n\r");
+		// printf("MOTOR SET 1 SPI COMPLETE\n\r");
 	}
 
 	else if(hspi == motor_set_2.hspi_l6470)
 	{
-		printf("MOTOR SET 2 SPI COMPLETE\n\r");
+		//printf("MOTOR SET 2 SPI COMPLETE\n\r");
 	}
 }
 
@@ -175,9 +175,9 @@ void omni_drive(float Vx, float Vy, float omega, float r)
 	float vel_temp_1[2] = {w[1], w[2]}; // Motor 3 and motor 1 on motor_set_1
 	float vel_temp_2[2] = {0, w[0]};    // motor 2 on motor_set_2
 
-	printf("\n\rvel_temp_1[0]: %f\n\r", vel_temp_1[0]);
-	printf("vel_temp_1[1]: %f\n\r", vel_temp_1[1]);
-	printf("vel_temp_2[1: %f\n\r", vel_temp_2[1]);
+//	printf("\n\rvel_temp_1[0]: %f\n\r", vel_temp_1[0]);
+//	printf("vel_temp_1[1]: %f\n\r", vel_temp_1[1]);
+//	printf("vel_temp_2[1: %f\n\r", vel_temp_2[1]);
 
 	// Transmit velocities to motor driver
 	l6470_set_vel(&motor_set_1, vel_temp_1);
