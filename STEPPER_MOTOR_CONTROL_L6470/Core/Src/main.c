@@ -289,22 +289,22 @@ int main(void)
 
 ///////////////////////////////////////////////////////////
 
-//  	  // testing Code (KEEP)
-//  	  // 6 = 1rps
-//    vel_temp_1[0] = 6; // motor 2
-//    vel_temp_1[1] = 6; // motor 3
-//
-//    vel_temp_2[0] = 0; 	// NOT CONNECTED
-//    vel_temp_2[1] = 6; 	// motor 1
-//
-//    l6470_set_vel(&motor_set_1, vel_temp_1);
-//    HAL_Delay(5);
-//    l6470_set_vel(&motor_set_2, vel_temp_2);
-//
-//    HAL_Delay(1000);
-//
-//    l6470_soft_stop(&motor_set_1);
-//    l6470_soft_stop(&motor_set_2);
+  	  // testing Code (KEEP)
+  	  // 6 = 1rps
+    vel_temp_1[0] = 6; // motor 2
+    vel_temp_1[1] = 6; // motor 3
+
+    vel_temp_2[0] = 0; 	// NOT CONNECTED
+    vel_temp_2[1] = 6; 	// motor 1
+
+    l6470_set_vel(&motor_set_1, vel_temp_1);
+    HAL_Delay(5);
+    l6470_set_vel(&motor_set_2, vel_temp_2);
+
+    HAL_Delay(1000);
+
+    l6470_soft_stop(&motor_set_1);
+    l6470_soft_stop(&motor_set_2);
 
 ///////////////////////////////////////////////////////////
 
