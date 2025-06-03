@@ -276,7 +276,7 @@ int main(void)
 
   // l6470_get_param_chip_2(&motor_set_2, CONFIG, 2);
 
-  l6470_init_chip_2(&motor_set_2);
+ l6470_init_chip_2(&motor_set_2);
 
   // l6470_get_param_chip_2(&motor_set_2, CONFIG, 2);
 

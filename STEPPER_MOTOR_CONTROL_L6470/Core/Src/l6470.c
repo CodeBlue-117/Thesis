@@ -411,7 +411,7 @@ void l6470_set_param_chip_2(MotorSetTypedef* stepper_motor, uint8_t param, uint8
         return;
     }
 
-    uint8_t tx[2] = { 0x00, param };  // Motor2 NOP, Motor1 CMD
+    uint8_t tx[2] = { param, 0x00 };  // Motor2 NOP, Motor1 CMD
     uint8_t rx[2] = { 0 };
 
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
@@ -423,8 +423,8 @@ void l6470_set_param_chip_2(MotorSetTypedef* stepper_motor, uint8_t param, uint8
 
     for (int i = 0; i < length; i++)
     {
-        tx[0] = 0x00;
-        tx[1] = value[i];  // MSB first
+        tx[0] = value[i];
+        tx[1] = 0x00; // MSB first
         rx[0] = rx[1] = 0;
 
         HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_number, GPIO_PIN_RESET);
