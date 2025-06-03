@@ -61,7 +61,7 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor)
         HAL_Delay(2);
     }
 
-    printf("SPI Daisy-chain sync complete\n\r");
+    // printf("SPI Daisy-chain sync complete\n\r");
 }
 
 /*
