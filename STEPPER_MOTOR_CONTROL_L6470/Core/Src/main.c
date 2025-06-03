@@ -191,28 +191,28 @@ void forward_motion(void)
 {
 	// printf("Forward\n\r");
 	// HAL_Delay(1);
-	omni_drive(0.0f, 6.0f, 0.0f, wheel_radius);
+	omni_drive(0.0f, 12.0f, 0.0f, wheel_radius);
 }
 
 void backward_motion(void)
 {
 	// printf("Backward\n\r");
 	// HAL_Delay(1);
-	omni_drive(0.0f, -6.0f, 0.0f, wheel_radius);
+	omni_drive(0.0f, -12.0f, 0.0f, wheel_radius);
 }
 
 void left_motion(void)
 {
 	// printf("Left\n\r");
 	// HAL_Delay(1);
-	omni_drive(-6.0f, 0.0f, 0.0f, wheel_radius);
+	omni_drive(-12.0f, 0.0f, 0.0f, wheel_radius);
 }
 
 void right_motion(void)
 {
 	// printf("Right\n\r");
 	// HAL_Delay(1);
-	omni_drive(6.0f, 0.0f, 0.0f, wheel_radius);
+	omni_drive(12.0f, 0.0f, 0.0f, wheel_radius);
 }
 
 
