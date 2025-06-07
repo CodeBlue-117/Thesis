@@ -172,17 +172,27 @@ void omni_drive(float Vx, float Vy, float omega, float r)
 		}
 	}
 
-	float vel_temp_1[2] = {w[1], w[2]}; // Motor 3 and motor 1 on motor_set_1
-	float vel_temp_2[2] = {0, w[0]};    // motor 2 on motor_set_2
+	float motor_set_1_speed[2] = {w[1], w[2]}; // Motor 3 and motor 1 on motor_set_1
+	float motor_set_2_speed[2] = {0, w[0]};    // motor 2 on motor_set_2
 
-//	printf("\n\rvel_temp_1[0]: %f\n\r", vel_temp_1[0]);
-//	printf("vel_temp_1[1]: %f\n\r", vel_temp_1[1]);
-//	printf("vel_temp_2[1: %f\n\r", vel_temp_2[1]);
+//	printf("\n\rmotor_set_1_speed[0]: %f\n\r", motor_set_1_speed[0]);
+//	printf("motor_set_1_speed[1]: %f\n\r", motor_set_1_speed[1]);
+//	printf("motor_set_2_speed[1]: %f\n\r", motor_set_2_speed[1]);
+//
+//	printf("w[0]=%.2f, w[1]=%.2f, w[2]=%.2f\n\r", w[0], w[1], w[2]);
+//	printf("wheel_set_1: %.2f %.2f | wheel_set_2: %.2f\n\r", motor_set_1_speed[0], motor_set_1_speed[1], motor_set_2_speed[1]);
 
 	// Transmit velocities to motor driver
-	l6470_set_vel(&motor_set_1, vel_temp_1);
-	// HAL_Delay(5);
-	l6470_set_vel(&motor_set_2, vel_temp_2);
+	HAL_Delay(5);
+	l6470_set_vel(&motor_set_1, motor_set_1_speed);
+	HAL_Delay(5);
+	l6470_set_vel(&motor_set_2, motor_set_2_speed);
+	HAL_Delay(5);
+
+	motor_set_1_speed[0] = 0;
+	motor_set_1_speed[1] = 0;
+	motor_set_2_speed[0] = 0;
+	motor_set_2_speed[1] = 0;
 
 
 }
@@ -191,28 +201,28 @@ void forward_motion(void)
 {
 	// printf("Forward\n\r");
 	// HAL_Delay(1);
-	omni_drive(0.0f, 12.0f, 0.0f, wheel_radius);
+	omni_drive(0.0f, 38.0f, 0.0f, wheel_radius); //12.0f is 2 rps // 24.0 works!!!!
 }
 
 void backward_motion(void)
 {
 	// printf("Backward\n\r");
 	// HAL_Delay(1);
-	omni_drive(0.0f, -12.0f, 0.0f, wheel_radius);
+	omni_drive(0.0f, -38.0f, 0.0f, wheel_radius);
 }
 
 void left_motion(void)
 {
 	// printf("Left\n\r");
 	// HAL_Delay(1);
-	omni_drive(-12.0f, 0.0f, 0.0f, wheel_radius);
+	omni_drive(-38.0f, 0.0f, 0.0f, wheel_radius);
 }
 
 void right_motion(void)
 {
 	// printf("Right\n\r");
 	// HAL_Delay(1);
-	omni_drive(12.0f, 0.0f, 0.0f, wheel_radius);
+	omni_drive(38.0f, 0.0f, 0.0f, wheel_radius);
 }
 
 
@@ -261,11 +271,8 @@ int main(void)
   HAL_Delay(100);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-  HAL_Delay(50); // Let L6470 settle after reset
   l6470_sync_daisy_chain(&motor_set_1);
-
-  ///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
 
   l6470_get_param_chip_1(&motor_set_1, CONFIG, 2);
 
@@ -283,29 +290,22 @@ int main(void)
 
  ////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
-
-///////////////////////////////////////////////////////////
-
-  	  // testing Code (KEEP)
-  	  // 6 = 1rps
-    vel_temp_1[0] = 2 * M_PI;; // motor 2
-    vel_temp_1[1] = 2 * M_PI;; // motor 3
-
-    vel_temp_2[0] = 0; 	// NOT CONNECTED
-    vel_temp_2[1] = 2 * M_PI; //6; 	// motor 1
-
-    l6470_set_vel(&motor_set_1, vel_temp_1);
-    HAL_Delay(5);
-    l6470_set_vel(&motor_set_2, vel_temp_2);
-
-    HAL_Delay(1000);
-
-    l6470_soft_stop(&motor_set_1);
-    l6470_soft_stop(&motor_set_2);
+//  	  // testing Code (KEEP)
+//  	  // 6 = 1rps
+//    vel_temp_1[0] = 2 * M_PI;; // motor 2
+//    vel_temp_1[1] = 2 * M_PI;; // motor 3
+//
+//    vel_temp_2[0] = 0; 	// NOT CONNECTED
+//    vel_temp_2[1] = 2 * M_PI; //6; 	// motor 1
+//
+//    l6470_set_vel(&motor_set_1, vel_temp_1);
+//    HAL_Delay(5);
+//    l6470_set_vel(&motor_set_2, vel_temp_2);
+//
+//    HAL_Delay(1000);
+//
+//    l6470_soft_stop(&motor_set_1);
+//    l6470_soft_stop(&motor_set_2);
 
 ///////////////////////////////////////////////////////////
 
@@ -316,7 +316,7 @@ int main(void)
   while (1)
   {
 
-	  // HAL_Delay(1);
+	  HAL_Delay(1);
 
 	  if(buttonFlag == true)
 	  {
@@ -324,8 +324,8 @@ int main(void)
 
 		  	if(pushButtonCallCount == 0)
 			{
-		  		  l6470_enable(&motor_set_1);
-		  		  l6470_enable(&motor_set_2);
+//		  		  l6470_enable(&motor_set_1);
+//		  		  l6470_enable(&motor_set_2);
 
 		  		  // HAL_Delay(5);
 		  		  pushButtonCallCount++;
@@ -333,13 +333,13 @@ int main(void)
 
 		  		  HAL_Delay(3000);
 
-		  		  l6470_disable(&motor_set_1);
-		  		  l6470_disable(&motor_set_2);
+				  l6470_soft_stop(&motor_set_1);
+				  l6470_soft_stop(&motor_set_2);
 			}
 			else if(pushButtonCallCount == 1)
 			{
-				  l6470_enable(&motor_set_1);
-				  l6470_enable(&motor_set_2);
+//				  l6470_enable(&motor_set_1);
+//				  l6470_enable(&motor_set_2);
 
 				  // HAL_Delay(5);
 				  pushButtonCallCount++;
@@ -347,14 +347,14 @@ int main(void)
 
 				  HAL_Delay(3000);
 
-				  l6470_disable(&motor_set_1);
-				  l6470_disable(&motor_set_2);
+				  l6470_soft_stop(&motor_set_1);
+				  l6470_soft_stop(&motor_set_2);
 
 			}
 			else if(pushButtonCallCount == 2)
 			{
-				  l6470_enable(&motor_set_1);
-				  l6470_enable(&motor_set_2);
+//				  l6470_enable(&motor_set_1);
+//				  l6470_enable(&motor_set_2);
 
 				  // HAL_Delay(5);
 				  pushButtonCallCount++;
@@ -362,13 +362,14 @@ int main(void)
 
 				  HAL_Delay(3000);
 
-				  l6470_disable(&motor_set_1);
-				  l6470_disable(&motor_set_2);
+				  l6470_soft_stop(&motor_set_1);
+				  l6470_soft_stop(&motor_set_2);
+
 			}
 			else if(pushButtonCallCount == 3)
 			{
-				  l6470_enable(&motor_set_1);
-				  l6470_enable(&motor_set_2);
+//				  l6470_enable(&motor_set_1);
+//				  l6470_enable(&motor_set_2);
 
 				  // HAL_Delay(5);
 				  pushButtonCallCount++;
@@ -376,13 +377,18 @@ int main(void)
 
 				  HAL_Delay(3000);
 
-				  l6470_disable(&motor_set_1);
-				  l6470_disable(&motor_set_2);
+				  l6470_soft_stop(&motor_set_1);
+				  l6470_soft_stop(&motor_set_2);
+
+				  pushButtonCallCount = 0;
+
 			}
+
 			else
 			{
-				pushButtonCallCount = 0;
+				  pushButtonCallCount = 0;
 			}
+
 
 	  }
 

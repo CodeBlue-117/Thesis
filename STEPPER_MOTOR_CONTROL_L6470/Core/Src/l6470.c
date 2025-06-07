@@ -106,6 +106,14 @@ void l6470_init_chip_1(MotorSetTypedef* stepper_motor)
     l6470_set_param_chip_1(stepper_motor, EL_POS, reg_temp_3, 3);
     HAL_Delay(10);
 
+    // Set max ACC and DEC: 0x0FFE = 4094 (59559 step/s²)
+    reg_temp_2[0] = 0x0F;
+    reg_temp_2[1] = 0xFE;
+    l6470_set_param_chip_1(stepper_motor, ACC, reg_temp_2, 2);
+    HAL_Delay(10);
+    l6470_set_param_chip_1(stepper_motor, DEC, reg_temp_2, 2);
+    HAL_Delay(10);
+
     // Set current levels
     reg_temp_1 = (uint8_t)(KVAL_HOLD_PERCENT * 255 / 100);
     l6470_set_param_chip_1(stepper_motor, KVAL_HOLD, &reg_temp_1, 1);
@@ -202,6 +210,14 @@ void l6470_init_chip_2(MotorSetTypedef* stepper_motor)
     l6470_set_param_chip_2(stepper_motor, ABS_POS, reg_temp_3, 3);
     HAL_Delay(10);
     l6470_set_param_chip_2(stepper_motor, EL_POS, reg_temp_3, 3);
+    HAL_Delay(10);
+
+    // Set max ACC and DEC: 0x0FFE = 4094 (59559 step/s²)
+    reg_temp_2[0] = 0x0F;
+    reg_temp_2[1] = 0xFE;
+    l6470_set_param_chip_2(stepper_motor, ACC, reg_temp_2, 2);
+    HAL_Delay(10);
+    l6470_set_param_chip_2(stepper_motor, DEC, reg_temp_2, 2);
     HAL_Delay(10);
 
     // Set current levels
