@@ -194,7 +194,6 @@ void omni_drive(float Vx, float Vy, float omega, float r)
 	motor_set_2_speed[0] = 0;
 	motor_set_2_speed[1] = 0;
 
-
 }
 
 void forward_motion(void)

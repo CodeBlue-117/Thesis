@@ -328,6 +328,7 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
 //    }
 
     l6470_transmit_spi(stepper_motor, stepper_motor->spd_tx_buffer, sizeof(stepper_motor->spd_tx_buffer));
+    HAL_Delay(5);
     // l6470_transmit_spi_dma(stepper_motor);
 }
 
