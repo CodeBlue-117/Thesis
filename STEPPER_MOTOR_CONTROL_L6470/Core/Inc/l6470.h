@@ -98,12 +98,12 @@ typedef struct
 
 typedef struct
 {
+	uint8_t				identifier;
 	GPIO_TypeDef* 		gpio_rst_port;
-	uint16_t 			gpio_rst_number;
+	uint16_t 			gpio_rst_pin;
 	GPIO_TypeDef*		gpio_cs_port;
-	uint16_t 			gpio_cs_number;
+	uint16_t 			gpio_cs_pin;
 	SPI_HandleTypeDef* 	hspi_l6470;
-	l6470TypeDef        motors[MAX_NUMBER_OF_MOTORS];
 	uint8_t				num_motors;
 	uint8_t             spi_dma_busy;
 	uint8_t             spd_tx_buffer[SINGLE_MOTOR_BUFFER_LENGTH * 2];
@@ -123,7 +123,7 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel);
 void l6470_set_steppersec(MotorSetTypedef stepper_motor,uint8_t motor_id, uint16_t step);
 void l6470_get_speed_pos(MotorSetTypedef* stepper_motor);
 void l6470_transmit_spi_dma(MotorSetTypedef* stepper_motor);
-uint16_t l6470_get_status(MotorSetTypedef* stepper_motor);
+void l6470_get_status(MotorSetTypedef* stepper_motor, uint16_t* m1_status, uint16_t* m2_status);
 void l6470_receive_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t data_length);
 void l6470_transmit_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t data_length);
 void l6470_set_param_chip_1(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t *value, uint8_t length);
@@ -134,5 +134,6 @@ void l6470_soft_stop(MotorSetTypedef* stepper_motor);
 
 void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 
+void top_speed(MotorSetTypedef* stepper_motor);
 
 #endif /* INC_L6470_H_ */

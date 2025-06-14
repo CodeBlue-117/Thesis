@@ -13,6 +13,8 @@
   ******************************************************************************
   */
 
+// NOTE: 10 PI is the highest achievable speed with one motor (5rps)
+
 // TODO: Verify get_param and set_param for both chips (one motor and two motors)
 // TODO: Write DMA function
 // TODO: Write function to simulate acceleration
@@ -72,22 +74,29 @@ const float J[3][3] = {{-1, 0.5, 0.5}, {0, 0.866, -0.866}, {-0.333, -0.333, -0.3
 const float J_Inv[3][3] = {{-0.667, 0, -1}, {0.333, 0.577, -1}, {0.333, -0.577, -1}};
 
 MotorSetTypedef motor_set_1 = {
-		.gpio_rst_port = STEPPER_RST_GPIO_Port,
-		.gpio_cs_number = STEPPER_SPI1_CS_Pin,
-		.gpio_cs_port = STEPPER_SPI1_CS_GPIO_Port,
-		.gpio_rst_number = STEPPER_RST_Pin,
-		.num_motors = 2,
-		.hspi_l6470 = &hspi1,
+		.identifier     = 1,
+		.gpio_rst_port  = STEPPER_RST_GPIO_Port,
+		.gpio_rst_pin 	= STEPPER_RST_Pin,
+		.gpio_cs_port 	= STEPPER_SPI1_CS_GPIO_Port,
+		.gpio_cs_pin 	= STEPPER_SPI1_CS_Pin,
+		.hspi_l6470 	= &hspi1,
+		.num_motors 	= 2,
+		.spi_dma_busy 	= 0,
+
+
 };
 
 MotorSetTypedef motor_set_2 = {
-		.gpio_rst_port = STEPPER_RST_GPIO_Port,
-		.gpio_cs_number = STEPPER_SPI2_CS_Pin,
-		.gpio_cs_port = STEPPER_SPI2_CS_GPIO_Port,
-		.gpio_rst_number = STEPPER_RST_Pin,
+		.identifier     = 2,
+		.gpio_rst_port 	= STEPPER_RST_GPIO_Port,
+		.gpio_rst_pin 	= STEPPER_RST_Pin,
+		.gpio_cs_port 	= STEPPER_SPI2_CS_GPIO_Port,
+		.gpio_cs_pin 	= STEPPER_SPI2_CS_Pin,
+		.hspi_l6470 	= &hspi2,
+		.num_motors		= 1,
+		.spi_dma_busy 	= 0,
 
-		.num_motors = 2,
-		.hspi_l6470 = &hspi2,
+
 };
 
 
@@ -134,6 +143,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
             // printf("USER PUSH BUTTON SELECTED!!!\n\r");
 
             buttonFlag = true;
+
+            HAL_Delay(5);
 
         }
     }
@@ -183,11 +194,11 @@ void omni_drive(float Vx, float Vy, float omega, float r)
 //	printf("wheel_set_1: %.2f %.2f | wheel_set_2: %.2f\n\r", motor_set_1_speed[0], motor_set_1_speed[1], motor_set_2_speed[1]);
 
 	// Transmit velocities to motor driver
-	HAL_Delay(5);
+	HAL_Delay(10);
 	l6470_set_vel(&motor_set_1, motor_set_1_speed);
-	HAL_Delay(5);
+	HAL_Delay(10);
 	l6470_set_vel(&motor_set_2, motor_set_2_speed);
-	HAL_Delay(5);
+	HAL_Delay(10);
 
 	motor_set_1_speed[0] = 0;
 	motor_set_1_speed[1] = 0;
@@ -200,28 +211,28 @@ void forward_motion(void)
 {
 	// printf("Forward\n\r");
 	// HAL_Delay(1);
-	omni_drive(0.0f, 38.0f, 0.0f, wheel_radius); //12.0f is 2 rps // 24.0 works!!!!
+	omni_drive(0.0f, 6.0f, 0.0f, wheel_radius); //12.0f is 2 rps // 24.0 works!!!!
 }
 
 void backward_motion(void)
 {
 	// printf("Backward\n\r");
 	// HAL_Delay(1);
-	omni_drive(0.0f, -38.0f, 0.0f, wheel_radius);
+	omni_drive(0.0f, -6.0f, 0.0f, wheel_radius);
 }
 
 void left_motion(void)
 {
 	// printf("Left\n\r");
 	// HAL_Delay(1);
-	omni_drive(-38.0f, 0.0f, 0.0f, wheel_radius);
+	omni_drive(-6.0f, 0.0f, 0.0f, wheel_radius);
 }
 
 void right_motion(void)
 {
 	// printf("Right\n\r");
 	// HAL_Delay(1);
-	omni_drive(38.0f, 0.0f, 0.0f, wheel_radius);
+	omni_drive(6.0f, 0.0f, 0.0f, wheel_radius);
 }
 
 
@@ -262,40 +273,144 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  // Reset L6470s (shared line)
+  HAL_GPIO_WritePin(STEPPER_RST_GPIO_Port, STEPPER_RST_Pin, GPIO_PIN_RESET);
+  HAL_Delay(100);
+  HAL_GPIO_WritePin(STEPPER_RST_GPIO_Port, STEPPER_RST_Pin, GPIO_PIN_SET);
   HAL_Delay(100);
 
-  l6470_enable(&motor_set_1); // TODO: May need to make two different types for this enable function?? (Probably not, I think its ok)
-  l6470_enable(&motor_set_2);
+ //  l6470_get_param_chip_1(&motor_set_1, STATUS, 2);
 
-  HAL_Delay(100);
+  	 l6470_disable(&motor_set_1);
+  	 l6470_disable(&motor_set_2);
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  l6470_sync_daisy_chain(&motor_set_1);
-///////////////////////////////////////////////////////////////////////////////////////////////
+  	 uint16_t m1_stat, m2_stat;
+  	 l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
+  	 l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
 
-  l6470_get_param_chip_1(&motor_set_1, CONFIG, 2);
+  	 // ***NOW*** do sync + init
+  	 l6470_sync_daisy_chain(&motor_set_1);
+  	 l6470_sync_daisy_chain(&motor_set_2);
 
-  l6470_init_chip_1(&motor_set_1);
+  	 l6470_init_chip_1(&motor_set_1);
+  	 l6470_init_chip_2(&motor_set_2);
 
-  l6470_get_param_chip_1(&motor_set_1, CONFIG, 2);
+  	 l6470_sync_daisy_chain(&motor_set_1);
+  	 l6470_sync_daisy_chain(&motor_set_2);
 
-  ///////////////////////////////////
+  	 l6470_disable(&motor_set_1);
+  	 l6470_disable(&motor_set_2);
 
-  l6470_get_param_chip_2(&motor_set_2, CONFIG, 2);
+  	 // l6470_get_param_chip_1(&motor_set_1, STATUS, 2);
 
-  l6470_init_chip_2(&motor_set_2);
+  	 l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
+  	 l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
 
-  l6470_get_param_chip_2(&motor_set_2, CONFIG, 2);
+  	 // --- Enable motors in safe state (e.g. holding position, no motion) ---
+  	 l6470_enable(&motor_set_1);
+  	 l6470_enable(&motor_set_2);
+
+  	 vel_temp_1[0] = M_PI; // motor 2
+
+	l6470_set_vel(&motor_set_1, vel_temp_1);
+	HAL_Delay(1000);
+
+	vel_temp_1[0] = 2 * M_PI; // motor 2
+
+	l6470_set_vel(&motor_set_1, vel_temp_1);
+	HAL_Delay(1000);
+
+	vel_temp_1[0] = 3 * M_PI; // motor 2
+
+	l6470_set_vel(&motor_set_1, vel_temp_1);
+	HAL_Delay(1000);
+
+	vel_temp_1[0] = 4 * M_PI; // motor 2
+
+	l6470_set_vel(&motor_set_1, vel_temp_1);
+	HAL_Delay(1000);
+
+	vel_temp_1[0] = 5 * M_PI; // motor 2
+
+	l6470_set_vel(&motor_set_1, vel_temp_1);
+	HAL_Delay(1000);
+
+	vel_temp_1[0] = 6 * M_PI; // motor 2
+
+	l6470_set_vel(&motor_set_1, vel_temp_1);
+	HAL_Delay(1000);
+
+	vel_temp_1[0] = 7 * M_PI; // motor 2
+
+	l6470_set_vel(&motor_set_1, vel_temp_1);
+	HAL_Delay(1000);
+
+	vel_temp_1[0] = 8 * M_PI; // motor 2
+
+	l6470_set_vel(&motor_set_1, vel_temp_1);
+	HAL_Delay(1000);
+
+	vel_temp_1[0] = 9 * M_PI; // motor 2
+
+	l6470_set_vel(&motor_set_1, vel_temp_1);
+	HAL_Delay(1000);
+
+	vel_temp_1[0] = 10 * M_PI; // motor 2
+
+	l6470_set_vel(&motor_set_1, vel_temp_1);
+	HAL_Delay(1000);
+
+	vel_temp_1[0] = 11 * M_PI; // motor 2
+
+	l6470_set_vel(&motor_set_1, vel_temp_1);
+	HAL_Delay(1000);
+
+	vel_temp_1[0] = 12 * M_PI; // motor 2
+
+	l6470_set_vel(&motor_set_1, vel_temp_1);
+	HAL_Delay(1000);
+
+	l6470_soft_stop(&motor_set_1);
+	l6470_soft_stop(&motor_set_2);
+
+ 	 l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
+ 	 l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
+
+  ///////////////////////////////////////////////////////////////////////////////
+
+  // Only after init, enable the motors
+//  l6470_enable(&motor_set_1);
+//  l6470_enable(&motor_set_2);
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+//  uint8_t reg_temp;
+//
+//  HAL_Delay(10);
+//  // Set STEP_MODE to 1/128 microstepping
+//  reg_temp = (uint8_t)FULL_STEP;
+//  l6470_set_param_chip_1(&motor_set_1, STEP_MODE, &reg_temp, 1);
+//  HAL_Delay(10);
+//
+//  // Set STEP_MODE to 1/128 microstepping
+//  reg_temp = (uint8_t)FULL_STEP;
+//  l6470_set_param_chip_2(&motor_set_2, STEP_MODE, &reg_temp, 1);
+//  HAL_Delay(10);
+//
+//  l6470_get_param_chip_1(&motor_set_1, STEP_MODE, 1);
+//  HAL_Delay(10);
+//  l6470_get_param_chip_2(&motor_set_2, STEP_MODE, 1);
+//  HAL_Delay(10);
 
  ////////////////////////////////////////////////////////////////////////////////////////////////
 
-//  	  // testing Code (KEEP)
-//  	  // 6 = 1rps
-//    vel_temp_1[0] = 2 * M_PI;; // motor 2
-//    vel_temp_1[1] = 2 * M_PI;; // motor 3
+  	  // testing Code (KEEP)
+// 	  // 6 = 1rps
+//    vel_temp_1[0] = M_PI; // motor 2
+//    vel_temp_1[1] = 0; //2 * M_PI;; // motor 3
 //
 //    vel_temp_2[0] = 0; 	// NOT CONNECTED
-//    vel_temp_2[1] = 2 * M_PI; //6; 	// motor 1
+//    vel_temp_2[1] = 0; //2 * M_PI; //6; 	// motor 1
 //
 //    l6470_set_vel(&motor_set_1, vel_temp_1);
 //    HAL_Delay(5);
@@ -306,7 +421,18 @@ int main(void)
 //    l6470_soft_stop(&motor_set_1);
 //    l6470_soft_stop(&motor_set_2);
 
-///////////////////////////////////////////////////////////
+  //////////////////////////////////////////////////////////////////////////////////////////////
+
+//  top_speed(&motor_set_1);
+//  HAL_Delay(1000);
+//  l6470_soft_stop(&motor_set_1);
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+	// testing Code (KEEP)
+ 	// 6 = 1rps
+
+
 
   /* USER CODE END 2 */
 
@@ -321,72 +447,77 @@ int main(void)
 	  {
 		  	buttonFlag = false;
 
-		  	if(pushButtonCallCount == 0)
-			{
-//		  		  l6470_enable(&motor_set_1);
-//		  		  l6470_enable(&motor_set_2);
+		  	////////////////////////////////////////////////////////////////
 
-		  		  // HAL_Delay(5);
-		  		  pushButtonCallCount++;
-		  		  forward_motion();
 
-		  		  HAL_Delay(3000);
+		  	/////////////////////////////////////////////////////////////////
 
-				  l6470_soft_stop(&motor_set_1);
-				  l6470_soft_stop(&motor_set_2);
-			}
-			else if(pushButtonCallCount == 1)
-			{
-//				  l6470_enable(&motor_set_1);
-//				  l6470_enable(&motor_set_2);
-
-				  // HAL_Delay(5);
-				  pushButtonCallCount++;
-				  backward_motion();
-
-				  HAL_Delay(3000);
-
-				  l6470_soft_stop(&motor_set_1);
-				  l6470_soft_stop(&motor_set_2);
-
-			}
-			else if(pushButtonCallCount == 2)
-			{
-//				  l6470_enable(&motor_set_1);
-//				  l6470_enable(&motor_set_2);
-
-				  // HAL_Delay(5);
-				  pushButtonCallCount++;
-				  left_motion();
-
-				  HAL_Delay(3000);
-
-				  l6470_soft_stop(&motor_set_1);
-				  l6470_soft_stop(&motor_set_2);
-
-			}
-			else if(pushButtonCallCount == 3)
-			{
-//				  l6470_enable(&motor_set_1);
-//				  l6470_enable(&motor_set_2);
-
-				  // HAL_Delay(5);
-				  pushButtonCallCount++;
-				  right_motion();
-
-				  HAL_Delay(3000);
-
-				  l6470_soft_stop(&motor_set_1);
-				  l6470_soft_stop(&motor_set_2);
-
-				  pushButtonCallCount = 0;
-
-			}
-
-			else
-			{
-				  pushButtonCallCount = 0;
-			}
+//		  	if(pushButtonCallCount == 0)
+//			{
+////		  		  l6470_enable(&motor_set_1);
+////		  		  l6470_enable(&motor_set_2);
+//
+//		  		  // HAL_Delay(5);
+//		  		  pushButtonCallCount++;
+//		  		  forward_motion();
+//
+//		  		  HAL_Delay(3000);
+//
+//				  l6470_soft_stop(&motor_set_1);
+//				  l6470_soft_stop(&motor_set_2);
+//			}
+//			else if(pushButtonCallCount == 1)
+//			{
+////				  l6470_enable(&motor_set_1);
+////				  l6470_enable(&motor_set_2);
+//
+//				  // HAL_Delay(5);
+//				  pushButtonCallCount++;
+//				  backward_motion();
+//
+//				  HAL_Delay(3000);
+//
+//				  l6470_soft_stop(&motor_set_1);
+//				  l6470_soft_stop(&motor_set_2);
+//
+//			}
+//			else if(pushButtonCallCount == 2)
+//			{
+////				  l6470_enable(&motor_set_1);
+////				  l6470_enable(&motor_set_2);
+//
+//				  // HAL_Delay(5);
+//				  pushButtonCallCount++;
+//				  left_motion();
+//
+//				  HAL_Delay(3000);
+//
+//				  l6470_soft_stop(&motor_set_1);
+//				  l6470_soft_stop(&motor_set_2);
+//
+//			}
+//			else if(pushButtonCallCount == 3)
+//			{
+////				  l6470_enable(&motor_set_1);
+////				  l6470_enable(&motor_set_2);
+//
+//				  // HAL_Delay(5);
+//				  pushButtonCallCount++;
+//				  right_motion();
+//
+//				  HAL_Delay(3000);
+//
+//				  l6470_soft_stop(&motor_set_1);
+//				  l6470_soft_stop(&motor_set_2);
+//
+//				  pushButtonCallCount = 0;
+//
+//			}
+//
+//			else
+//			{
+//				  pushButtonCallCount = 0;
+//			}
 
 
 	  }
