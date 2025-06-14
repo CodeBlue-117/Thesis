@@ -116,26 +116,6 @@ void l6470_init_chip_1(MotorSetTypedef* stepper_motor)
     uint8_t reg_temp_2[2];
     uint8_t reg_temp_3[3] = {0, 0, 0};
 
-//    // Set the number of steps per revolution for each motor
-//    for (int i = 0; i < stepper_motor->num_motors; i++) // TODO: Do we need this?
-//    {
-//        stepper_motor->motors[i].speed_pos.steps_per_rev = STEPS_PER_REVOLUTION;
-//    }
-
-    // Reset the driver TODO: verify that this is correct because red light turns on here
-//    HAL_GPIO_WritePin(stepper_motor->gpio_rst_port, stepper_motor->gpio_rst_number, GPIO_PIN_RESET);
-//    HAL_Delay(100);
-//    HAL_GPIO_WritePin(stepper_motor->gpio_rst_port, stepper_motor->gpio_rst_number, GPIO_PIN_SET);
-//    HAL_Delay(100);
-
-    // Disable the driver
-//    l6470_disable(stepper_motor);
-
-    // Enable all alarms
-//    reg_temp_1 = 0xFF;
-//    l6470_set_param_chip_1(stepper_motor, ALARM_EN, &reg_temp_1, 1);
-//    HAL_Delay(10);
-
     // Set STEP_MODE to 1/128 microstepping
     reg_temp_1 = (uint8_t)ONE_HUNDRED_TWENTY_EIGHTH_STEP;
     l6470_set_param_chip_1(stepper_motor, STEP_MODE, &reg_temp_1, 1);
@@ -204,11 +184,6 @@ void l6470_init_chip_1(MotorSetTypedef* stepper_motor)
     // Initialize SPI buffers
     stepper_motor->spi_dma_busy = 0; // TODO: Unused?
     stepper_motor->spi_tx_count = 0; // TODO: Unused?
-//
-//    for (int i = 0; i < stepper_motor->num_motors; i++)
-//    {
-//        stepper_motor->motors[i].stepper_id = i;
-//    }
 
     HAL_Delay(10);
 }
@@ -222,25 +197,6 @@ void l6470_init_chip_2(MotorSetTypedef* stepper_motor)
     uint8_t reg_temp_1;
     uint8_t reg_temp_2[2];
     uint8_t reg_temp_3[3] = {0, 0, 0};
-
-//    // Set the number of steps per revolution for each motor
-//    for (int i = 0; i < stepper_motor->num_motors; i++)
-//    {
-//        stepper_motor->motors[i].speed_pos.steps_per_rev = STEPS_PER_REVOLUTION; // TODO: Do we need this?
-//    }
-
-//    HAL_GPIO_WritePin(stepper_motor->gpio_rst_port, stepper_motor->gpio_rst_number, GPIO_PIN_RESET);
-//    HAL_Delay(100);
-//    HAL_GPIO_WritePin(stepper_motor->gpio_rst_port, stepper_motor->gpio_rst_number, GPIO_PIN_SET);
-//    HAL_Delay(100);
-
-    // Disable the driver
-    // l6470_disable(stepper_motor);
-
-    // Enable all alarms
-//    reg_temp_1 = 0xFF;
-//    l6470_set_param_chip_2(stepper_motor, ALARM_EN, &reg_temp_1, 1);
-//    HAL_Delay(10);
 
     // Set STEP_MODE to 1/128 microstepping
     reg_temp_1 = (uint8_t)ONE_HUNDRED_TWENTY_EIGHTH_STEP;
@@ -310,11 +266,6 @@ void l6470_init_chip_2(MotorSetTypedef* stepper_motor)
     stepper_motor->spi_dma_busy = 0; // TODO: Unused?
     stepper_motor->spi_tx_count = 0; // TODO: Unused?
 
-//    for (int i = 0; i < stepper_motor->num_motors; i++)
-//    {
-//        stepper_motor->motors[i].stepper_id = i;
-//    }
-
     HAL_Delay(10);
 }
 
@@ -372,78 +323,6 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
     // HAL_Delay(5);
     // l6470_transmit_spi_dma(stepper_motor);
 }
-
-//void top_speed(MotorSetTypedef* stepper_motor)
-//{
-//	uint32_t top_speed = 0xFFFFF;
-//
-//	for(int i = 0; i < stepper_motor->num_motors; i++)
-//	{
-//
-//		stepper_motor->spd_tx_buffer[i] = 0x51; // Forward direction
-//
-//	    // printf("SPEED: %lu\n\r", speed);
-//
-//	    // Store speed data in the transmission buffer
-//	    stepper_motor->spd_tx_buffer[stepper_motor->num_motors + i]     = (uint8_t)(top_speed >> 16);
-//	    stepper_motor->spd_tx_buffer[stepper_motor->num_motors * 2 + i] = (uint8_t)(top_speed >> 8);
-//	    stepper_motor->spd_tx_buffer[stepper_motor->num_motors * 3 + i] = (uint8_t)(top_speed);
-//
-//
-//	//    for (int i = 0; i < 4 * stepper_motor->num_motors; i++)
-//	//    {
-//	//        printf("TX[%d] = 0x%02X\n\r", i, stepper_motor->spd_tx_buffer[i]);
-//	//    }
-//
-//	}
-//
-//	l6470_transmit_spi(stepper_motor, stepper_motor->spd_tx_buffer, sizeof(stepper_motor->spd_tx_buffer));
-//}
-
-
-///*
-// * @brief updates the stepper motor position (radians)
-// * @param stepper_motor: stepper motor handler
-// */
-//void l6470_get_speed_pos(MotorSetTypedef* stepper_motor)
-//{
-//	int32_t speed_abs_raw;
-//	int32_t speed_raw;
-//	uint8_t *raw_value = &stepper_motor ->spd_rx_buffer[stepper_motor->num_motors];
-//	while(stepper_motor -> spi_dma_busy);
-//	for(int i =0; i< stepper_motor->num_motors; i++)
-//	{
-//		speed_abs_raw = (raw_value[i] << 16)|(raw_value[stepper_motor->num_motors + i] << 8)
-//								|(raw_value[2 * stepper_motor->num_motors + i]);
-//		if(speed_abs_raw &(1 << 21))
-//		{
-//			speed_abs_raw -= 2 * (1 << 21);
-//		}
-//		speed_raw = (speed_abs_raw) % (STEPS_PER_REVOLUTION * MICROSTEPPING);
-//		if(speed_raw < -(STEPS_PER_REVOLUTION * MICROSTEPPING) / 2)
-//		{
-//			speed_raw += (STEPS_PER_REVOLUTION * MICROSTEPPING);
-//		}
-//		else if(speed_raw > (STEPS_PER_REVOLUTION * MICROSTEPPING) / 2)
-//		{
-//			speed_raw -= (STEPS_PER_REVOLUTION * MICROSTEPPING);
-//		}
-//		stepper_motor->motors[i].speed_pos.rad_pos = speed_raw;
-//	}
-//
-//	for(int i = 0; i < stepper_motor->num_motors; i++)
-//	{
-//		stepper_motor -> spd_tx_buffer[i] = ABS_POS | 0x20;
-//		stepper_motor -> spd_tx_buffer[i + stepper_motor->num_motors] = NOP;
-//		stepper_motor -> spd_tx_buffer[i + 2 * stepper_motor->num_motors] = NOP;
-//		stepper_motor -> spd_tx_buffer[i + 3 * stepper_motor->num_motors] = NOP;
-//		stepper_motor -> spd_tx_buffer[i + 4 * stepper_motor->num_motors] = NOP;
-//	}
-//
-//	stepper_motor -> spi_tx_buffer_length = 4;
-//	l6470_transmit_spi_dma(stepper_motor);
-//
-//}
 
 // Configure both motors on chip 1
 void l6470_set_param_chip_1(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t *value, uint8_t length)
