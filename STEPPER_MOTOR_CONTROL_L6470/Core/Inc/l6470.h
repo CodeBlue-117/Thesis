@@ -26,9 +26,9 @@
 #define MICROSTEPPING               	128					/*!< Number of microsteps per second	  	*/
 #define STEPS_PER_REVOLUTION  			200	                /*!< Steps per revolution 	*/
 #define TWOPI                       	6.283185f			/*!< Two pi value 			*/
-#define KVAL_HOLD_PERCENT           	10
-#define KVAL_RUN_PERCENT            	75
-#define KVAL_ACCDEC_PERCENT         	75
+#define KVAL_HOLD_PERCENT           	10 // TODO: Optimize these
+#define KVAL_RUN_PERCENT            	5 //75 // TODO: Optimize these
+#define KVAL_ACCDEC_PERCENT         	5 //75 // TODO: Optimize these
 #define DEFAULT_ZERO_POS				0
 
 // Microstepping Modes
