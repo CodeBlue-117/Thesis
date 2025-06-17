@@ -273,6 +273,8 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+
 	 uint16_t m1_stat, m2_stat;
 //	 l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
 //	 l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
@@ -283,16 +285,8 @@ int main(void)
 	 HAL_GPIO_WritePin(STEPPER_RST_GPIO_Port, STEPPER_RST_Pin, GPIO_PIN_SET);
 	 HAL_Delay(100);
 
-//	 l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
-//	 l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
-
- //  l6470_get_param_chip_1(&motor_set_1, STATUS, 2);
-
   	 l6470_disable(&motor_set_1);
   	 l6470_disable(&motor_set_2);
-
-//  	 l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
-//  	 l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
 
   	 // ***NOW*** do sync + init
   	 l6470_sync_daisy_chain(&motor_set_1);
@@ -301,165 +295,74 @@ int main(void)
   	 l6470_init_chip_1(&motor_set_1);
   	 l6470_init_chip_2(&motor_set_2);
 
-  	 l6470_sync_daisy_chain(&motor_set_1);
-  	 l6470_sync_daisy_chain(&motor_set_2);
-
-  	 l6470_disable(&motor_set_1);
-  	 l6470_disable(&motor_set_2);
-
-  	 l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
-  	 l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
-
   	 // --- Enable motors in safe state (e.g. holding position, no motion) ---
   	 l6470_enable(&motor_set_1);
   	 l6470_enable(&motor_set_2);
 
-//  	 vel_temp_1[0] = 0;
-//  	 vel_temp_1[1] = 0;
-//
-//  	 l6470_set_vel(&motor_set_1, vel_temp_1);
-//  	 HAL_Delay(1000);
-//
-//  	 vel_temp_1[0] = 0;
-//  	 vel_temp_1[1] = 0;
-//
-//  	 l6470_set_vel(&motor_set_1, vel_temp_1);
-//  	 HAL_Delay(1000);
-//
-//  	 vel_temp_1[0] = 0;
-//  	 vel_temp_1[1] = 0;
-//
-//  	 l6470_set_vel(&motor_set_1, vel_temp_1);
-//  	 HAL_Delay(1000);
+////////////////////////////////////////////////////////////////////////////////////////////////
 
-// 	 l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
-// 	 l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
+	 l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
+	 l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
 
   	 vel_temp_1[0] = M_PI;
   	 vel_temp_1[1] = 0;
 
   	 l6470_set_vel(&motor_set_1, vel_temp_1);
-  	 HAL_Delay(3000);
-
-// 	 l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
-// 	 l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
+  	 HAL_Delay(50);
 
   	 vel_temp_1[0] = 2 * M_PI; // motor 2
 
   	 l6470_set_vel(&motor_set_1, vel_temp_1);
-  	 HAL_Delay(3000);
-
-// 	 l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
-// 	 l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
+  	 HAL_Delay(50);
 
   	 vel_temp_1[0] = 3 * M_PI; // motor 2
 
   	 l6470_set_vel(&motor_set_1, vel_temp_1);
-  	 HAL_Delay(3000);
+  	 HAL_Delay(50);
 
-// 	 l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
-// 	 l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
 
   	 vel_temp_1[0] = 4 * M_PI; // motor 2
 
   	 l6470_set_vel(&motor_set_1, vel_temp_1);
-  	 HAL_Delay(1000);
+  	 HAL_Delay(50);
 
   	 vel_temp_1[0] = 5 * M_PI; // motor 2
 
   	 l6470_set_vel(&motor_set_1, vel_temp_1);
-  	 HAL_Delay(1000);
+  	 HAL_Delay(50);
 
   	 vel_temp_1[0] = 6 * M_PI; // motor 2
 
   	 l6470_set_vel(&motor_set_1, vel_temp_1);
-  	 HAL_Delay(1000);
+  	 HAL_Delay(50);
 
   	 vel_temp_1[0] = 7 * M_PI; // motor 2
 
   	 l6470_set_vel(&motor_set_1, vel_temp_1);
-  	 HAL_Delay(1000);
+  	 HAL_Delay(50);
 
   	 vel_temp_1[0] = 8 * M_PI; // motor 2
 
   	 l6470_set_vel(&motor_set_1, vel_temp_1);
-  	 HAL_Delay(1000);
+  	 HAL_Delay(50);
 
   	 vel_temp_1[0] = 9 * M_PI; // motor 2
 
   	 l6470_set_vel(&motor_set_1, vel_temp_1);
-  	 HAL_Delay(1000);
+  	 HAL_Delay(50);
 
   	 vel_temp_1[0] = 10 * M_PI; // motor 2
 
   	 l6470_set_vel(&motor_set_1, vel_temp_1);
-  	 HAL_Delay(1000);
+  	 HAL_Delay(50);
 
   	 l6470_soft_stop(&motor_set_1);
   	 l6470_soft_stop(&motor_set_2);
-
-// 	 l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
-// 	 l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
 
   	 l6470_disable(&motor_set_1);
   	 l6470_disable(&motor_set_2);
 
   ///////////////////////////////////////////////////////////////////////////////
-
-  // Only after init, enable the motors
-//  l6470_enable(&motor_set_1);
-//  l6470_enable(&motor_set_2);
-
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-//  uint8_t reg_temp;
-//
-//  HAL_Delay(10);
-//  // Set STEP_MODE to 1/128 microstepping
-//  reg_temp = (uint8_t)FULL_STEP;
-//  l6470_set_param_chip_1(&motor_set_1, STEP_MODE, &reg_temp, 1);
-//  HAL_Delay(10);
-//
-//  // Set STEP_MODE to 1/128 microstepping
-//  reg_temp = (uint8_t)FULL_STEP;
-//  l6470_set_param_chip_2(&motor_set_2, STEP_MODE, &reg_temp, 1);
-//  HAL_Delay(10);
-//
-//  l6470_get_param_chip_1(&motor_set_1, STEP_MODE, 1);
-//  HAL_Delay(10);
-//  l6470_get_param_chip_2(&motor_set_2, STEP_MODE, 1);
-//  HAL_Delay(10);
-
- ////////////////////////////////////////////////////////////////////////////////////////////////
-
-  	  // testing Code (KEEP)
-// 	  // 6 = 1rps
-//    vel_temp_1[0] = M_PI; // motor 2
-//    vel_temp_1[1] = 0; //2 * M_PI;; // motor 3
-//
-//    vel_temp_2[0] = 0; 	// NOT CONNECTED
-//    vel_temp_2[1] = 0; //2 * M_PI; //6; 	// motor 1
-//
-//    l6470_set_vel(&motor_set_1, vel_temp_1);
-//    HAL_Delay(5);
-//    l6470_set_vel(&motor_set_2, vel_temp_2);
-//
-//    HAL_Delay(1000);
-//
-//    l6470_soft_stop(&motor_set_1);
-//    l6470_soft_stop(&motor_set_2);
-
-  //////////////////////////////////////////////////////////////////////////////////////////////
-
-//  top_speed(&motor_set_1);
-//  HAL_Delay(1000);
-//  l6470_soft_stop(&motor_set_1);
-
-///////////////////////////////////////////////////////////////////////////////////////////////
-
-	// testing Code (KEEP)
- 	// 6 = 1rps
-
 
 
   /* USER CODE END 2 */
