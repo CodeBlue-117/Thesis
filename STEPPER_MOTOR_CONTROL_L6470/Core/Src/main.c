@@ -235,6 +235,30 @@ void right_motion(void)
 	omni_drive(6.0f, 0.0f, 0.0f, wheel_radius);
 }
 
+void accel(uint8_t start_time, uint8_t end_time, uint8_t start_vel, uint8_t end_vel) // time is in milliseconds, vel is in rad/s
+{
+	uint8_t delta_t = end_time - start_time;
+	uint8_t delta_v = end_vel - start_vel;
+
+ 	 vel_temp_1[0] = start_vel;
+ 	 vel_temp_1[1] = 0;
+
+	for(uint8_t i = start_time; i < end_time; i += delta_t)
+	{
+		 vel_temp_1[0] += delta_v;
+
+	  	 l6470_set_vel(&motor_set_1, vel_temp_1);
+	  	 HAL_Delay(delta_t);
+	}
+
+ 	 l6470_soft_stop(&motor_set_1);
+ 	 l6470_soft_stop(&motor_set_2);
+
+ 	 l6470_disable(&motor_set_1);
+ 	 l6470_disable(&motor_set_2);
+
+}
+
 
 /* USER CODE END 0 */
 
