@@ -1,7 +1,5 @@
 # STM32CubeIDE
 .settings/
-*.cproject
-*.project
 *.launch
 *.db
 *.suo
