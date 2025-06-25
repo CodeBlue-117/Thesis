@@ -347,64 +347,79 @@ int main(void)
 
 	 l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
 	 l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
+//
+//  	 vel_temp_1[0] = M_PI;
+//  	 vel_temp_1[1] = 0;
+//
+//  	 l6470_set_vel(&motor_set_1, vel_temp_1);
+//  	 HAL_Delay(100);
+//
+//  	 vel_temp_1[0] = 2 * M_PI; // motor 2
+//
+//  	 l6470_set_vel(&motor_set_1, vel_temp_1);
+//  	 HAL_Delay(100);
+//
+//  	 vel_temp_1[0] = 3 * M_PI; // motor 2
+//
+//  	 l6470_set_vel(&motor_set_1, vel_temp_1);
+//  	 HAL_Delay(100);
+//
+//  	 vel_temp_1[0] = 4 * M_PI; // motor 2
+//
+//  	 l6470_set_vel(&motor_set_1, vel_temp_1);
+//  	 HAL_Delay(100);
+//
+//  	 vel_temp_1[0] = 5 * M_PI; // motor 2
+//
+//  	 l6470_set_vel(&motor_set_1, vel_temp_1);
+//  	 HAL_Delay(100);
+//
+//  	 vel_temp_1[0] = 6 * M_PI; // motor 2
+//
+//  	 l6470_set_vel(&motor_set_1, vel_temp_1);
+//  	 HAL_Delay(100);
+//
+//  	 vel_temp_1[0] = 7 * M_PI; // motor 2
+//
+//  	 l6470_set_vel(&motor_set_1, vel_temp_1);
+//  	 HAL_Delay(100);
+//
+//  	 vel_temp_1[0] = 8 * M_PI; // motor 2
+//
+//  	 l6470_set_vel(&motor_set_1, vel_temp_1);
+//  	 HAL_Delay(100);
+//
+//  	 vel_temp_1[0] = 9 * M_PI; // motor 2
+//
+//  	 l6470_set_vel(&motor_set_1, vel_temp_1);
+//  	 HAL_Delay(100);
+//
+//  	 vel_temp_1[0] = 10 * M_PI; // motor 2
+//
+//  	 l6470_set_vel(&motor_set_1, vel_temp_1);
+//  	 HAL_Delay(100);
+//
+//  	 l6470_soft_stop(&motor_set_1);
+//  	 l6470_soft_stop(&motor_set_2);
+//
+//  	 l6470_disable(&motor_set_1);
+//  	 l6470_disable(&motor_set_2);
 
-  	 vel_temp_1[0] = M_PI;
-  	 vel_temp_1[1] = 0;
+  	// acceleration = 2π rad/s² over 5 seconds
+  	float initial_vel = 0.0f;
+  	float target_accel = 2.0f * M_PI; // rad/s²
+  	uint16_t accel_duration_ms = 1000; // 5 seconds
 
-  	 l6470_set_vel(&motor_set_1, vel_temp_1);
-  	 HAL_Delay(50);
+  	accel_from_a(target_accel, initial_vel, accel_duration_ms);
 
-  	 vel_temp_1[0] = 2 * M_PI; // motor 2
+  	// Optional: let it coast for a bit before stopping
+  	HAL_Delay(1000);
 
-  	 l6470_set_vel(&motor_set_1, vel_temp_1);
-  	 HAL_Delay(50);
+  	l6470_soft_stop(&motor_set_1);
+  	l6470_soft_stop(&motor_set_2);
 
-  	 vel_temp_1[0] = 3 * M_PI; // motor 2
-
-  	 l6470_set_vel(&motor_set_1, vel_temp_1);
-  	 HAL_Delay(50);
-
-
-  	 vel_temp_1[0] = 4 * M_PI; // motor 2
-
-  	 l6470_set_vel(&motor_set_1, vel_temp_1);
-  	 HAL_Delay(50);
-
-  	 vel_temp_1[0] = 5 * M_PI; // motor 2
-
-  	 l6470_set_vel(&motor_set_1, vel_temp_1);
-  	 HAL_Delay(50);
-
-  	 vel_temp_1[0] = 6 * M_PI; // motor 2
-
-  	 l6470_set_vel(&motor_set_1, vel_temp_1);
-  	 HAL_Delay(50);
-
-  	 vel_temp_1[0] = 7 * M_PI; // motor 2
-
-  	 l6470_set_vel(&motor_set_1, vel_temp_1);
-  	 HAL_Delay(50);
-
-  	 vel_temp_1[0] = 8 * M_PI; // motor 2
-
-  	 l6470_set_vel(&motor_set_1, vel_temp_1);
-  	 HAL_Delay(50);
-
-  	 vel_temp_1[0] = 9 * M_PI; // motor 2
-
-  	 l6470_set_vel(&motor_set_1, vel_temp_1);
-  	 HAL_Delay(50);
-
-  	 vel_temp_1[0] = 10 * M_PI; // motor 2
-
-  	 l6470_set_vel(&motor_set_1, vel_temp_1);
-  	 HAL_Delay(50);
-
-  	 l6470_soft_stop(&motor_set_1);
-  	 l6470_soft_stop(&motor_set_2);
-
-  	 l6470_disable(&motor_set_1);
-  	 l6470_disable(&motor_set_2);
+  	l6470_disable(&motor_set_1);
+  	l6470_disable(&motor_set_2);
 
   ///////////////////////////////////////////////////////////////////////////////
 
