@@ -259,6 +259,26 @@ void accel(uint8_t start_time, uint8_t end_time, uint8_t start_vel, uint8_t end_
 
 }
 
+void accel_from_a(float acceleration_rad_s2, float initial_vel_rad_s, uint16_t duration_ms)
+{
+    const float steps_per_rad = 200.0f / (2.0f * M_PI);
+    const uint16_t step_interval_ms = 10;  // Chosen smallest time slice
+    uint16_t num_steps = duration_ms / step_interval_ms;
+
+    float current_vel = initial_vel_rad_s;
+
+    for (uint16_t i = 0; i < num_steps; i++)
+    {
+        current_vel += acceleration_rad_s2 * (step_interval_ms / 1000.0f);  // Convert ms to s
+        float vel_steps_per_sec = current_vel * steps_per_rad;
+        vel_temp_1[0] = (int32_t)vel_steps_per_sec;
+        vel_temp_1[1] = 0;
+
+        l6470_set_vel(&motor_set_1, vel_temp_1);
+        HAL_Delay(step_interval_ms);
+    }
+}
+
 
 /* USER CODE END 0 */
 
