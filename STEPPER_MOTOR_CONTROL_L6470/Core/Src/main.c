@@ -94,7 +94,7 @@ MotorSetTypedef motor_set_2 = {
 		.gpio_cs_port 	= STEPPER_SPI2_CS_GPIO_Port,
 		.gpio_cs_pin 	= STEPPER_SPI2_CS_Pin,
 		.hspi_l6470 	= &hspi2,
-		.num_motors		= 1,
+		.num_motors		= 2, // This has to be two in order to get the motor 1 to work
 		.spi_dma_busy 	= 0,
 
 };
@@ -143,8 +143,6 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
             // printf("USER PUSH BUTTON SELECTED!!!\n\r");
 
             buttonFlag = true;
-
-            HAL_Delay(5);
 
         }
     }
@@ -406,20 +404,32 @@ int main(void)
 //  	 l6470_disable(&motor_set_2);
 
   	// acceleration = 2π rad/s² over 5 seconds
-  	float initial_vel = 0.0f;
-  	float target_accel = 2.0f * M_PI; // rad/s²
-  	uint16_t accel_duration_ms = 1000; // 5 seconds
-
-  	accel_from_a(target_accel, initial_vel, accel_duration_ms);
+//  	float initial_vel = 0.0f;
+//  	float target_accel = 2.0f * M_PI; // rad/s²
+//  	uint16_t accel_duration_ms = 1000; // 5 seconds
+//
+//  	accel_from_a(target_accel, initial_vel, accel_duration_ms);
 
   	// Optional: let it coast for a bit before stopping
-  	HAL_Delay(1000);
 
-  	l6470_soft_stop(&motor_set_1);
-  	l6470_soft_stop(&motor_set_2);
-
-  	l6470_disable(&motor_set_1);
-  	l6470_disable(&motor_set_2);
+	 ///////////////////////////////////////////////////////////////
+//
+//	 vel_temp_1[0] = M_PI;
+//	 vel_temp_1[1] = M_PI;
+//
+//	 vel_temp_2[0] = M_PI;
+//	 vel_temp_2[1] = M_PI;
+//
+//	l6470_set_vel(&motor_set_1, vel_temp_1);
+//	HAL_Delay(10);
+//	l6470_set_vel(&motor_set_2, vel_temp_2);
+//  	HAL_Delay(1000);
+//
+//  	l6470_soft_stop(&motor_set_1);
+//  	l6470_soft_stop(&motor_set_2);
+//
+//  	l6470_disable(&motor_set_1);
+//  	l6470_disable(&motor_set_2);
 
   ///////////////////////////////////////////////////////////////////////////////
 
@@ -440,6 +450,24 @@ int main(void)
 		  	 l6470_disable(&motor_set_2);
 
 		  	buttonFlag = false;
+
+
+			vel_temp_1[0] = M_PI;
+			vel_temp_1[1] = M_PI;
+
+			vel_temp_2[0] = M_PI;
+			vel_temp_2[1] = M_PI;
+
+			l6470_set_vel(&motor_set_1, vel_temp_1);
+			HAL_Delay(10);
+			l6470_set_vel(&motor_set_2, vel_temp_2);
+			HAL_Delay(1000);
+
+			l6470_soft_stop(&motor_set_1);
+			l6470_soft_stop(&motor_set_2);
+
+			l6470_disable(&motor_set_1);
+			l6470_disable(&motor_set_2);
 
 //		  	if(pushButtonCallCount == 0)
 //			{

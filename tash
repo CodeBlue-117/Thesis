@@ -1,0 +1,94 @@
+[1mdiff --git a/STEPPER_MOTOR_CONTROL_L6470/Core/Src/main.c b/STEPPER_MOTOR_CONTROL_L6470/Core/Src/main.c[m
+[1mindex dfd5b5c..99c8560 100644[m
+[1m--- a/STEPPER_MOTOR_CONTROL_L6470/Core/Src/main.c[m
+[1m+++ b/STEPPER_MOTOR_CONTROL_L6470/Core/Src/main.c[m
+[36m@@ -73,6 +73,9 @@[m [mfloat vel_temp_2[2];			// motor 1 (second element, had to troubleshoot)[m
+ const float J[3][3] = {{-1, 0.5, 0.5}, {0, 0.866, -0.866}, {-0.333, -0.333, -0.333}};[m
+ const float J_Inv[3][3] = {{-0.667, 0, -1}, {0.333, 0.577, -1}, {0.333, -0.577, -1}};[m
+ [m
+[32m+[m[32muint16_t m1_stat, m2_stat;[m
+[32m+[m
+[32m+[m
+ MotorSetTypedef motor_set_1 = { // TODO: Finish initializing the structs[m
+ [m
+ 		.identifier     = 1,[m
+[36m@@ -261,6 +264,10 @@[m [mvoid accel(uint8_t start_time, uint8_t end_time, uint8_t start_vel, uint8_t end_[m
+ [m
+ void accel_from_a(float acceleration_rad_s2, float initial_vel_rad_s, uint16_t duration_ms)[m
+ {[m
+[32m+[m
+[32m+[m	[32m l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);[m
+[32m+[m	[32m l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);[m
+[32m+[m
+     const float steps_per_rad = 200.0f / (2.0f * M_PI);[m
+     const uint16_t step_interval_ms = 10;  // Chosen smallest time slice[m
+     uint16_t num_steps = duration_ms / step_interval_ms;[m
+[36m@@ -270,7 +277,7 @@[m [mvoid accel_from_a(float acceleration_rad_s2, float initial_vel_rad_s, uint16_t d[m
+     for (uint16_t i = 0; i < num_steps; i++)[m
+     {[m
+         current_vel += acceleration_rad_s2 * (step_interval_ms / 1000.0f);  // Convert ms to s[m
+[31m-        float vel_steps_per_sec = current_vel * steps_per_rad;[m
+[32m+[m[32m        float vel_steps_per_sec = current_vel * steps_per_rad; // TODO: this is incorrect because driver expects rad/s, not steps/s[m
+         vel_temp_1[0] = (int32_t)vel_steps_per_sec;[m
+         vel_temp_1[1] = 0;[m
+ [m
+[36m@@ -319,7 +326,7 @@[m [mint main(void)[m
+ [m
+   /////////////////////////////////////////////////////////////////////////////////////////////////[m
+ [m
+[31m-	 uint16_t m1_stat, m2_stat;[m
+[32m+[m
+ //	 l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);[m
+ //	 l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);[m
+ [m
+[36m@@ -348,11 +355,19 @@[m [mint main(void)[m
+ 	 l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);[m
+ 	 l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);[m
+ //[m
+[31m-//  	 vel_temp_1[0] = M_PI;[m
+[31m-//  	 vel_temp_1[1] = 0;[m
+[31m-//[m
+[31m-//  	 l6470_set_vel(&motor_set_1, vel_temp_1);[m
+[31m-//  	 HAL_Delay(100);[m
+[32m+[m[41m  [m	[32m vel_temp_1[0] = M_PI;[m
+[32m+[m[41m  [m	[32m vel_temp_1[1] = M_PI;[m
+[32m+[m
+[32m+[m[41m  [m	[32m vel_temp_2[0] = M_PI;[m
+[32m+[m[41m  [m	[32m vel_temp_2[1] = M_PI;[m
+[32m+[m
+[32m+[m
+[32m+[m[41m  [m	[32m l6470_set_vel(&motor_set_1, vel_temp_1);[m
+[32m+[m[41m  [m	[32m HAL_Delay(10);[m
+[32m+[m[41m  [m	[32m l6470_set_vel(&motor_set_2, vel_temp_2);[m
+[32m+[m[41m  [m	[32m HAL_Delay(1000);[m
+[32m+[m
+[32m+[m
+ //[m
+ //  	 vel_temp_1[0] = 2 * M_PI; // motor 2[m
+ //[m
+[36m@@ -405,15 +420,19 @@[m [mint main(void)[m
+ //  	 l6470_disable(&motor_set_1);[m
+ //  	 l6470_disable(&motor_set_2);[m
+ [m
+[31m-  	// acceleration = 2π rad/s² over 5 seconds[m
+[31m-  	float initial_vel = 0.0f;[m
+[31m-  	float target_accel = 2.0f * M_PI; // rad/s²[m
+[31m-  	uint16_t accel_duration_ms = 1000; // 5 seconds[m
+[32m+[m[41m  [m	[32m /////////////////////////////////////////////////////////////////////////////////////////////////////////////[m
+ [m
+[31m-  	accel_from_a(target_accel, initial_vel, accel_duration_ms);[m
+[32m+[m[41m  [m	[32m// acceleration = 2π rad/s² over 5 seconds[m
+[32m+[m[32m//  	float initial_vel = 0.0f;[m
+[32m+[m[32m//  	float target_accel = 2.0f * M_PI; // rad/s²[m
+[32m+[m[32m//  	uint16_t accel_duration_ms = 1000; // 5 seconds[m
+[32m+[m[32m//[m
+[32m+[m[32m//  	accel_from_a(target_accel, initial_vel, accel_duration_ms);[m
+ [m
+   	// Optional: let it coast for a bit before stopping[m
+[31m-  	HAL_Delay(1000);[m
+[32m+[m[32m//  	HAL_Delay(1000);[m
+[32m+[m
+[32m+[m[41m  [m	[32m /////////////////////////////////////////////////////////////////////////////////////////////////////////////[m
+ [m
+   	l6470_soft_stop(&motor_set_1);[m
+   	l6470_soft_stop(&motor_set_2);[m
