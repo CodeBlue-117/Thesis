@@ -286,6 +286,120 @@ void accel_from_a(float acceleration_rad_s2, float initial_vel_rad_s, uint16_t d
 }
 
 
+void l6470_dump_params_chip1(MotorSetTypedef* stepper_motor)
+{
+    printf("\n=== Chip1 Registers ===\n\r");
+
+    printf("STEP_MODE\n\r");
+    l6470_get_param_chip_1(stepper_motor, STEP_MODE, 1);
+    printf("\n\r");
+
+    printf("ACC\n\r");
+    l6470_get_param_chip_1(stepper_motor, ACC, 2);
+    printf("\n\r");
+
+    printf("DEC\n\r");
+    l6470_get_param_chip_1(stepper_motor, DEC, 2);
+    printf("\n\r");
+
+    printf("MAX_SPEED\n\r");
+    l6470_get_param_chip_1(stepper_motor, MAX_SPEED, 2);
+    printf("\n\r");
+
+    printf("KVAL_HOLD\n\r");
+    l6470_get_param_chip_1(stepper_motor, KVAL_HOLD, 1);
+    printf("\n\r");
+
+    printf("KVAL_RUN\n\r");
+    l6470_get_param_chip_1(stepper_motor, KVAL_RUN, 1);
+    printf("\n\r");
+
+    printf("KVAL_ACC\n\r");
+    l6470_get_param_chip_1(stepper_motor, KVAL_ACC, 1);
+    printf("\n\r");
+
+    printf("KVAL_DEC\n\r");
+    l6470_get_param_chip_1(stepper_motor, KVAL_DEC, 1);
+    printf("\n\r");
+
+    printf("ST_SLP\n\r");
+    l6470_get_param_chip_1(stepper_motor, ST_SLP, 1);
+    printf("\n\r");
+
+    printf("FN_SLP_ACC\n\r");
+    l6470_get_param_chip_1(stepper_motor, FN_SLP_ACC, 1);
+    printf("\n\r");
+
+    printf("FN_SLP_DEC\n\r");
+    l6470_get_param_chip_1(stepper_motor, FN_SLP_DEC, 1);
+    printf("\n\r");
+
+    printf("OCD_TH\n\r");
+    l6470_get_param_chip_1(stepper_motor, OCD_TH, 1);
+    printf("\n\r");
+
+    printf("CONFIG\n\r");
+    l6470_get_param_chip_1(stepper_motor, CONFIG, 2);
+    printf("\n\r");
+}
+
+void l6470_dump_params_chip2(MotorSetTypedef* stepper_motor)
+{
+    printf("\n=== Chip2 Registers ===\n\r");
+
+    printf("STEP_MODE\n\r");
+    l6470_get_param_chip_2(stepper_motor, STEP_MODE, 1);
+    printf("\n\r");
+
+    printf("ACC\n\r");
+    l6470_get_param_chip_2(stepper_motor, ACC, 2);
+    printf("\n\r");
+
+    printf("DEC\n\r");
+    l6470_get_param_chip_2(stepper_motor, DEC, 2);
+    printf("\n\r");
+
+    printf("MAX_SPEED\n\r");
+    l6470_get_param_chip_2(stepper_motor, MAX_SPEED, 2);
+    printf("\n\r");
+
+    printf("KVAL_HOLD\n\r");
+    l6470_get_param_chip_2(stepper_motor, KVAL_HOLD, 1);
+    printf("\n\r");
+
+    printf("KVAL_RUN\n\r");
+    l6470_get_param_chip_2(stepper_motor, KVAL_RUN, 1);
+    printf("\n\r");
+
+    printf("KVAL_ACC\n\r");
+    l6470_get_param_chip_2(stepper_motor, KVAL_ACC, 1);
+    printf("\n\r");
+
+    printf("KVAL_DEC\n\r");
+    l6470_get_param_chip_2(stepper_motor, KVAL_DEC, 1);
+    printf("\n\r");
+
+    printf("ST_SLP\n\r");
+    l6470_get_param_chip_2(stepper_motor, ST_SLP, 1);
+    printf("\n\r");
+
+    printf("FN_SLP_ACC\n\r");
+    l6470_get_param_chip_2(stepper_motor, FN_SLP_ACC, 1);
+    printf("\n\r");
+
+    printf("FN_SLP_DEC\n\r");
+    l6470_get_param_chip_2(stepper_motor, FN_SLP_DEC, 1);
+    printf("\n\r");
+
+    printf("OCD_TH\n\r");
+    l6470_get_param_chip_2(stepper_motor, OCD_TH, 1);
+    printf("\n\r");
+
+    printf("CONFIG\n\r");
+    l6470_get_param_chip_2(stepper_motor, CONFIG, 2);
+    printf("\n\r");
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -358,6 +472,10 @@ int main(void)
 
 	 printf("Hello World\n\r");
 
+
+	 l6470_dump_params_chip1(&motor_set_1);
+	 l6470_dump_params_chip2(&motor_set_2);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -368,7 +486,7 @@ int main(void)
 	    float pot1_voltage = (3.3f * adc_buffer[0]) / 4095.0f;
 	    // float pot2_voltage = (3.3f * adc_buffer[1]) / 4095.0f;
 
-	    printf("Z-X: %.2f V\n\r", pot1_voltage);
+	    // printf("Z-X: %.2f V\n\r", pot1_voltage);
 	    HAL_Delay(200);  // Slow down to readable rate
 
 	  HAL_Delay(1);

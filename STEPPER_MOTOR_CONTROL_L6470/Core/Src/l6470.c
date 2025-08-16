@@ -469,7 +469,7 @@ uint32_t l6470_get_param_chip_2(MotorSetTypedef* stepper_motor, uint8_t param, u
         HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
         HAL_Delay(2);
 
-        result = (result << 8) | rx[1];
+        result = (result << 8) | rx[0];
         // printf("Byte %d read: 0x%04X\n\r", i, rx[1]);
     }
 
