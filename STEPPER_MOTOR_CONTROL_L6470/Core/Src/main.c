@@ -37,6 +37,11 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
+// Optional: widths for readability
+#define L6470_LEN1 1
+#define L6470_LEN2 2
+#define L6470_LEN3 3
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -291,55 +296,89 @@ void l6470_dump_params_chip1(MotorSetTypedef* stepper_motor)
     printf("\n=== Chip1 Registers ===\n\r");
 
     printf("STEP_MODE\n\r");
-    l6470_get_param_chip_1(stepper_motor, STEP_MODE, 1);
+    l6470_get_param_chip_1(stepper_motor, STEP_MODE, L6470_LEN1);
     printf("\n\r");
 
     printf("ACC\n\r");
-    l6470_get_param_chip_1(stepper_motor, ACC, 2);
+    l6470_get_param_chip_1(stepper_motor, ACC, L6470_LEN2);
     printf("\n\r");
 
     printf("DEC\n\r");
-    l6470_get_param_chip_1(stepper_motor, DEC, 2);
+    l6470_get_param_chip_1(stepper_motor, DEC, L6470_LEN2);
     printf("\n\r");
 
     printf("MAX_SPEED\n\r");
-    l6470_get_param_chip_1(stepper_motor, MAX_SPEED, 2);
+    l6470_get_param_chip_1(stepper_motor, MAX_SPEED, L6470_LEN2);
     printf("\n\r");
 
     printf("KVAL_HOLD\n\r");
-    l6470_get_param_chip_1(stepper_motor, KVAL_HOLD, 1);
+    l6470_get_param_chip_1(stepper_motor, KVAL_HOLD, L6470_LEN1);
     printf("\n\r");
 
     printf("KVAL_RUN\n\r");
-    l6470_get_param_chip_1(stepper_motor, KVAL_RUN, 1);
+    l6470_get_param_chip_1(stepper_motor, KVAL_RUN, L6470_LEN1);
     printf("\n\r");
 
     printf("KVAL_ACC\n\r");
-    l6470_get_param_chip_1(stepper_motor, KVAL_ACC, 1);
+    l6470_get_param_chip_1(stepper_motor, KVAL_ACC, L6470_LEN1);
     printf("\n\r");
 
     printf("KVAL_DEC\n\r");
-    l6470_get_param_chip_1(stepper_motor, KVAL_DEC, 1);
+    l6470_get_param_chip_1(stepper_motor, KVAL_DEC, L6470_LEN1);
     printf("\n\r");
 
     printf("ST_SLP\n\r");
-    l6470_get_param_chip_1(stepper_motor, ST_SLP, 1);
+    l6470_get_param_chip_1(stepper_motor, ST_SLP, L6470_LEN1);
     printf("\n\r");
 
     printf("FN_SLP_ACC\n\r");
-    l6470_get_param_chip_1(stepper_motor, FN_SLP_ACC, 1);
+    l6470_get_param_chip_1(stepper_motor, FN_SLP_ACC, L6470_LEN1);
     printf("\n\r");
 
     printf("FN_SLP_DEC\n\r");
-    l6470_get_param_chip_1(stepper_motor, FN_SLP_DEC, 1);
+    l6470_get_param_chip_1(stepper_motor, FN_SLP_DEC, L6470_LEN1);
     printf("\n\r");
 
     printf("OCD_TH\n\r");
-    l6470_get_param_chip_1(stepper_motor, OCD_TH, 1);
+    l6470_get_param_chip_1(stepper_motor, OCD_TH, L6470_LEN1);
     printf("\n\r");
 
     printf("CONFIG\n\r");
-    l6470_get_param_chip_1(stepper_motor, CONFIG, 2);
+    l6470_get_param_chip_1(stepper_motor, CONFIG, L6470_LEN2);
+    printf("\n\r");
+
+    // From your init()
+    printf("INT_SPEED\n\r");
+    l6470_get_param_chip_1(stepper_motor, INT_SPEED, L6470_LEN2);
+    printf("\n\r");
+
+    printf("ABS_POS\n\r");
+    l6470_get_param_chip_1(stepper_motor, ABS_POS, L6470_LEN3);
+    printf("\n\r");
+
+    printf("EL_POS\n\r");
+    l6470_get_param_chip_1(stepper_motor, EL_POS, L6470_LEN2);
+    printf("\n\r");
+
+    // Added extras
+    printf("MIN_SPEED\n\r");
+    l6470_get_param_chip_1(stepper_motor, MIN_SPEED, L6470_LEN2);
+    printf("\n\r");
+
+    printf("ALARM_EN\n\r");
+    l6470_get_param_chip_1(stepper_motor, ALARM_EN, L6470_LEN1);
+    printf("\n\r");
+
+    printf("K_THERM\n\r");
+    l6470_get_param_chip_1(stepper_motor, K_THERM, L6470_LEN1);
+    printf("\n\r");
+
+    printf("STALL_TH\n\r");
+    l6470_get_param_chip_1(stepper_motor, STALL_TH, L6470_LEN1);
+    printf("\n\r");
+
+    printf("ADC_OUT\n\r");
+    l6470_get_param_chip_1(stepper_motor, ADC_OUT, L6470_LEN1);
     printf("\n\r");
 }
 
@@ -348,57 +387,93 @@ void l6470_dump_params_chip2(MotorSetTypedef* stepper_motor)
     printf("\n=== Chip2 Registers ===\n\r");
 
     printf("STEP_MODE\n\r");
-    l6470_get_param_chip_2(stepper_motor, STEP_MODE, 1);
+    l6470_get_param_chip_2(stepper_motor, STEP_MODE, L6470_LEN1);
     printf("\n\r");
 
     printf("ACC\n\r");
-    l6470_get_param_chip_2(stepper_motor, ACC, 2);
+    l6470_get_param_chip_2(stepper_motor, ACC, L6470_LEN2);
     printf("\n\r");
 
     printf("DEC\n\r");
-    l6470_get_param_chip_2(stepper_motor, DEC, 2);
+    l6470_get_param_chip_2(stepper_motor, DEC, L6470_LEN2);
     printf("\n\r");
 
     printf("MAX_SPEED\n\r");
-    l6470_get_param_chip_2(stepper_motor, MAX_SPEED, 2);
+    l6470_get_param_chip_2(stepper_motor, MAX_SPEED, L6470_LEN2);
     printf("\n\r");
 
     printf("KVAL_HOLD\n\r");
-    l6470_get_param_chip_2(stepper_motor, KVAL_HOLD, 1);
+    l6470_get_param_chip_2(stepper_motor, KVAL_HOLD, L6470_LEN1);
     printf("\n\r");
 
     printf("KVAL_RUN\n\r");
-    l6470_get_param_chip_2(stepper_motor, KVAL_RUN, 1);
+    l6470_get_param_chip_2(stepper_motor, KVAL_RUN, L6470_LEN1);
     printf("\n\r");
 
     printf("KVAL_ACC\n\r");
-    l6470_get_param_chip_2(stepper_motor, KVAL_ACC, 1);
+    l6470_get_param_chip_2(stepper_motor, KVAL_ACC, L6470_LEN1);
     printf("\n\r");
 
     printf("KVAL_DEC\n\r");
-    l6470_get_param_chip_2(stepper_motor, KVAL_DEC, 1);
+    l6470_get_param_chip_2(stepper_motor, KVAL_DEC, L6470_LEN1);
     printf("\n\r");
 
     printf("ST_SLP\n\r");
-    l6470_get_param_chip_2(stepper_motor, ST_SLP, 1);
+    l6470_get_param_chip_2(stepper_motor, ST_SLP, L6470_LEN1);
     printf("\n\r");
 
     printf("FN_SLP_ACC\n\r");
-    l6470_get_param_chip_2(stepper_motor, FN_SLP_ACC, 1);
+    l6470_get_param_chip_2(stepper_motor, FN_SLP_ACC, L6470_LEN1);
     printf("\n\r");
 
     printf("FN_SLP_DEC\n\r");
-    l6470_get_param_chip_2(stepper_motor, FN_SLP_DEC, 1);
+    l6470_get_param_chip_2(stepper_motor, FN_SLP_DEC, L6470_LEN1);
     printf("\n\r");
 
     printf("OCD_TH\n\r");
-    l6470_get_param_chip_2(stepper_motor, OCD_TH, 1);
+    l6470_get_param_chip_2(stepper_motor, OCD_TH, L6470_LEN1);
     printf("\n\r");
 
     printf("CONFIG\n\r");
-    l6470_get_param_chip_2(stepper_motor, CONFIG, 2);
+    l6470_get_param_chip_2(stepper_motor, CONFIG, L6470_LEN2);
+    printf("\n\r");
+
+    // From your init()
+    printf("INT_SPEED\n\r");
+    l6470_get_param_chip_2(stepper_motor, INT_SPEED, L6470_LEN2);
+    printf("\n\r");
+
+    printf("ABS_POS\n\r");
+    l6470_get_param_chip_2(stepper_motor, ABS_POS, L6470_LEN3);
+    printf("\n\r");
+
+    printf("EL_POS\n\r");
+    l6470_get_param_chip_2(stepper_motor, EL_POS, L6470_LEN2);
+    printf("\n\r");
+
+    // Added extras
+    printf("MIN_SPEED\n\r");
+    l6470_get_param_chip_2(stepper_motor, MIN_SPEED, L6470_LEN2);
+    printf("\n\r");
+
+    printf("ALARM_EN\n\r");
+    l6470_get_param_chip_2(stepper_motor, ALARM_EN, L6470_LEN1);
+    printf("\n\r");
+
+    printf("K_THERM\n\r");
+    l6470_get_param_chip_2(stepper_motor, K_THERM, L6470_LEN1);
+    printf("\n\r");
+
+    printf("STALL_TH\n\r");
+    l6470_get_param_chip_2(stepper_motor, STALL_TH, L6470_LEN1);
+    printf("\n\r");
+
+    printf("ADC_OUT\n\r");
+    l6470_get_param_chip_2(stepper_motor, ADC_OUT, L6470_LEN1);
     printf("\n\r");
 }
+
+
 
 /* USER CODE END 0 */
 
