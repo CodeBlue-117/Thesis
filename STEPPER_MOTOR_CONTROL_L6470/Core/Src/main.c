@@ -82,7 +82,7 @@ float vel_temp_2[2];			// motor 1 (second element, had to troubleshoot)
 const float J[3][3] = {{-1, 0.5, 0.5}, {0, 0.866, -0.866}, {-0.333, -0.333, -0.333}};
 const float J_Inv[3][3] = {{-0.667, 0, -1}, {0.333, 0.577, -1}, {0.333, -0.577, -1}};
 
-uint16_t adc_buffer[1];  // adc_buffer[0] = Z-X pot, adc_buffer[1] = Z-Y pot
+uint16_t adc_buffer[2];  // adc_buffer[0] = Z-X pot, adc_buffer[1] = Z-Y pot
 
 MotorSetTypedef motor_set_1 = { // TODO: Finish initializing the structs
 
@@ -516,7 +516,7 @@ int main(void)
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buffer, 1);
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buffer, 2);
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -559,9 +559,12 @@ int main(void)
   {
 
 	    float pot1_voltage = (3.3f * adc_buffer[0]) / 4095.0f;
-	    // float pot2_voltage = (3.3f * adc_buffer[1]) / 4095.0f;
+	    float pot2_voltage = (3.3f * adc_buffer[1]) / 4095.0f;
 
-	    // printf("Z-X: %.2f V\n\r", pot1_voltage);
+	    printf("Z-X: %.2f V\n\r", pot1_voltage);
+	    printf("Z-Y: %.2f V\n\r", pot2_voltage);
+
+
 	    HAL_Delay(200);  // Slow down to readable rate
 
 	  HAL_Delay(1);
@@ -581,8 +584,8 @@ int main(void)
 			vel_temp_2[0] = M_PI;
 			vel_temp_2[1] = M_PI;
 
-			l6470_set_vel(&motor_set_1, vel_temp_1);
-			HAL_Delay(10);
+//			l6470_set_vel(&motor_set_1, vel_temp_1);
+//			HAL_Delay(10);
 			l6470_set_vel(&motor_set_2, vel_temp_2);
 			HAL_Delay(1000);
 
