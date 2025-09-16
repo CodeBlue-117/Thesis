@@ -133,9 +133,9 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 
 
 // Redirect printf() to USART1
-int __io_putchar(int ch)
+int __io_putchar(int ch) // Use UART 1 for FTDI cable
 {
-    HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart2, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
     return ch;
 }
 
@@ -558,16 +558,24 @@ int main(void)
   while (1)
   {
 
-	    float pot1_voltage = (3.3f * adc_buffer[0]) / 4095.0f;
-	    float pot2_voltage = (3.3f * adc_buffer[1]) / 4095.0f;
+	    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // OFF
 
-	    printf("Z-X: %.2f V\n\r", pot1_voltage);
-	    printf("Z-Y: %.2f V\n\r", pot2_voltage);
+	    HAL_Delay(1000);
+
+	    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET); // ON
+
+	    HAL_Delay(1000);
 
 
-	    HAL_Delay(200);  // Slow down to readable rate
 
-	  HAL_Delay(1);
+//	  float pot1_voltage = (3.3f * adc_buffer[0]) / 4095.0f;
+//	  float pot2_voltage = (3.3f * adc_buffer[1]) / 4095.0f;
+
+	  // printf("Z-X: %.2f V\n\r", pot1_voltage);
+	  // printf("Z-Y: %.2f V\n\r", pot2_voltage);
+
+
+	  // HAL_Delay(200);  // Slow down to readable rate
 
 	  if(buttonFlag == true)
 	  {
@@ -584,8 +592,8 @@ int main(void)
 			vel_temp_2[0] = M_PI;
 			vel_temp_2[1] = M_PI;
 
-//			l6470_set_vel(&motor_set_1, vel_temp_1);
-//			HAL_Delay(10);
+			l6470_set_vel(&motor_set_1, vel_temp_1);
+			HAL_Delay(10);
 			l6470_set_vel(&motor_set_2, vel_temp_2);
 			HAL_Delay(1000);
 
