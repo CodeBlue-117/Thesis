@@ -55,9 +55,6 @@ void Error_Handler(void);
 
 /* Private defines -----------------------------------------------------------*/
 #define ENCODER_RESOLUTION 2399
-#define B1_Pin GPIO_PIN_13
-#define B1_GPIO_Port GPIOC
-#define B1_EXTI_IRQn EXTI15_10_IRQn
 #define LED_Pin GPIO_PIN_0
 #define LED_GPIO_Port GPIOC
 #define STEPPER_FLG_Pin GPIO_PIN_1
@@ -76,6 +73,7 @@ void Error_Handler(void);
 #define STEPPER_SPI1_MOSI_GPIO_Port GPIOA
 #define USER_BUTTON_Pin GPIO_PIN_0
 #define USER_BUTTON_GPIO_Port GPIOB
+#define USER_BUTTON_EXTI_IRQn EXTI0_IRQn
 #define STEPPER_SPI2_CLK_Pin GPIO_PIN_13
 #define STEPPER_SPI2_CLK_GPIO_Port GPIOB
 #define STEPPER_SPI2_MISO_Pin GPIO_PIN_14

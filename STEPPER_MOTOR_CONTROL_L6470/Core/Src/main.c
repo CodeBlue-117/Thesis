@@ -145,7 +145,7 @@ uint32_t lastPressTime = 0;
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-    if(GPIO_Pin == B1_Pin)
+    if(GPIO_Pin == USER_BUTTON_Pin)
     {
         uint32_t currentTime = HAL_GetTick();  // Get current system time
 
@@ -153,9 +153,13 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
         if((currentTime - lastPressTime) >= DEBOUNCE_DELAY)
         {
             lastPressTime = currentTime; // Update last press time
-            // printf("USER PUSH BUTTON SELECTED!!!\n\r");
+            printf("USER PUSH BUTTON SELECTED!!!\n\r");
 
-            buttonFlag = true;
+            buttonFlag = true; // TODO: Uncomment this
+
+			HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET); // ON ////////////////// WORKS!!!!!!
+
+		    HAL_Delay(100);
 
         }
     }
@@ -545,7 +549,7 @@ int main(void)
 	 l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
 	 l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
 
-	 printf("Hello World\n\r");
+	 // printf("Hello World\n\r");
 
 
 	 l6470_dump_params_chip1(&motor_set_1);
@@ -558,15 +562,9 @@ int main(void)
   while (1)
   {
 
-	    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // OFF
-
-	    HAL_Delay(1000);
-
-	    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET); // ON
-
-	    HAL_Delay(1000);
-
-
+//	    HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // OFF
+//
+	    HAL_Delay(100);
 
 //	  float pot1_voltage = (3.3f * adc_buffer[0]) / 4095.0f;
 //	  float pot2_voltage = (3.3f * adc_buffer[1]) / 4095.0f;
@@ -577,101 +575,101 @@ int main(void)
 
 	  // HAL_Delay(200);  // Slow down to readable rate
 
-	  if(buttonFlag == true)
-	  {
-
-		  	 l6470_disable(&motor_set_1);
-		  	 l6470_disable(&motor_set_2);
-
-		  	buttonFlag = false;
-
-
-			vel_temp_1[0] = M_PI;
-			vel_temp_1[1] = M_PI;
-
-			vel_temp_2[0] = M_PI;
-			vel_temp_2[1] = M_PI;
-
-			l6470_set_vel(&motor_set_1, vel_temp_1);
-			HAL_Delay(10);
-			l6470_set_vel(&motor_set_2, vel_temp_2);
-			HAL_Delay(1000);
-
-			l6470_soft_stop(&motor_set_1);
-			l6470_soft_stop(&motor_set_2);
-
-			l6470_disable(&motor_set_1);
-			l6470_disable(&motor_set_2);
-
-//		  	if(pushButtonCallCount == 0)
-//			{
-////		  		  l6470_enable(&motor_set_1);
-////		  		  l6470_enable(&motor_set_2);
+//	  if(buttonFlag == true)
+//	  {
 //
-//		  		  // HAL_Delay(5);
-//		  		  pushButtonCallCount++;
-//		  		  forward_motion();
+//		  	 l6470_disable(&motor_set_1);
+//		  	 l6470_disable(&motor_set_2);
 //
-//		  		  HAL_Delay(3000);
+//		  	buttonFlag = false;
 //
-//				  l6470_soft_stop(&motor_set_1);
-//				  l6470_soft_stop(&motor_set_2);
-//			}
-//			else if(pushButtonCallCount == 1)
-//			{
-////				  l6470_enable(&motor_set_1);
-////				  l6470_enable(&motor_set_2);
 //
-//				  // HAL_Delay(5);
-//				  pushButtonCallCount++;
-//				  backward_motion();
+//			vel_temp_1[0] = M_PI;
+//			vel_temp_1[1] = M_PI;
 //
-//				  HAL_Delay(3000);
+//			vel_temp_2[0] = M_PI;
+//			vel_temp_2[1] = M_PI;
 //
-//				  l6470_soft_stop(&motor_set_1);
-//				  l6470_soft_stop(&motor_set_2);
+//			l6470_set_vel(&motor_set_1, vel_temp_1);
+//			HAL_Delay(10);
+//			l6470_set_vel(&motor_set_2, vel_temp_2);
+//			HAL_Delay(1000);
 //
-//			}
-//			else if(pushButtonCallCount == 2)
-//			{
-////				  l6470_enable(&motor_set_1);
-////				  l6470_enable(&motor_set_2);
+//			l6470_soft_stop(&motor_set_1);
+//			l6470_soft_stop(&motor_set_2);
 //
-//				  // HAL_Delay(5);
-//				  pushButtonCallCount++;
-//				  left_motion();
+//			l6470_disable(&motor_set_1);
+//			l6470_disable(&motor_set_2);
 //
-//				  HAL_Delay(3000);
+////		  	if(pushButtonCallCount == 0)
+////			{
+//////		  		  l6470_enable(&motor_set_1);
+//////		  		  l6470_enable(&motor_set_2);
+////
+////		  		  // HAL_Delay(5);
+////		  		  pushButtonCallCount++;
+////		  		  forward_motion();
+////
+////		  		  HAL_Delay(3000);
+////
+////				  l6470_soft_stop(&motor_set_1);
+////				  l6470_soft_stop(&motor_set_2);
+////			}
+////			else if(pushButtonCallCount == 1)
+////			{
+//////				  l6470_enable(&motor_set_1);
+//////				  l6470_enable(&motor_set_2);
+////
+////				  // HAL_Delay(5);
+////				  pushButtonCallCount++;
+////				  backward_motion();
+////
+////				  HAL_Delay(3000);
+////
+////				  l6470_soft_stop(&motor_set_1);
+////				  l6470_soft_stop(&motor_set_2);
+////
+////			}
+////			else if(pushButtonCallCount == 2)
+////			{
+//////				  l6470_enable(&motor_set_1);
+//////				  l6470_enable(&motor_set_2);
+////
+////				  // HAL_Delay(5);
+////				  pushButtonCallCount++;
+////				  left_motion();
+////
+////				  HAL_Delay(3000);
+////
+////				  l6470_soft_stop(&motor_set_1);
+////				  l6470_soft_stop(&motor_set_2);
+////
+////			}
+////			else if(pushButtonCallCount == 3)
+////			{
+//////				  l6470_enable(&motor_set_1);
+//////				  l6470_enable(&motor_set_2);
+////
+////				  // HAL_Delay(5);
+////				  pushButtonCallCount++;
+////				  right_motion();
+////
+////				  HAL_Delay(3000);
+////
+////				  l6470_soft_stop(&motor_set_1);
+////				  l6470_soft_stop(&motor_set_2);
+////
+////				  pushButtonCallCount = 0;
+////
+////			}
+////
+////			else
+////			{
+////				  pushButtonCallCount = 0;
+////			}
 //
-//				  l6470_soft_stop(&motor_set_1);
-//				  l6470_soft_stop(&motor_set_2);
 //
-//			}
-//			else if(pushButtonCallCount == 3)
-//			{
-////				  l6470_enable(&motor_set_1);
-////				  l6470_enable(&motor_set_2);
-//
-//				  // HAL_Delay(5);
-//				  pushButtonCallCount++;
-//				  right_motion();
-//
-//				  HAL_Delay(3000);
-//
-//				  l6470_soft_stop(&motor_set_1);
-//				  l6470_soft_stop(&motor_set_2);
-//
-//				  pushButtonCallCount = 0;
-//
-//			}
-//
-//			else
-//			{
-//				  pushButtonCallCount = 0;
-//			}
-
-
-	  }
+//	  }
 
 	////////////////////////////////////////////////////////////////////////////////// OLD CODE FOR POSITION
 	//	  l6470_get_speed_pos(&motor_set_1);
@@ -1016,12 +1014,6 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(STEPPER_RST_GPIO_Port, STEPPER_RST_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : B1_Pin */
-  GPIO_InitStruct.Pin = B1_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
-
   /*Configure GPIO pin : LED_Pin */
   GPIO_InitStruct.Pin = LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -1044,8 +1036,8 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : USER_BUTTON_Pin */
   GPIO_InitStruct.Pin = USER_BUTTON_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(USER_BUTTON_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : STEPPER_RST_Pin */
@@ -1056,8 +1048,8 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(STEPPER_RST_GPIO_Port, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 
