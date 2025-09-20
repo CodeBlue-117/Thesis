@@ -88,6 +88,9 @@ void Error_Handler(void);
 #define TCK_GPIO_Port GPIOA
 #define SWO_Pin GPIO_PIN_3
 #define SWO_GPIO_Port GPIOB
+#define IMU_INT_Pin GPIO_PIN_4
+#define IMU_INT_GPIO_Port GPIOB
+#define IMU_INT_EXTI_IRQn EXTI4_IRQn
 #define STEPPER_RST_Pin GPIO_PIN_5
 #define STEPPER_RST_GPIO_Port GPIOB
 
