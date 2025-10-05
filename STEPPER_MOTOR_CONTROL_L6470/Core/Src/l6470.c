@@ -270,6 +270,82 @@ void l6470_init_chip_2(MotorSetTypedef* stepper_motor)
 }
 
 
+/*
+ * @brief transmitting data through spi
+ * @param stepper_motor: stepper motor handler
+ * @param data: data pointer
+ * @param data_length: data length in bytes
+ */
+void l6470_transmit_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t data_length)
+{
+
+	// TODO: Find the minimum delay necessary for this function to work
+
+	uint8_t receive_data[data_length]; // NOT USED
+
+	for (int i = 0; i < 4 * stepper_motor->num_motors; i+=2)
+	{
+
+		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
+		HAL_Delay(1);
+
+		HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, &data[i], receive_data, 2, 1000);
+
+		HAL_Delay(1);
+		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
+		HAL_Delay(1);
+
+	}
+
+}
+
+/*
+ * @brief receiving data through spi
+ * @param stepper_motor: stepper motor handler
+ * @param data: data pointer
+ * @param data_length: data length in bytes
+ */
+void l6470_receive_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t data_length)
+{
+	uint8_t data_raw[data_length]; // NOT USED
+	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
+
+	HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(stepper_motor ->hspi_l6470, data_raw, data, data_length, 1000);
+	if(status != HAL_OK)
+	{
+		printf("SPI RECEIVE ERROR: %02X\n\r", status);
+	}
+
+	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
+}
+
+
+void l6470_transmit_spi_dma(MotorSetTypedef* stepper_motor)
+{
+
+	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
+
+	stepper_motor -> spi_dma_busy = 1;
+
+	HAL_StatusTypeDef status = HAL_SPI_TransmitReceive_DMA(
+			stepper_motor ->hspi_l6470,
+			stepper_motor -> spd_tx_buffer,
+			stepper_motor -> spd_rx_buffer,
+			4 * stepper_motor->num_motors);
+
+	if(status != HAL_OK)
+	{
+		printf("SPI TRANSMIT DMA ERROR: %02X\n\r", status);
+	}
+
+	stepper_motor -> spi_tx_count++;
+	stepper_motor -> spi_dma_busy = 0;
+
+	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
+
+}
+
+
 /* @brief This function is to set rotational velocity at radians per angle
  * @param stepper motor Stepper motor handler
  * @param vel Velocity at radians per sec 62.8 - 2pi
@@ -477,76 +553,6 @@ uint32_t l6470_get_param_chip_2(MotorSetTypedef* stepper_motor, uint8_t param, u
     return result;
 }
 
-/*
- * @brief receiving data through spi
- * @param stepper_motor: stepper motor handler
- * @param data: data pointer
- * @param data_length: data length in bytes
- */
-void l6470_receive_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t data_length)
-{
-	uint8_t data_raw[data_length]; // NOT USED
-	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
-
-	HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(stepper_motor ->hspi_l6470, data_raw, data, data_length, 1000);
-	if(status != HAL_OK)
-	{
-		printf("SPI RECEIVE ERROR: %02X\n\r", status);
-	}
-
-	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
-}
-/*
- * @brief transmitting data through spi
- * @param stepper_motor: stepper motor handler
- * @param data: data pointer
- * @param data_length: data length in bytes
- */
-void l6470_transmit_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t data_length)
-{
-
-	uint8_t receive_data[data_length]; // NOT USED
-
-	for (int i = 0; i < 4 * stepper_motor->num_motors; i+=2)
-	{
-
-		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
-		HAL_Delay(1);
-
-		HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, &data[i], receive_data, 2, 1000);
-
-		HAL_Delay(1);
-		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
-		HAL_Delay(1);
-
-	}
-
-}
-
-void l6470_transmit_spi_dma(MotorSetTypedef* stepper_motor)
-{
-
-	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
-
-	stepper_motor -> spi_dma_busy = 1;
-
-	HAL_StatusTypeDef status = HAL_SPI_TransmitReceive_DMA(
-			stepper_motor ->hspi_l6470,
-			stepper_motor -> spd_tx_buffer,
-			stepper_motor -> spd_rx_buffer,
-			4 * stepper_motor->num_motors);
-
-	if(status != HAL_OK)
-	{
-		printf("SPI TRANSMIT DMA ERROR: %02X\n\r", status);
-	}
-
-	stepper_motor -> spi_tx_count++;
-	stepper_motor -> spi_dma_busy = 0;
-
-	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
-
-}
 
 void l6470_get_status(MotorSetTypedef* stepper_motor, uint16_t* m1_status, uint16_t* m2_status)
 {
@@ -595,6 +601,195 @@ void l6470_get_status(MotorSetTypedef* stepper_motor, uint16_t* m1_status, uint1
     }
 
 }
+
+//////////////////////////
+
+void l6470_dump_params_chip1(MotorSetTypedef* stepper_motor)
+{
+    printf("\n=== Chip1 Registers ===\n\r");
+
+    printf("STEP_MODE\n\r");
+    l6470_get_param_chip_1(stepper_motor, STEP_MODE, L6470_LEN1);
+    printf("\n\r");
+
+    printf("ACC\n\r");
+    l6470_get_param_chip_1(stepper_motor, ACC, L6470_LEN2);
+    printf("\n\r");
+
+    printf("DEC\n\r");
+    l6470_get_param_chip_1(stepper_motor, DEC, L6470_LEN2);
+    printf("\n\r");
+
+    printf("MAX_SPEED\n\r");
+    l6470_get_param_chip_1(stepper_motor, MAX_SPEED, L6470_LEN2);
+    printf("\n\r");
+
+    printf("KVAL_HOLD\n\r");
+    l6470_get_param_chip_1(stepper_motor, KVAL_HOLD, L6470_LEN1);
+    printf("\n\r");
+
+    printf("KVAL_RUN\n\r");
+    l6470_get_param_chip_1(stepper_motor, KVAL_RUN, L6470_LEN1);
+    printf("\n\r");
+
+    printf("KVAL_ACC\n\r");
+    l6470_get_param_chip_1(stepper_motor, KVAL_ACC, L6470_LEN1);
+    printf("\n\r");
+
+    printf("KVAL_DEC\n\r");
+    l6470_get_param_chip_1(stepper_motor, KVAL_DEC, L6470_LEN1);
+    printf("\n\r");
+
+    printf("ST_SLP\n\r");
+    l6470_get_param_chip_1(stepper_motor, ST_SLP, L6470_LEN1);
+    printf("\n\r");
+
+    printf("FN_SLP_ACC\n\r");
+    l6470_get_param_chip_1(stepper_motor, FN_SLP_ACC, L6470_LEN1);
+    printf("\n\r");
+
+    printf("FN_SLP_DEC\n\r");
+    l6470_get_param_chip_1(stepper_motor, FN_SLP_DEC, L6470_LEN1);
+    printf("\n\r");
+
+    printf("OCD_TH\n\r");
+    l6470_get_param_chip_1(stepper_motor, OCD_TH, L6470_LEN1);
+    printf("\n\r");
+
+    printf("CONFIG\n\r");
+    l6470_get_param_chip_1(stepper_motor, CONFIG, L6470_LEN2);
+    printf("\n\r");
+
+    // From your init()
+    printf("INT_SPEED\n\r");
+    l6470_get_param_chip_1(stepper_motor, INT_SPEED, L6470_LEN2);
+    printf("\n\r");
+
+    printf("ABS_POS\n\r");
+    l6470_get_param_chip_1(stepper_motor, ABS_POS, L6470_LEN3);
+    printf("\n\r");
+
+    printf("EL_POS\n\r");
+    l6470_get_param_chip_1(stepper_motor, EL_POS, L6470_LEN2);
+    printf("\n\r");
+
+    // Added extras
+    printf("MIN_SPEED\n\r");
+    l6470_get_param_chip_1(stepper_motor, MIN_SPEED, L6470_LEN2);
+    printf("\n\r");
+
+    printf("ALARM_EN\n\r");
+    l6470_get_param_chip_1(stepper_motor, ALARM_EN, L6470_LEN1);
+    printf("\n\r");
+
+    printf("K_THERM\n\r");
+    l6470_get_param_chip_1(stepper_motor, K_THERM, L6470_LEN1);
+    printf("\n\r");
+
+    printf("STALL_TH\n\r");
+    l6470_get_param_chip_1(stepper_motor, STALL_TH, L6470_LEN1);
+    printf("\n\r");
+
+    printf("ADC_OUT\n\r");
+    l6470_get_param_chip_1(stepper_motor, ADC_OUT, L6470_LEN1);
+    printf("\n\r");
+}
+
+///////////
+
+void l6470_dump_params_chip2(MotorSetTypedef* stepper_motor)
+{
+    printf("\n=== Chip2 Registers ===\n\r");
+
+    printf("STEP_MODE\n\r");
+    l6470_get_param_chip_2(stepper_motor, STEP_MODE, L6470_LEN1);
+    printf("\n\r");
+
+    printf("ACC\n\r");
+    l6470_get_param_chip_2(stepper_motor, ACC, L6470_LEN2);
+    printf("\n\r");
+
+    printf("DEC\n\r");
+    l6470_get_param_chip_2(stepper_motor, DEC, L6470_LEN2);
+    printf("\n\r");
+
+    printf("MAX_SPEED\n\r");
+    l6470_get_param_chip_2(stepper_motor, MAX_SPEED, L6470_LEN2);
+    printf("\n\r");
+
+    printf("KVAL_HOLD\n\r");
+    l6470_get_param_chip_2(stepper_motor, KVAL_HOLD, L6470_LEN1);
+    printf("\n\r");
+
+    printf("KVAL_RUN\n\r");
+    l6470_get_param_chip_2(stepper_motor, KVAL_RUN, L6470_LEN1);
+    printf("\n\r");
+
+    printf("KVAL_ACC\n\r");
+    l6470_get_param_chip_2(stepper_motor, KVAL_ACC, L6470_LEN1);
+    printf("\n\r");
+
+    printf("KVAL_DEC\n\r");
+    l6470_get_param_chip_2(stepper_motor, KVAL_DEC, L6470_LEN1);
+    printf("\n\r");
+
+    printf("ST_SLP\n\r");
+    l6470_get_param_chip_2(stepper_motor, ST_SLP, L6470_LEN1);
+    printf("\n\r");
+
+    printf("FN_SLP_ACC\n\r");
+    l6470_get_param_chip_2(stepper_motor, FN_SLP_ACC, L6470_LEN1);
+    printf("\n\r");
+
+    printf("FN_SLP_DEC\n\r");
+    l6470_get_param_chip_2(stepper_motor, FN_SLP_DEC, L6470_LEN1);
+    printf("\n\r");
+
+    printf("OCD_TH\n\r");
+    l6470_get_param_chip_2(stepper_motor, OCD_TH, L6470_LEN1);
+    printf("\n\r");
+
+    printf("CONFIG\n\r");
+    l6470_get_param_chip_2(stepper_motor, CONFIG, L6470_LEN2);
+    printf("\n\r");
+
+    // From your init()
+    printf("INT_SPEED\n\r");
+    l6470_get_param_chip_2(stepper_motor, INT_SPEED, L6470_LEN2);
+    printf("\n\r");
+
+    printf("ABS_POS\n\r");
+    l6470_get_param_chip_2(stepper_motor, ABS_POS, L6470_LEN3);
+    printf("\n\r");
+
+    printf("EL_POS\n\r");
+    l6470_get_param_chip_2(stepper_motor, EL_POS, L6470_LEN2);
+    printf("\n\r");
+
+    // Added extras
+    printf("MIN_SPEED\n\r");
+    l6470_get_param_chip_2(stepper_motor, MIN_SPEED, L6470_LEN2);
+    printf("\n\r");
+
+    printf("ALARM_EN\n\r");
+    l6470_get_param_chip_2(stepper_motor, ALARM_EN, L6470_LEN1);
+    printf("\n\r");
+
+    printf("K_THERM\n\r");
+    l6470_get_param_chip_2(stepper_motor, K_THERM, L6470_LEN1);
+    printf("\n\r");
+
+    printf("STALL_TH\n\r");
+    l6470_get_param_chip_2(stepper_motor, STALL_TH, L6470_LEN1);
+    printf("\n\r");
+
+    printf("ADC_OUT\n\r");
+    l6470_get_param_chip_2(stepper_motor, ADC_OUT, L6470_LEN1);
+    printf("\n\r");
+}
+
+
+////////////////////////////////////////////
 
 
 
