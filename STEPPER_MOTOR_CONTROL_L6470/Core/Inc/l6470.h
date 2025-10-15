@@ -136,4 +136,7 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 
 void top_speed(MotorSetTypedef* stepper_motor);
 
+void l6470_dump_params_chip1(MotorSetTypedef* stepper_motor);
+void l6470_dump_params_chip2(MotorSetTypedef* stepper_motor);
+
 #endif /* INC_L6470_H_ */

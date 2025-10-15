@@ -44,10 +44,7 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
-// Optional: widths for readability
-#define L6470_LEN1 1
-#define L6470_LEN2 2
-#define L6470_LEN3 3
+
 
 /* USER CODE END PTD */
 
