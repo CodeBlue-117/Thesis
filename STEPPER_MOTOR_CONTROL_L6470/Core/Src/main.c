@@ -169,6 +169,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+// TODO: Do we use this?
 void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef * hspi)
 {
 	if(hspi == motor_set_1.hspi_l6470)
@@ -182,6 +183,7 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef * hspi)
 	}
 }
 
+// TODO: Verify these delays are required
 void omni_drive(float Vx, float Vy, float omega, float r)
 {
 
@@ -208,6 +210,7 @@ void omni_drive(float Vx, float Vy, float omega, float r)
 	l6470_set_vel(&motor_set_2, motor_set_2_speed);
 	HAL_Delay(1); // Was 10
 
+	// reset speeds to zero
 	motor_set_1_speed[0] = 0;
 	motor_set_1_speed[1] = 0;
 	motor_set_2_speed[0] = 0;
@@ -367,12 +370,12 @@ int main(void)
   {
 
 	  // HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // OFF (How to use the LED)
-	  // HAL_Delay(100); // was 100
+	  HAL_Delay(100); // was 100
 
-	   // float pot1_voltage = (3.3f * adc_buffer[0]) / 4095.0f;
-	   // float pot2_voltage = (3.3f * adc_buffer[1]) / 4095.0f;
-	   // printf("Z-X: %.2f V\n\r", pot1_voltage);
-	   // printf("Z-Y: %.2f V\n\r", pot2_voltage);
+	    float pot1_voltage = (3.3f * adc_buffer[0]) / 4095.0f; // X axis (forward/backward) angle
+	    float pot2_voltage = (3.3f * adc_buffer[1]) / 4095.0f; // Y-Axis (Left/Right) angle
+	    printf("Z-Y: %.2f V\n\r", pot1_voltage);
+	    printf("Z-X: %.2f V\n\r", pot2_voltage);
 
 	  if(buttonFlag == true)
 	  {
