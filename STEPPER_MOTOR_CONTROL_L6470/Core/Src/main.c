@@ -66,7 +66,7 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define DEBOUNCE_DELAY 50  // 50ms debounce time
+#define DEBOUNCE_DELAY 100  // 50ms debounce time
 
 /* USER CODE END PD */
 
@@ -93,6 +93,7 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
+static uint32_t currentTime;  // Get current system time
 
 float wheel_radius 		= 29.69; // each wheel has a radius of 44.25mm
 float omniBody_radius 	= 88.9; // The omni body has a radius of 88.1mm
@@ -153,7 +154,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
     if(GPIO_Pin == USER_BUTTON_Pin)
     {
-        uint32_t currentTime = HAL_GetTick();  // Get current system time
+        currentTime = HAL_GetTick();  // Get current system time
 
         // Check if the debounce period has passed
         if((currentTime - lastPressTime) >= DEBOUNCE_DELAY)
@@ -378,69 +379,39 @@ int main(void)
 
 		  	buttonFlag = false;
 
+  			l6470_enable(&motor_set_1);
+  			l6470_enable(&motor_set_2);
+
 		  	switch(pushButtonCallCount)
 			{
 		  		case 0:
 		  			pushButtonCallCount = 1;
-
-		  			l6470_enable(&motor_set_1);
-		  			l6470_enable(&motor_set_2);
-
 		  			forward_motion();
-		  			HAL_Delay(2000); // Duration of omni movement
-
-		  			l6470_soft_stop(&motor_set_1);
-		  			l6470_soft_stop(&motor_set_2);
-
-		  			l6470_disable(&motor_set_1);
-		  			l6470_disable(&motor_set_2);
 		  			break;
 
 		  		case 1:
 		  			pushButtonCallCount = 2;
-		  			l6470_enable(&motor_set_1);
-		  			l6470_enable(&motor_set_2);
-
 		  			backward_motion();
-		  			HAL_Delay(2000); // Duration of omni movement
-
-		  			l6470_soft_stop(&motor_set_1);
-		  			l6470_soft_stop(&motor_set_2);
-
-		  			l6470_disable(&motor_set_1);
-		  			l6470_disable(&motor_set_2);
 		  			break;
 
 		  		case 2:
 		  			pushButtonCallCount = 3;
-		  			l6470_enable(&motor_set_1);
-		  			l6470_enable(&motor_set_2);
-
 		  			left_motion();
-		  			HAL_Delay(2000); // Duration of omni movement
-
-		  			l6470_soft_stop(&motor_set_1);
-		  			l6470_soft_stop(&motor_set_2);
-
-		  			l6470_disable(&motor_set_1);
-		  			l6470_disable(&motor_set_2);
 		  			break;
 
 		  		case 3:
 		  			pushButtonCallCount = 0;
-		  			l6470_enable(&motor_set_1);
-		  			l6470_enable(&motor_set_2);
-
 		  			right_motion();
-		  			HAL_Delay(2000); // Duration of omni movement
-
-		  			l6470_soft_stop(&motor_set_1);
-		  			l6470_soft_stop(&motor_set_2);
-
-		  			l6470_disable(&motor_set_1);
-		  			l6470_disable(&motor_set_2);
 		  			break;
 			}
+
+  			HAL_Delay(2000); // Duration of omni movement
+
+  			l6470_soft_stop(&motor_set_1);
+  			l6470_soft_stop(&motor_set_2);
+
+  			l6470_disable(&motor_set_1);
+  			l6470_disable(&motor_set_2);
 	  }
 
     /* USER CODE END WHILE */
