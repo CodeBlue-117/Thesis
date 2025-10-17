@@ -50,7 +50,7 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

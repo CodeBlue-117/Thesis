@@ -89,7 +89,7 @@ void l6470_soft_stop(MotorSetTypedef* stepper_motor)
     HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, 1000);
     HAL_Delay(1);
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
-    HAL_Delay(2);
+    HAL_Delay(1);
 
 }
 
@@ -286,7 +286,6 @@ void l6470_transmit_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t d
 {
 
 	// TODO: Find the minimum delay necessary for this function to work
-
 	uint8_t receive_data[data_length]; // NOT USED
 
 	for (int i = 0; i < 4 * stepper_motor->num_motors; i+=2)
@@ -388,22 +387,13 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
         // Convert velocity to stepper motor speed format
         speed = (uint32_t)(vel[i] * STEPS_PER_REVOLUTION * 67.108864f / TWOPI);
 
-        // printf("SPEED: %lu\n\r", speed);
-
         // Store speed data in the transmission buffer
         stepper_motor->spd_tx_buffer[stepper_motor->num_motors + i]     = (uint8_t)(speed >> 16);
         stepper_motor->spd_tx_buffer[stepper_motor->num_motors * 2 + i] = (uint8_t)(speed >> 8);
         stepper_motor->spd_tx_buffer[stepper_motor->num_motors * 3 + i] = (uint8_t)(speed);
     }
 
-//    for (int i = 0; i < 4 * stepper_motor->num_motors; i++)
-//    {
-//        printf("TX[%d] = 0x%02X\n\r", i, stepper_motor->spd_tx_buffer[i]);
-//    }
-
     l6470_transmit_spi(stepper_motor, stepper_motor->spd_tx_buffer, sizeof(stepper_motor->spd_tx_buffer));
-    // HAL_Delay(5);
-    // l6470_transmit_spi_dma(stepper_motor);
 }
 
 // Configure both motors on chip 1

@@ -17,14 +17,12 @@
 
 // MASTER TODO:
 
+// TODO: Begin developing control system
 // TODO: Configure software to read IMU data
-// TODO: Configure LED to turn on and off upon button press
 // TODO: Reduce delay to minimum in l6470_transmit_spi
-// TODO: Test F/B/L/R with different speeds
 // TODO: Test F/B/L/R with different accelerations
 // TODO: Combine Acceleration and omni direction functions
 // TODO: Implement DMA
-// TODO: Begin developing control system
 
 
 /* USER CODE END Header */
@@ -44,13 +42,32 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
+static void MX_SPI1_Init(void);
+static void MX_SPI2_Init(void);
+static void MX_USART2_UART_Init(void);
+static void MX_ADC1_Init(void);
+static void MX_USART1_UART_Init(void);
+static void MX_I2C1_Init(void);
+/* USER CODE BEGIN PFP */
+void forward_motion(void);
+void backward_motion(void);
+void left_motion(void);
+void right_motion(void);
+void l6470_get_param_chip_1(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t length);
+void l6470_get_param_chip_2(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t length);
+void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 
 
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-uint16_t status_step;
+
+#define DEBOUNCE_DELAY 50  // 50ms debounce time
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -76,11 +93,13 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
-bool buttonFlag = false;
-uint8_t pushButtonCallCount = 0;
 
 float wheel_radius 		= 29.69; // each wheel has a radius of 44.25mm
 float omniBody_radius 	= 88.9; // The omni body has a radius of 88.1mm
+
+static uint32_t lastPressTime = 0; // Debounce for GPIO pushbutton
+static uint8_t pushButtonCallCount = 0;
+static bool buttonFlag = false;
 
 float vel_temp_1[2];		// motor 2, 3
 float vel_temp_2[2];			// motor 1 (second element, had to troubleshoot)
@@ -120,23 +139,6 @@ MotorSetTypedef motor_set_2 = {
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
-void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
-static void MX_DMA_Init(void);
-static void MX_SPI1_Init(void);
-static void MX_SPI2_Init(void);
-static void MX_USART2_UART_Init(void);
-static void MX_ADC1_Init(void);
-static void MX_USART1_UART_Init(void);
-static void MX_I2C1_Init(void);
-/* USER CODE BEGIN PFP */
-void forward_motion(void);
-void backward_motion(void);
-void left_motion(void);
-void right_motion(void);
-void l6470_get_param_chip_1(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t length);
-void l6470_get_param_chip_2(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t length);
-void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 
 
 // Redirect printf() to USART1
@@ -146,9 +148,6 @@ int __io_putchar(int ch) // Use UART 1 for FTDI cable
     return ch;
 }
 
-#define DEBOUNCE_DELAY 50  // 50ms debounce time
-
-uint32_t lastPressTime = 0;
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
@@ -160,14 +159,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
         if((currentTime - lastPressTime) >= DEBOUNCE_DELAY)
         {
             lastPressTime = currentTime; // Update last press time
-            printf("USER PUSH BUTTON SELECTED!!!\n\r");
-
-            buttonFlag = true; // TODO: Uncomment this
-
-			HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET); // ON ////////////////// WORKS!!!!!!
-
-		    HAL_Delay(100);
-
+            buttonFlag = true;
         }
     }
 }
@@ -208,19 +200,12 @@ void omni_drive(float Vx, float Vy, float omega, float r)
 	float motor_set_1_speed[2] = {w[1], w[2]}; // Motor 3 and motor 1 on motor_set_1
 	float motor_set_2_speed[2] = {0, w[0]};    // motor 2 on motor_set_2
 
-//	printf("\n\rmotor_set_1_speed[0]: %f\n\r", motor_set_1_speed[0]);
-//	printf("motor_set_1_speed[1]: %f\n\r", motor_set_1_speed[1]);
-//	printf("motor_set_2_speed[1]: %f\n\r", motor_set_2_speed[1]);
-//
-//	printf("w[0]=%.2f, w[1]=%.2f, w[2]=%.2f\n\r", w[0], w[1], w[2]);
-//	printf("wheel_set_1: %.2f %.2f | wheel_set_2: %.2f\n\r", motor_set_1_speed[0], motor_set_1_speed[1], motor_set_2_speed[1]);
-
 	// Transmit velocities to motor driver
-	HAL_Delay(10);
+	HAL_Delay(1); // Was 10
 	l6470_set_vel(&motor_set_1, motor_set_1_speed);
-	HAL_Delay(10);
+	HAL_Delay(1); // Was 10
 	l6470_set_vel(&motor_set_2, motor_set_2_speed);
-	HAL_Delay(10);
+	HAL_Delay(1); // Was 10
 
 	motor_set_1_speed[0] = 0;
 	motor_set_1_speed[1] = 0;
@@ -231,32 +216,26 @@ void omni_drive(float Vx, float Vy, float omega, float r)
 
 void forward_motion(void)
 {
-	// printf("Forward\n\r");
-	// HAL_Delay(1);
 	omni_drive(0.0f, 6.0f, 0.0f, wheel_radius); //12.0f is 2 rps // 24.0 works!!!!
 }
 
 void backward_motion(void)
 {
-	// printf("Backward\n\r");
-	// HAL_Delay(1);
 	omni_drive(0.0f, -6.0f, 0.0f, wheel_radius);
 }
 
 void left_motion(void)
 {
-	// printf("Left\n\r");
-	// HAL_Delay(1);
 	omni_drive(-6.0f, 0.0f, 0.0f, wheel_radius);
 }
 
 void right_motion(void)
 {
-	// printf("Right\n\r");
-	// HAL_Delay(1);
 	omni_drive(6.0f, 0.0f, 0.0f, wheel_radius);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TODO: Review, test and fix this
 void accel(uint8_t start_time, uint8_t end_time, uint8_t start_vel, uint8_t end_vel) // time is in milliseconds, vel is in rad/s
 {
 	uint8_t delta_t = end_time - start_time;
@@ -281,6 +260,8 @@ void accel(uint8_t start_time, uint8_t end_time, uint8_t start_vel, uint8_t end_
 
 }
 
+///////////////////////////////////////////////////////////////////
+// TODO: Review, test and fix this
 void accel_from_a(float acceleration_rad_s2, float initial_vel_rad_s, uint16_t duration_ms)
 {
     const float steps_per_rad = 200.0f / (2.0f * M_PI);
@@ -300,6 +281,8 @@ void accel_from_a(float acceleration_rad_s2, float initial_vel_rad_s, uint16_t d
         HAL_Delay(step_interval_ms);
     }
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 /* USER CODE END 0 */
@@ -342,13 +325,9 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
-  /////////////////////////////////////////////////////////////////////////////////////////////////
+  	 HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buffer, 2);
 
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buffer, 2);
-
-  /////////////////////////////////////////////////////////////////////////////////////////////////
-
-	 uint16_t m1_stat, m2_stat;
+  	 // uint16_t m1_stat, m2_stat;
 
 	 // Reset L6470s (shared line)
 	 HAL_GPIO_WritePin(STEPPER_RST_GPIO_Port, STEPPER_RST_Pin, GPIO_PIN_RESET);
@@ -366,20 +345,18 @@ int main(void)
   	 l6470_init_chip_1(&motor_set_1);
   	 l6470_init_chip_2(&motor_set_2);
 
-  	 // --- Enable motors in safe state (e.g. holding position, no motion) ---
-  	 l6470_enable(&motor_set_1);
-  	 l6470_enable(&motor_set_2);
+ 	 // --- Enable motors in safe state (e.g. holding position, no motion) ---
+ 	 // l6470_enable(&motor_set_1);
+ 	 // l6470_enable(&motor_set_2);
 
-	 l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
-	 l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
+  	 // l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
+  	 // l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
 
-	 l6470_dump_params_chip1(&motor_set_1);
-	 l6470_dump_params_chip2(&motor_set_2);
+  	 //	l6470_dump_params_chip1(&motor_set_1);
+  	 //	l6470_dump_params_chip2(&motor_set_2);
 
   	 l6470_disable(&motor_set_1); // TODO: Always disable motors
   	 l6470_disable(&motor_set_2); // TODO: Always disable motors
-
-	 printf("Hello World\n\r");
 
   /* USER CODE END 2 */
 
@@ -388,120 +365,83 @@ int main(void)
   while (1)
   {
 
-//	  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // OFF
-//
-	  HAL_Delay(100);
+	  // HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // OFF (How to use the LED)
+	  // HAL_Delay(100); // was 100
 
-//	  float pot1_voltage = (3.3f * adc_buffer[0]) / 4095.0f;
-//	  float pot2_voltage = (3.3f * adc_buffer[1]) / 4095.0f;
-//
-//	   printf("Z-X: %.2f V\n\r", pot1_voltage);
-//	   printf("Z-Y: %.2f V\n\r", pot2_voltage);
+	   // float pot1_voltage = (3.3f * adc_buffer[0]) / 4095.0f;
+	   // float pot2_voltage = (3.3f * adc_buffer[1]) / 4095.0f;
+	   // printf("Z-X: %.2f V\n\r", pot1_voltage);
+	   // printf("Z-Y: %.2f V\n\r", pot2_voltage);
 
+	  if(buttonFlag == true)
+	  {
 
-	  // HAL_Delay(200);  // Slow down to readable rate
+		  	buttonFlag = false;
 
-//	  if(buttonFlag == true)
-//	  {
-//
-//		  	 l6470_disable(&motor_set_1);
-//		  	 l6470_disable(&motor_set_2);
-//
-//		  	buttonFlag = false;
-//
-//
-//			vel_temp_1[0] = M_PI;
-//			vel_temp_1[1] = M_PI;
-//
-//			vel_temp_2[0] = M_PI;
-//			vel_temp_2[1] = M_PI;
-//
-//			l6470_set_vel(&motor_set_1, vel_temp_1);
-//			HAL_Delay(10);
-//			l6470_set_vel(&motor_set_2, vel_temp_2);
-//			HAL_Delay(1000);
-//
-//			l6470_soft_stop(&motor_set_1);
-//			l6470_soft_stop(&motor_set_2);
-//
-//			l6470_disable(&motor_set_1);
-//			l6470_disable(&motor_set_2);
-//
-////		  	if(pushButtonCallCount == 0)
-////			{
-//////		  		  l6470_enable(&motor_set_1);
-//////		  		  l6470_enable(&motor_set_2);
-////
-////		  		  // HAL_Delay(5);
-////		  		  pushButtonCallCount++;
-////		  		  forward_motion();
-////
-////		  		  HAL_Delay(3000);
-////
-////				  l6470_soft_stop(&motor_set_1);
-////				  l6470_soft_stop(&motor_set_2);
-////			}
-////			else if(pushButtonCallCount == 1)
-////			{
-//////				  l6470_enable(&motor_set_1);
-//////				  l6470_enable(&motor_set_2);
-////
-////				  // HAL_Delay(5);
-////				  pushButtonCallCount++;
-////				  backward_motion();
-////
-////				  HAL_Delay(3000);
-////
-////				  l6470_soft_stop(&motor_set_1);
-////				  l6470_soft_stop(&motor_set_2);
-////
-////			}
-////			else if(pushButtonCallCount == 2)
-////			{
-//////				  l6470_enable(&motor_set_1);
-//////				  l6470_enable(&motor_set_2);
-////
-////				  // HAL_Delay(5);
-////				  pushButtonCallCount++;
-////				  left_motion();
-////
-////				  HAL_Delay(3000);
-////
-////				  l6470_soft_stop(&motor_set_1);
-////				  l6470_soft_stop(&motor_set_2);
-////
-////			}
-////			else if(pushButtonCallCount == 3)
-////			{
-//////				  l6470_enable(&motor_set_1);
-//////				  l6470_enable(&motor_set_2);
-////
-////				  // HAL_Delay(5);
-////				  pushButtonCallCount++;
-////				  right_motion();
-////
-////				  HAL_Delay(3000);
-////
-////				  l6470_soft_stop(&motor_set_1);
-////				  l6470_soft_stop(&motor_set_2);
-////
-////				  pushButtonCallCount = 0;
-////
-////			}
-////
-////			else
-////			{
-////				  pushButtonCallCount = 0;
-////			}
-//
-//
-//	  }
+		  	switch(pushButtonCallCount)
+			{
+		  		case 0:
+		  			pushButtonCallCount = 1;
 
-	////////////////////////////////////////////////////////////////////////////////// OLD CODE FOR POSITION
-	//	  l6470_get_speed_pos(&motor_set_1);
-	//	  angular_position1 = motor_set_1.motors[0].speed_pos.rad_pos;
-	//	  angular_position2 = motor_set_1.motors[1].speed_pos.rad_pos - motor_set_1.motors[0].speed_pos.rad_pos;
-	//////////////////////////////////////////////////////////////////////////////////
+		  			l6470_enable(&motor_set_1);
+		  			l6470_enable(&motor_set_2);
+
+		  			forward_motion();
+		  			HAL_Delay(2000); // Duration of omni movement
+
+		  			l6470_soft_stop(&motor_set_1);
+		  			l6470_soft_stop(&motor_set_2);
+
+		  			l6470_disable(&motor_set_1);
+		  			l6470_disable(&motor_set_2);
+		  			break;
+
+		  		case 1:
+		  			pushButtonCallCount = 2;
+		  			l6470_enable(&motor_set_1);
+		  			l6470_enable(&motor_set_2);
+
+		  			backward_motion();
+		  			HAL_Delay(2000); // Duration of omni movement
+
+		  			l6470_soft_stop(&motor_set_1);
+		  			l6470_soft_stop(&motor_set_2);
+
+		  			l6470_disable(&motor_set_1);
+		  			l6470_disable(&motor_set_2);
+		  			break;
+
+		  		case 2:
+		  			pushButtonCallCount = 3;
+		  			l6470_enable(&motor_set_1);
+		  			l6470_enable(&motor_set_2);
+
+		  			left_motion();
+		  			HAL_Delay(2000); // Duration of omni movement
+
+		  			l6470_soft_stop(&motor_set_1);
+		  			l6470_soft_stop(&motor_set_2);
+
+		  			l6470_disable(&motor_set_1);
+		  			l6470_disable(&motor_set_2);
+		  			break;
+
+		  		case 3:
+		  			pushButtonCallCount = 0;
+		  			l6470_enable(&motor_set_1);
+		  			l6470_enable(&motor_set_2);
+
+		  			right_motion();
+		  			HAL_Delay(2000); // Duration of omni movement
+
+		  			l6470_soft_stop(&motor_set_1);
+		  			l6470_soft_stop(&motor_set_2);
+
+		  			l6470_disable(&motor_set_1);
+		  			l6470_disable(&motor_set_2);
+		  			break;
+			}
+	  }
 
     /* USER CODE END WHILE */
 
