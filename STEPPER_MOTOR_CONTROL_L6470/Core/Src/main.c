@@ -224,6 +224,8 @@ void omni_drive(float Vx, float Vy, float omega, float r)
 	float motor_set_1_speed[2] = {w[1], w[2]}; // Motor 3 and motor 1 on motor_set_1
 	float motor_set_2_speed[2] = {0, w[0]};    // motor 2 on motor_set_2
 
+	// TODO: Print motor_set_1_speed and motor_set_2_speed to figure out what the min and max values are. Optimize torque in config again
+
 	// Transmit velocities to motor driver
 	HAL_Delay(1); // Was 10
 	l6470_set_vel(&motor_set_1, motor_set_1_speed);
@@ -435,6 +437,10 @@ int main(void)
 
 		    pot_Y_voltage = (3.3f * adc_buffer[0]) / 4095.0f; // Y - axis (forward/backward) angle  //TODO: These need to be normalized with the Min and MAX speed input values for set_vel()
 		    pot_X_voltage = (3.3f * adc_buffer[1]) / 4095.0f; // X -Axis (Left/Right) angle
+
+//		    pot_Y_voltage = -pot_Y_voltage;
+//		    pot_X_voltage = -pot_X_voltage;
+
 		    //	    printf("Z-Y: %.2f V\n\r", pot1_voltage);
 		    //	    printf("Z-X: %.2f V\n\r", pot2_voltage);
 
@@ -444,7 +450,7 @@ int main(void)
 		    angleY = mapVoltageToAngle(pot_Y_voltage, Y_MIN_V, Y_MAX_V);
 		    angleX = mapVoltageToAngle(pot_X_voltage, X_MIN_V, X_MAX_V);
 
-		    omni_drive(angleX, angleY, 0.0f, 0.0f);
+		    omni_drive(-angleX, -angleY, 0.0f, 0.0f);
 		    HAL_Delay(50);
 
 
