@@ -66,12 +66,17 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define DEBOUNCE_DELAY 100  // 50ms debounce time
+#define DEBOUNCE_DELAY 200  // 50ms debounce time
 
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
+
+#define X_MIN_V	1.36
+#define X_MAX_V 1.83
+#define Y_MIN_V 1.39
+#define Y_MAX_V 1.87
 
 /* USER CODE END PM */
 
@@ -99,7 +104,7 @@ float wheel_radius 		= 29.69; // each wheel has a radius of 44.25mm
 float omniBody_radius 	= 88.9; // The omni body has a radius of 88.1mm
 
 static uint32_t lastPressTime = 0; // Debounce for GPIO pushbutton
-static uint8_t pushButtonCallCount = 0;
+//static uint8_t pushButtonCallCount = 0;
 static bool buttonFlag = false;
 
 float vel_temp_1[2];		// motor 2, 3
@@ -107,6 +112,15 @@ float vel_temp_2[2];			// motor 1 (second element, had to troubleshoot)
 
 const float J[3][3] = {{-1, 0.5, 0.5}, {0, 0.866, -0.866}, {-0.333, -0.333, -0.333}};
 const float J_Inv[3][3] = {{-0.667, 0, -1}, {0.333, 0.577, -1}, {0.333, -0.577, -1}};
+
+float pot_Y_voltage = 0.0f;
+float pot_X_voltage = 0.0f;
+
+static bool stopNow = false;
+static bool prepareStop = false;
+
+int8_t angleY = 0;
+int8_t angleX = 0;
 
 uint16_t adc_buffer[2];  // adc_buffer[0] = Z-X pot, adc_buffer[1] = Z-Y pot
 
@@ -160,7 +174,14 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
         if((currentTime - lastPressTime) >= DEBOUNCE_DELAY)
         {
             lastPressTime = currentTime; // Update last press time
-            buttonFlag = true;
+
+            if(prepareStop)
+            {
+            	stopNow = true;
+            }
+
+            prepareStop = true;
+            buttonFlag = buttonFlag ^ 1;
         }
     }
 }
@@ -245,8 +266,8 @@ void accel(uint8_t start_time, uint8_t end_time, uint8_t start_vel, uint8_t end_
 	uint8_t delta_t = end_time - start_time;
 	uint8_t delta_v = end_vel - start_vel;
 
- 	 vel_temp_1[0] = start_vel;
- 	 vel_temp_1[1] = 0;
+ 	vel_temp_1[0] = start_vel;
+ 	vel_temp_1[1] = 0;
 
 	for(uint8_t i = start_time; i < end_time; i += delta_t)
 	{
@@ -287,6 +308,23 @@ void accel_from_a(float acceleration_rad_s2, float initial_vel_rad_s, uint16_t d
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Map voltages to degrees using linearization
+static inline int8_t mapVoltageToAngle(float v, float vMin, float vMax)
+{
+	if(v < vMin)
+	{
+		v = vMin;
+	}
+	if(v > vMax)
+	{
+		v = vMax;
+	}
+
+	float scale = (v - vMin) / (vMax - vMin); // Normalized
+	scale = (int8_t)((scale * 42.0f) - 21.0f); // [0,1] * 42 = [0, 42] - 21 = [-21,21] --> [-21 ... +21]
+	return scale;
+
+}
 
 
 /* USER CODE END 0 */
@@ -369,52 +407,85 @@ int main(void)
   while (1)
   {
 
-	  // HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // OFF (How to use the LED)
-	  HAL_Delay(100); // was 100
+	  if(stopNow)
+	  {
 
-	    float pot1_voltage = (3.3f * adc_buffer[0]) / 4095.0f; // X axis (forward/backward) angle
-	    float pot2_voltage = (3.3f * adc_buffer[1]) / 4095.0f; // Y-Axis (Left/Right) angle
-	    printf("Z-Y: %.2f V\n\r", pot1_voltage);
-	    printf("Z-X: %.2f V\n\r", pot2_voltage);
+		  stopNow = false;
+
+			l6470_soft_stop(&motor_set_1);
+			l6470_soft_stop(&motor_set_2);
+
+			l6470_disable(&motor_set_1);
+			l6470_disable(&motor_set_2);
+
+	  }
+
+	    ///////////////
 
 	  if(buttonFlag == true)
 	  {
 
-		  	buttonFlag = false;
 
-  			l6470_enable(&motor_set_1);
-  			l6470_enable(&motor_set_2);
+		  // TODO: THE ORIENTATION IS SCREWED UP! IT RUNS AWAY FROM THE PENDULUM INSTEAD OF TRYING TO CATCH IT!!!!!
 
-		  	switch(pushButtonCallCount)
-			{
-		  		case 0:
-		  			pushButtonCallCount = 1;
-		  			forward_motion();
-		  			break;
+		  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		  		case 1:
-		  			pushButtonCallCount = 2;
-		  			backward_motion();
-		  			break;
+		  	// HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // OFF (How to use the LED)
+		  	//	  HAL_Delay(100); // was 100
 
-		  		case 2:
-		  			pushButtonCallCount = 3;
-		  			left_motion();
-		  			break;
+		    pot_Y_voltage = (3.3f * adc_buffer[0]) / 4095.0f; // Y - axis (forward/backward) angle  //TODO: These need to be normalized with the Min and MAX speed input values for set_vel()
+		    pot_X_voltage = (3.3f * adc_buffer[1]) / 4095.0f; // X -Axis (Left/Right) angle
+		    //	    printf("Z-Y: %.2f V\n\r", pot1_voltage);
+		    //	    printf("Z-X: %.2f V\n\r", pot2_voltage);
 
-		  		case 3:
-		  			pushButtonCallCount = 0;
-		  			right_motion();
-		  			break;
-			}
+		    ///////////////
+		    // Parse X and Y voltages and convert them to angles asymmetrically, then to x,y values, then to Vx, Vy valuse
 
-  			HAL_Delay(2000); // Duration of omni movement
+		    angleY = mapVoltageToAngle(pot_Y_voltage, Y_MIN_V, Y_MAX_V);
+		    angleX = mapVoltageToAngle(pot_X_voltage, X_MIN_V, X_MAX_V);
 
-  			l6470_soft_stop(&motor_set_1);
-  			l6470_soft_stop(&motor_set_2);
+		    omni_drive(angleX, angleY, 0.0f, 0.0f);
+		    HAL_Delay(50);
 
-  			l6470_disable(&motor_set_1);
-  			l6470_disable(&motor_set_2);
+
+		  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+//		  	buttonFlag = false;
+//
+//  			l6470_enable(&motor_set_1);
+//  			l6470_enable(&motor_set_2);
+//
+//		  	switch(pushButtonCallCount)
+//			{
+//		  		case 0:
+//		  			pushButtonCallCount = 1;
+//		  			forward_motion();
+//		  			break;
+//
+//		  		case 1:
+//		  			pushButtonCallCount = 2;
+//		  			backward_motion();
+//		  			break;
+//
+//		  		case 2:
+//		  			pushButtonCallCount = 3;
+//		  			left_motion();
+//		  			break;
+//
+//		  		case 3:
+//		  			pushButtonCallCount = 0;
+//		  			right_motion();
+//		  			break;
+//			}
+//
+//  			HAL_Delay(2000); // Duration of omni movement
+//
+//  			l6470_soft_stop(&motor_set_1);
+//  			l6470_soft_stop(&motor_set_2);
+//
+//  			l6470_disable(&motor_set_1);
+//  			l6470_disable(&motor_set_2);
 	  }
 
     /* USER CODE END WHILE */
