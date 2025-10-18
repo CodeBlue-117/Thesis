@@ -356,6 +356,34 @@ void l6470_transmit_spi_dma(MotorSetTypedef* stepper_motor)
  * @param vel Velocity at radians per sec 62.8 - 2pi
  * @retval None
  */
+
+// Convert angular velocity (rad/s) to L6470 SPEED register units
+//
+// vel[i] ............ Motor angular velocity in radians per second (rad/s).
+// STEPS_PER_REVOLUTION = 200 for a standard 1.8° stepper.
+//
+// The L6470 SPEED register stores motor speed in units of steps/tick,
+// where 1 tick = 250 ns and the value is represented as an unsigned 0.28 fixed-point number.
+//
+// Therefore:
+//    steps_per_second = vel[i] * (STEPS_PER_REVOLUTION / (2π))
+//
+// To convert from steps/s → SPEED register value (steps/tick × 2^28):
+//    SPEED = steps_per_second × tick × 2^28
+//           = steps_per_second × (250e-9 s) × 2^28
+//           = steps_per_second × 67.108864
+//
+// Combining everything yields:
+//    SPEED = vel[i] * STEPS_PER_REVOLUTION * 67.108864 / (2π)
+//
+// The result must be an unsigned 20-bit integer (0–1,048,575).
+// Any higher value is clipped internally by MAX_SPEED.
+//
+// Example:
+//    vel = 31.4159 rad/s (≈ 5 rev/s)
+//    SPEED = 31.4159 × 200 × 67.108864 / (2π) ≈ 67,000
+//    -> roughly 5 revolutions per second.
+
 // Cleaner Code
 void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
 {

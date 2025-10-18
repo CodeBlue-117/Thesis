@@ -13,6 +13,7 @@
   ******************************************************************************
   */
 
+// Use speeds 0 - 10PI
 // NOTE: 10 PI is the highest achievable speed with one motor (5rps)
 
 // MASTER TODO:
@@ -111,7 +112,7 @@ float vel_temp_1[2];		// motor 2, 3
 float vel_temp_2[2];			// motor 1 (second element, had to troubleshoot)
 
 const float J[3][3] = {{-1, 0.5, 0.5}, {0, 0.866, -0.866}, {-0.333, -0.333, -0.333}};
-const float J_Inv[3][3] = {{-0.667, 0, -1}, {0.333, 0.577, -1}, {0.333, -0.577, -1}};
+const float J_Inv[3][3] = {{0.667, 0, 1}, {-0.333, 0.577, 1}, {-0.333, -0.577, 1}};
 
 float pot_Y_voltage = 0.0f;
 float pot_X_voltage = 0.0f;
@@ -154,6 +155,8 @@ MotorSetTypedef motor_set_2 = {
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
+
+
 
 
 // Redirect printf() to USART1
@@ -225,6 +228,7 @@ void omni_drive(float Vx, float Vy, float omega, float r)
 	float motor_set_2_speed[2] = {0, w[0]};    // motor 2 on motor_set_2
 
 	// TODO: Print motor_set_1_speed and motor_set_2_speed to figure out what the min and max values are. Optimize torque in config again
+	//	printf("motor1 speed: %0.2f, motor2 speed %0.2f, motor3 speed: %0.2f\n\r", w[2], w[0], w[1]);
 
 	// Transmit velocities to motor driver
 	HAL_Delay(1); // Was 10
@@ -432,26 +436,29 @@ int main(void)
 
 		  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		  	// HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // OFF (How to use the LED)
-		  	//	  HAL_Delay(100); // was 100
+	//  	 HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // OFF (How to use the LED)
+	//  	 HAL_Delay(100); // was 100
 
 		    pot_Y_voltage = (3.3f * adc_buffer[0]) / 4095.0f; // Y - axis (forward/backward) angle  //TODO: These need to be normalized with the Min and MAX speed input values for set_vel()
 		    pot_X_voltage = (3.3f * adc_buffer[1]) / 4095.0f; // X -Axis (Left/Right) angle
 
-//		    pot_Y_voltage = -pot_Y_voltage;
-//		    pot_X_voltage = -pot_X_voltage;
+//	//    	    printf("Z-Y: %.2f V\n\r", pot1_voltage);
+//	//	    	    printf("Z-X: %.2f V\n\r", pot2_voltage);
 
-		    //	    printf("Z-Y: %.2f V\n\r", pot1_voltage);
-		    //	    printf("Z-X: %.2f V\n\r", pot2_voltage);
-
-		    ///////////////
-		    // Parse X and Y voltages and convert them to angles asymmetrically, then to x,y values, then to Vx, Vy valuse
+		    /////////////
+// //		     Parse X and Y voltages and convert them to angles asymmetrically, then to x,y values, then to Vx, Vy valuse
 
 		    angleY = mapVoltageToAngle(pot_Y_voltage, Y_MIN_V, Y_MAX_V);
 		    angleX = mapVoltageToAngle(pot_X_voltage, X_MIN_V, X_MAX_V);
 
-		    omni_drive(-angleX, -angleY, 0.0f, 0.0f);
+		    omni_drive(angleX, angleY, 0.0f, 0.0f);
 		    HAL_Delay(50);
+
+		  // Motor Speed test
+		  // omni_drive(-angleX, -angleY, 0.0f, 0.0f);
+//		  float speed = 10*M_PI;
+//		  l6470_set_vel(&motor_set_1, &speed);
+
 
 
 		  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
