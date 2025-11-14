@@ -328,6 +328,7 @@ static inline int8_t mapVoltageToAngle(float v, float vMin, float vMax)
 
 	float scale = (v - vMin) / (vMax - vMin); // Normalized
 	scale = (int8_t)((scale * 42.0f) - 21.0f); // [0,1] * 42 = [0, 42] - 21 = [-21,21] --> [-21 ... +21]
+	scale *= M_PI / 180;
 	return scale;
 
 }
@@ -446,20 +447,18 @@ int main(void)
 //	//	    	    printf("Z-X: %.2f V\n\r", pot2_voltage);
 
 		    /////////////
-// //		     Parse X and Y voltages and convert them to angles asymmetrically, then to x,y values, then to Vx, Vy valuse
+// Parse X and Y voltages and convert them to angles asymmetrically, then to x,y values, then to Vx, Vy valuse
 
 		    angleY = mapVoltageToAngle(pot_Y_voltage, Y_MIN_V, Y_MAX_V);
 		    angleX = mapVoltageToAngle(pot_X_voltage, X_MIN_V, X_MAX_V);
 
 		    omni_drive(angleX, angleY, 0.0f, 0.0f);
-		    HAL_Delay(50);
+		  // HAL_Delay(50);
 
 		  // Motor Speed test
 		  // omni_drive(-angleX, -angleY, 0.0f, 0.0f);
-//		  float speed = 10*M_PI;
-//		  l6470_set_vel(&motor_set_1, &speed);
-
-
+		  // float speed = 10*M_PI;
+		  // l6470_set_vel(&motor_set_1, &speed);
 
 		  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
