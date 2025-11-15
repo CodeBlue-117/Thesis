@@ -511,6 +511,20 @@ int main(void)
   while (1)
   {
 
+	  // Figure out the time it takes for this control loop to make 1 iteration
+	  static uint32_t newControlLoopTick	= 0;
+	  static uint32_t oldControlLoopTick 	= 0;
+	  static uint32_t tickDiff				= 0;
+
+	  newControlLoopTick = HAL_GetTick();
+
+	  tickDiff = newControlLoopTick - oldControlLoopTick;
+
+	  printf("Control Loop Period in ticks: %d\n\r", tickDiff);
+
+	  oldControlLoopTick = newControlLoopTick;
+
+
 	  if(stopNow)
 	  {
 		  stopNow = false;
