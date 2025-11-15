@@ -152,9 +152,6 @@ MotorSetTypedef motor_set_2 = {
 
 /* Private function prototypes -----------------------------------------------*/
 
-
-
-
 // Redirect printf() to USART1
 int __io_putchar(int ch) // Use UART 1 for FTDI cable
 {
@@ -205,6 +202,13 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef * hspi)
 	return;
 }
 
+void syncDaisyChain(void)
+{
+	 l6470_sync_daisy_chain(&motor_set_1);
+	 l6470_sync_daisy_chain(&motor_set_2);
+	 return;
+}
+
 void enableMotors(void)
 {
 	  l6470_enable(&motor_set_1);
@@ -219,6 +223,13 @@ void disableMotors(void)
 	return;
 }
 
+void softStop(void)
+{
+	 l6470_soft_stop(&motor_set_1);
+	 l6470_soft_stop(&motor_set_2);
+	 return;
+}
+
 void getStatus(void)
 {
  	  uint16_t m1_stat, m2_stat;
@@ -228,6 +239,15 @@ void getStatus(void)
  	  return;
 }
 
+void resetChips(void)
+{
+	// Reset L6470s (shared line)
+	 HAL_GPIO_WritePin(STEPPER_RST_GPIO_Port, STEPPER_RST_Pin, GPIO_PIN_RESET);
+	 HAL_Delay(100);
+	 HAL_GPIO_WritePin(STEPPER_RST_GPIO_Port, STEPPER_RST_Pin, GPIO_PIN_SET);
+	 HAL_Delay(100);
+}
+
 void setChipParams(void)
 {
  	 l6470_init_chip_1(&motor_set_1);
@@ -235,6 +255,7 @@ void setChipParams(void)
  	 return;
 }
 
+// Reads the l6470 chip register contents for current configuration
 void getChipParams(void)
 {
 	l6470_dump_params_chip1(&motor_set_1);
@@ -242,29 +263,18 @@ void getChipParams(void)
 	return;
 }
 
-
-void forward_motion(void)
+void activateLED(void)
 {
-	omni_drive(0.0f, 6.0f, 0.0f, WHEEL_RADIUS); //12.0f is 2 rps // 24.0 works!!!!
-	return;
+	 HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET); // ON (How to use the LED)
+  	 HAL_Delay(100); // was 100
+  	 return;
 }
 
-void backward_motion(void)
+void deactivateLED(void)
 {
-	omni_drive(0.0f, -6.0f, 0.0f, WHEEL_RADIUS);
-	return;
-}
-
-void left_motion(void)
-{
-	omni_drive(-6.0f, 0.0f, 0.0f, WHEEL_RADIUS);
-	return;
-}
-
-void right_motion(void)
-{
-	omni_drive(6.0f, 0.0f, 0.0f, WHEEL_RADIUS);
-	return;
+	 HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // ON (How to use the LED)
+  	 HAL_Delay(100); // was 100
+  	 return;
 }
 
 // TODO: Verify these delays are required
@@ -300,6 +310,47 @@ void omni_drive(float Vx, float Vy, float omega, float r)
 
 }
 
+// Note: 10PI or ~5 rev/s is the fastest achievable speed with no load on the wheels (which increases inertia of the system)
+void motorSetSpeedTest1(float speed)
+{
+
+   omni_drive(-angleX, -angleY, 0.0f, 0.0f);
+   l6470_set_vel(&motor_set_1, &speed);
+   return;
+}
+
+// Note: 10PI or ~5 rev/s is the fastest achievable speed with no load on the wheels (which increases inertia of the system)
+void motorSetSpeedTest2(float speed)
+{
+
+   omni_drive(-angleX, -angleY, 0.0f, 0.0f);
+   l6470_set_vel(&motor_set_2, &speed);
+   return;
+}
+
+void forward_motion(void)
+{
+	omni_drive(0.0f, 6.0f, 0.0f, WHEEL_RADIUS); //12.0f is 2 rps // 24.0 works!!!!
+	return;
+}
+
+void backward_motion(void)
+{
+	omni_drive(0.0f, -6.0f, 0.0f, WHEEL_RADIUS);
+	return;
+}
+
+void left_motion(void)
+{
+	omni_drive(-6.0f, 0.0f, 0.0f, WHEEL_RADIUS);
+	return;
+}
+
+void right_motion(void)
+{
+	omni_drive(6.0f, 0.0f, 0.0f, WHEEL_RADIUS);
+	return;
+}
 
 // TODO: Review, test and fix this
 void accel(uint8_t start_time, uint8_t end_time, uint8_t start_vel, uint8_t end_vel) // time is in milliseconds, vel is in rad/s
@@ -318,12 +369,9 @@ void accel(uint8_t start_time, uint8_t end_time, uint8_t start_vel, uint8_t end_
 	  	 HAL_Delay(delta_t);
 	}
 
- 	 l6470_soft_stop(&motor_set_1);
- 	 l6470_soft_stop(&motor_set_2);
-
- 	 l6470_disable(&motor_set_1);
- 	 l6470_disable(&motor_set_2);
- 	 return;
+	softStop();
+	disableMotors();
+ 	return;
 
 }
 
@@ -349,28 +397,12 @@ void accel_from_a(float acceleration_rad_s2, float initial_vel_rad_s, uint16_t d
     return;
 }
 
-void activateLED(void)
-{
-	 HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET); // ON (How to use the LED)
-  	 HAL_Delay(100); // was 100
-  	 return;
-}
-
-void deactivateLED(void)
-{
-	 HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // ON (How to use the LED)
-  	 HAL_Delay(100); // was 100
-  	 return;
-}
-
-
 void cardinalDirectionFunction(void)
 {
 
 	static uint8_t pushButtonCallCount = 0;
 
-	l6470_enable(&motor_set_1);
-	l6470_enable(&motor_set_2);
+	enableMotors();
 
 	switch(pushButtonCallCount)
 	{
@@ -400,12 +432,8 @@ void cardinalDirectionFunction(void)
 	}
 
 	HAL_Delay(2000); // Duration of omni movement
-
-	l6470_soft_stop(&motor_set_1);
-	l6470_soft_stop(&motor_set_2);
-
+	softStop();
 	disableMotors();
-
 	return;
 }
 
@@ -423,7 +451,7 @@ static inline int8_t mapVoltageToAngle(float v, float vMin, float vMax)
 
 	float scale = (v - vMin) / (vMax - vMin); // Normalized
 	scale = (int8_t)((scale * 42.0f) - 21.0f); // [0,1] * 42 = [0, 42] - 21 = [-21,21] --> [-21 ... +21]
-	scale *= M_PI / 180;
+	scale *= M_PI / 180; // convert degrees to radians
 	return scale;
 }
 
@@ -467,27 +495,14 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
-  	 HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buffer, 2);
-
-	 // Reset L6470s (shared line)
-	 HAL_GPIO_WritePin(STEPPER_RST_GPIO_Port, STEPPER_RST_Pin, GPIO_PIN_RESET);
-	 HAL_Delay(100);
-	 HAL_GPIO_WritePin(STEPPER_RST_GPIO_Port, STEPPER_RST_Pin, GPIO_PIN_SET);
-	 HAL_Delay(100);
-
-  	 l6470_disable(&motor_set_1);
-  	 l6470_disable(&motor_set_2);
-
-  	 // ***NOW*** do sync + init
-  	 l6470_sync_daisy_chain(&motor_set_1);
-  	 l6470_sync_daisy_chain(&motor_set_2);
-
-     enableMotors();
-
-
-
-  	 l6470_disable(&motor_set_1); // TODO: Always disable motors
-  	 l6470_disable(&motor_set_2); // TODO: Always disable motors
+  // reset the chips
+  resetChips();
+  // Start ADC for POTS
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buffer, 2);
+  // sync by sending all 0's to both chips
+  syncDaisyChain();
+  // Enable the motors
+  enableMotors(); // NOTE: THIS IS DANGEROUS IF LEFT ON FOR A LONG PERIOD OF TIME, THE MOTORS ARE ALWAYS ENERGIZED!!!!!
 
   /* USER CODE END 2 */
 
@@ -498,81 +513,27 @@ int main(void)
 
 	  if(stopNow)
 	  {
-
 		  stopNow = false;
-
-			l6470_soft_stop(&motor_set_1);
-			l6470_soft_stop(&motor_set_2);
-
-			l6470_disable(&motor_set_1);
-			l6470_disable(&motor_set_2);
-
+		  softStop();
+		  disableMotors();
 	  }
-
-	    ///////////////
 
 	  if(buttonFlag == true)
 	  {
 
-
-		    pot_Y_voltage = (3.3f * adc_buffer[0]) / 4095.0f; // Y - axis (forward/backward) angle  //TODO: These need to be normalized with the Min and MAX speed input values for set_vel()
+		    pot_Y_voltage = (3.3f * adc_buffer[0]) / 4095.0f; // Y - axis (forward/backward) angle
 		    pot_X_voltage = (3.3f * adc_buffer[1]) / 4095.0f; // X -Axis (Left/Right) angle
 
-//	//    	    printf("Z-Y: %.2f V\n\r", pot1_voltage);
-//	//	    	    printf("Z-X: %.2f V\n\r", pot2_voltage);
+//	 	    printf("Z-Y: %.2f V\n\r", pot1_voltage);
+//		   	printf("Z-X: %.2f V\n\r", pot2_voltage);
 
-		    /////////////
-// Parse X and Y voltages and convert them to angles asymmetrically, then to x,y values, then to Vx, Vy valuse
-
+		    // Parse X and Y voltages and convert them to angles asymmetrically, then to x,y values, then to Vx, Vy valuse
 		    angleY = mapVoltageToAngle(pot_Y_voltage, Y_MIN_V, Y_MAX_V);
 		    angleX = mapVoltageToAngle(pot_X_voltage, X_MIN_V, X_MAX_V);
 
 		    omni_drive(angleX, angleY, 0.0f, 0.0f);
 		  // HAL_Delay(50);
 
-		  // Motor Speed test
-		  // omni_drive(-angleX, -angleY, 0.0f, 0.0f);
-		  // float speed = 10*M_PI;
-		  // l6470_set_vel(&motor_set_1, &speed);
-
-		  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-//		  	buttonFlag = false;
-//
-//  			l6470_enable(&motor_set_1);
-//  			l6470_enable(&motor_set_2);
-//
-//		  	switch(pushButtonCallCount)
-//			{
-//		  		case 0:
-//		  			pushButtonCallCount = 1;
-//		  			forward_motion();
-//		  			break;
-//
-//		  		case 1:
-//		  			pushButtonCallCount = 2;
-//		  			backward_motion();
-//		  			break;
-//
-//		  		case 2:
-//		  			pushButtonCallCount = 3;
-//		  			left_motion();
-//		  			break;
-//
-//		  		case 3:
-//		  			pushButtonCallCount = 0;
-//		  			right_motion();
-//		  			break;
-//			}
-//
-//  			HAL_Delay(2000); // Duration of omni movement
-//
-//  			l6470_soft_stop(&motor_set_1);
-//  			l6470_soft_stop(&motor_set_2);
-//
-//  			l6470_disable(&motor_set_1);
-//  			l6470_disable(&motor_set_2);
 	  }
 
     /* USER CODE END WHILE */
