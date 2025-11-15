@@ -314,6 +314,7 @@ static inline int8_t mapVoltageToAngle(float v, float vMin, float vMax)
 
 	float scale = (v - vMin) / (vMax - vMin); // Normalized
 	scale = (int8_t)((scale * 42.0f) - 21.0f); // [0,1] * 42 = [0, 42] - 21 = [-21,21] --> [-21 ... +21]
+	scale *= M_PI / 180; // Convert degrees to radians
 	return scale;
 
 }
@@ -334,7 +335,7 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-I  HAL_Init();
+  HAL_Init();
 
   /* USER CODE BEGIN Init */
 
