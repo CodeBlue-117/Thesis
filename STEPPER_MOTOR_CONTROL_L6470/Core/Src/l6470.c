@@ -292,13 +292,13 @@ void l6470_transmit_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t d
 	{
 
 		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
-		HAL_Delay(1);
+		// HAL_Delay(1);
 
 		HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, &data[i], receive_data, 2, 1000);
 
-		HAL_Delay(1);
+		// HAL_Delay(1);
 		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
-		HAL_Delay(1);
+		// HAL_Delay(1);
 
 	}
 

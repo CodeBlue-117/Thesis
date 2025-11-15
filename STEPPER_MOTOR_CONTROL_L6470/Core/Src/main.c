@@ -156,9 +156,6 @@ MotorSetTypedef motor_set_2 = {
 
 /* Private function prototypes -----------------------------------------------*/
 
-
-
-
 // Redirect printf() to USART1
 int __io_putchar(int ch) // Use UART 1 for FTDI cable
 {
@@ -227,21 +224,12 @@ void omni_drive(float Vx, float Vy, float omega, float r)
 	float motor_set_1_speed[2] = {w[1], w[2]}; // Motor 3 and motor 1 on motor_set_1
 	float motor_set_2_speed[2] = {0, w[0]};    // motor 2 on motor_set_2
 
-	// TODO: Print motor_set_1_speed and motor_set_2_speed to figure out what the min and max values are. Optimize torque in config again
-	//	printf("motor1 speed: %0.2f, motor2 speed %0.2f, motor3 speed: %0.2f\n\r", w[2], w[0], w[1]);
-
 	// Transmit velocities to motor driver
-	HAL_Delay(1); // Was 10
+	// HAL_Delay(1); // Was 10
 	l6470_set_vel(&motor_set_1, motor_set_1_speed);
-	HAL_Delay(1); // Was 10
+	// HAL_Delay(1); // Was 10
 	l6470_set_vel(&motor_set_2, motor_set_2_speed);
-	HAL_Delay(1); // Was 10
-
-	// reset speeds to zero
-	motor_set_1_speed[0] = 0;
-	motor_set_1_speed[1] = 0;
-	motor_set_2_speed[0] = 0;
-	motor_set_2_speed[1] = 0;
+	// HAL_Delay(1); // Was 10
 
 }
 
@@ -265,7 +253,6 @@ void right_motion(void)
 	omni_drive(6.0f, 0.0f, 0.0f, wheel_radius);
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // TODO: Review, test and fix this
 void accel(uint8_t start_time, uint8_t end_time, uint8_t start_vel, uint8_t end_vel) // time is in milliseconds, vel is in rad/s
 {
@@ -291,7 +278,6 @@ void accel(uint8_t start_time, uint8_t end_time, uint8_t start_vel, uint8_t end_
 
 }
 
-///////////////////////////////////////////////////////////////////
 // TODO: Review, test and fix this
 void accel_from_a(float acceleration_rad_s2, float initial_vel_rad_s, uint16_t duration_ms)
 {
@@ -313,7 +299,7 @@ void accel_from_a(float acceleration_rad_s2, float initial_vel_rad_s, uint16_t d
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // Map voltages to degrees using linearization
 static inline int8_t mapVoltageToAngle(float v, float vMin, float vMax)
 {
@@ -332,7 +318,6 @@ static inline int8_t mapVoltageToAngle(float v, float vMin, float vMax)
 
 }
 
-
 /* USER CODE END 0 */
 
 /**
@@ -349,7 +334,7 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+I  HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -375,16 +360,11 @@ int main(void)
 
   	 HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buffer, 2);
 
-  	 // uint16_t m1_stat, m2_stat;
-
 	 // Reset L6470s (shared line)
 	 HAL_GPIO_WritePin(STEPPER_RST_GPIO_Port, STEPPER_RST_Pin, GPIO_PIN_RESET);
 	 HAL_Delay(100);
 	 HAL_GPIO_WritePin(STEPPER_RST_GPIO_Port, STEPPER_RST_Pin, GPIO_PIN_SET);
 	 HAL_Delay(100);
-
-  	 l6470_disable(&motor_set_1);
-  	 l6470_disable(&motor_set_2);
 
   	 // ***NOW*** do sync + init
   	 l6470_sync_daisy_chain(&motor_set_1);
@@ -393,10 +373,7 @@ int main(void)
   	 l6470_init_chip_1(&motor_set_1);
   	 l6470_init_chip_2(&motor_set_2);
 
- 	 // --- Enable motors in safe state (e.g. holding position, no motion) ---
- 	 // l6470_enable(&motor_set_1);
- 	 // l6470_enable(&motor_set_2);
-
+  	 // uint16_t m1_stat, m2_stat;
   	 // l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
   	 // l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
 
@@ -406,12 +383,28 @@ int main(void)
   	 l6470_disable(&motor_set_1); // TODO: Always disable motors
   	 l6470_disable(&motor_set_2); // TODO: Always disable motors
 
+ 	 // --- Enable motors in safe state (e.g. holding position, no motion) ---
+	 l6470_enable(&motor_set_1);
+	 l6470_enable(&motor_set_2);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+//	  static uint32_t oldTick = 0;
+//	  static uint32_t newTick = 0;
+//	  static uint32_t diff	  = 0;
+//
+//	  newTick = HAL_GetTick();
+//
+//	  diff = newTick - oldTick;
+//
+//	  printf("Tick Count: %lu\n\r", diff);
+//
+//	  oldTick = newTick;
 
 	  if(stopNow)
 	  {
@@ -426,51 +419,40 @@ int main(void)
 
 	  }
 
-	    ///////////////
-
 	  if(buttonFlag == true)
 	  {
 
+		  // HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // OFF (How to use the LED)
+		  // HAL_Delay(100); // was 100
 
-		  // TODO: THE ORIENTATION IS SCREWED UP! IT RUNS AWAY FROM THE PENDULUM INSTEAD OF TRYING TO CATCH IT!!!!!
+		  pot_Y_voltage = (3.3f * adc_buffer[0]) / 4095.0f; // Y - axis (forward/backward) angle
+		  pot_X_voltage = (3.3f * adc_buffer[1]) / 4095.0f; // X -Axis (Left/Right) angle
 
-		  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		  // printf("Z-Y: %.2f V\n\r", pot1_voltage);
+		  // printf("Z-X: %.2f V\n\r", pot2_voltage);
 
-	//  	 HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // OFF (How to use the LED)
-	//  	 HAL_Delay(100); // was 100
+		  // Parse X and Y voltages and convert them to angles asymmetrically, then to x,y values, then to Vx, Vy valuse
+		  angleY = mapVoltageToAngle(pot_Y_voltage, Y_MIN_V, Y_MAX_V);
+		  angleX = mapVoltageToAngle(pot_X_voltage, X_MIN_V, X_MAX_V);
 
-		    pot_Y_voltage = (3.3f * adc_buffer[0]) / 4095.0f; // Y - axis (forward/backward) angle  //TODO: These need to be normalized with the Min and MAX speed input values for set_vel()
-		    pot_X_voltage = (3.3f * adc_buffer[1]) / 4095.0f; // X -Axis (Left/Right) angle
+		  omni_drive(angleX, angleY, 0.0f, 0.0f);
 
-//	//    	    printf("Z-Y: %.2f V\n\r", pot1_voltage);
-//	//	    	    printf("Z-X: %.2f V\n\r", pot2_voltage);
-
-		    /////////////
-// //		     Parse X and Y voltages and convert them to angles asymmetrically, then to x,y values, then to Vx, Vy valuse
-
-		    angleY = mapVoltageToAngle(pot_Y_voltage, Y_MIN_V, Y_MAX_V);
-		    angleX = mapVoltageToAngle(pot_X_voltage, X_MIN_V, X_MAX_V);
-
-		    omni_drive(angleX, angleY, 0.0f, 0.0f);
-		    HAL_Delay(50);
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 		  // Motor Speed test
 		  // omni_drive(-angleX, -angleY, 0.0f, 0.0f);
-//		  float speed = 10*M_PI;
-//		  l6470_set_vel(&motor_set_1, &speed);
+		  // float speed = 10*M_PI;
+		  // l6470_set_vel(&motor_set_1, &speed);
 
+/////////////////////////////////////////////////////////////////////
 
-
-		  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-//		  	buttonFlag = false;
+//		  buttonFlag = false;
 //
-//  			l6470_enable(&motor_set_1);
-//  			l6470_enable(&motor_set_2);
+//  	  l6470_enable(&motor_set_1);
+//  	  l6470_enable(&motor_set_2);
 //
-//		  	switch(pushButtonCallCount)
-//			{
+//		  switch(pushButtonCallCount)
+//		  {
 //		  		case 0:
 //		  			pushButtonCallCount = 1;
 //		  			forward_motion();
@@ -490,7 +472,7 @@ int main(void)
 //		  			pushButtonCallCount = 0;
 //		  			right_motion();
 //		  			break;
-//			}
+//		  }
 //
 //  			HAL_Delay(2000); // Duration of omni movement
 //
