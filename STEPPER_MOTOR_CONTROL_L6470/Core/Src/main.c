@@ -69,15 +69,26 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 
 #define DEBOUNCE_DELAY 200  // 50ms debounce time
 
+#define K_P_X 50.0f // Proportional constant for x-dir
+#define K_P_Y 50.0f // proportional constant for y-dir
+#define K_I_X 0.01f // Integral constant for x-dir
+#define K_I_Y 0.01f // Integral constant for y-dir
+
+#define CONTROL_LOOP_TIME 0.003f
+
+#define MAX_CART_VEL  0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)
+#define MIN_CART_VEL -0.9f
+
+#define MAX_INTEGRAL  5.0f // anti-windup cap on integral, tune
+#define MIN_INTEGRAL -5.0f
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 
-#define X_MIN_V	1.36
-#define X_MAX_V 1.83
-#define Y_MIN_V 1.39
-#define Y_MAX_V 1.87
+
+
 
 /* USER CODE END PM */
 
@@ -99,31 +110,59 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
-static uint32_t currentTime;  // Get current system time
+static uint32_t currentTime;  					// Get current system time
+static uint32_t lastPressTime 		= 0; 		// Debounce for GPIO pushbutton
+static bool buttonFlag 				= false;
 
-float wheel_radius 		= 29.69; // each wheel has a radius of 44.25mm
-float omniBody_radius 	= 88.9; // The omni body has a radius of 88.1mm
+float vel_temp_1[2];							// motor 2, 3
+float vel_temp_2[2];							// motor 1 (second element, had to troubleshoot)
 
-static uint32_t lastPressTime = 0; // Debounce for GPIO pushbutton
-//static uint8_t pushButtonCallCount = 0;
-static bool buttonFlag = false;
+float pot_Y_voltage 				= 0.0f;
+float pot_X_voltage 				= 0.0f;
 
-float vel_temp_1[2];		// motor 2, 3
-float vel_temp_2[2];			// motor 1 (second element, had to troubleshoot)
-
-const float J[3][3] = {{-1, 0.5, 0.5}, {0, 0.866, -0.866}, {-0.333, -0.333, -0.333}};
+const float J[3][3] 	= {{-1, 0.5, 0.5}, {0, 0.866, -0.866}, {-0.333, -0.333, -0.333}};
 const float J_Inv[3][3] = {{0.667, 0, 1}, {-0.333, 0.577, 1}, {-0.333, -0.577, 1}};
 
-float pot_Y_voltage = 0.0f;
-float pot_X_voltage = 0.0f;
+static bool stopNow 				= false;
+static bool prepareStop 			= false;
 
-static bool stopNow = false;
-static bool prepareStop = false;
+float deadband 						= 0.5f * M_PI/180.0f;  // 1 degree for the dead band (no integral)
 
-int8_t angleY = 0;
-int8_t angleX = 0;
+////////////////////////////////////////////////////////////////////////////////////////////
+// Control System Variables
 
-uint16_t adc_buffer[2];  // adc_buffer[0] = Z-X pot, adc_buffer[1] = Z-Y pot
+typedef struct controlVariables
+{
+	float prevCommandedCartVelocityX;
+	float prevCommandedCartVelocityY;
+
+	float curCommandedCartVelocityX;
+	float curCommandedCartVelocityY;
+
+	float prevThetaX;
+	float prevThetaY;
+
+	float curThetaX;
+	float curThetaY;
+
+	// Can also include Theta_dotX/Y for Derivative control
+
+	float prevInputU_X;
+	float prevInputU_Y;
+
+	float curInputU_X;
+	float curInputU_Y;
+
+	float integralX;
+	float integralY;
+
+} controlVariables;
+
+controlVariables myControlVariables = {0};
+
+////////////////////////////////////////////////////////////////////////////////////////////
+
+uint16_t adc_buffer[2];  						// adc_buffer[0] = Z-X pot, adc_buffer[1] = Z-Y pot
 
 MotorSetTypedef motor_set_1 = { // TODO: Finish initializing the structs
 
@@ -205,103 +244,46 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef * hspi)
 }
 
 // TODO: Verify these delays are required
-void omni_drive(float Vx, float Vy, float omega, float r)
+void omni_drive(float Vx, float Vy, float omega)
 {
 
-	float w[3] = {0}; // wheel velocities [w1, w2, w3]
-	float V[3] = {Vx, Vy, omega};
+	float V_body[3] 	= {Vx, Vy, omega}; 	// Body velocities
+	float v_wheel[3] 	= {0}; 				// Wheel linear velocities
+	float w[3] 			= {0}; 				// Wheel angular velocities
 
 	// Matrix multiplication
 	for(int i = 0; i < 3; i++)
 	{
-		w[i] = 0.0f;
+		v_wheel[i] = 0.0f;
 		for(int j = 0; j < 3; j++)
 		{
-			w[i] += J_Inv[i][j] * V[j];
+			v_wheel[i] += J_Inv[i][j] * V_body[j];
 		}
 	}
 
+	// --- Linear -> Angular velocities ---
+	for(int j = 0; j < 3; j++)
+	{
+		w[j] = v_wheel[j] / WHEEL_RADIUS;
+	}
+
+	// Wheel mapping to motor sets
 	float motor_set_1_speed[2] = {w[1], w[2]}; // Motor 3 and motor 1 on motor_set_1
 	float motor_set_2_speed[2] = {0, w[0]};    // motor 2 on motor_set_2
 
+
+	  printf("Vx=%.4f Vy=%.4f  v_wheel=[%.4f %.4f %.4f]  w=[%.4f %.4f %.4f]\n\r",
+	         Vx, Vy, v_wheel[0], v_wheel[1], v_wheel[2],
+	         w[0], w[1], w[2]);
+
 	// Transmit velocities to motor driver
-	// HAL_Delay(1); // Was 10
 	l6470_set_vel(&motor_set_1, motor_set_1_speed);
-	// HAL_Delay(1); // Was 10
 	l6470_set_vel(&motor_set_2, motor_set_2_speed);
-	// HAL_Delay(1); // Was 10
 
 }
-
-void forward_motion(void)
-{
-	omni_drive(0.0f, 6.0f, 0.0f, wheel_radius); //12.0f is 2 rps // 24.0 works!!!!
-}
-
-void backward_motion(void)
-{
-	omni_drive(0.0f, -6.0f, 0.0f, wheel_radius);
-}
-
-void left_motion(void)
-{
-	omni_drive(-6.0f, 0.0f, 0.0f, wheel_radius);
-}
-
-void right_motion(void)
-{
-	omni_drive(6.0f, 0.0f, 0.0f, wheel_radius);
-}
-
-// TODO: Review, test and fix this
-void accel(uint8_t start_time, uint8_t end_time, uint8_t start_vel, uint8_t end_vel) // time is in milliseconds, vel is in rad/s
-{
-	uint8_t delta_t = end_time - start_time;
-	uint8_t delta_v = end_vel - start_vel;
-
- 	vel_temp_1[0] = start_vel;
- 	vel_temp_1[1] = 0;
-
-	for(uint8_t i = start_time; i < end_time; i += delta_t)
-	{
-		 vel_temp_1[0] += delta_v;
-
-	  	 l6470_set_vel(&motor_set_1, vel_temp_1);
-	  	 HAL_Delay(delta_t);
-	}
-
- 	 l6470_soft_stop(&motor_set_1);
- 	 l6470_soft_stop(&motor_set_2);
-
- 	 l6470_disable(&motor_set_1);
- 	 l6470_disable(&motor_set_2);
-
-}
-
-// TODO: Review, test and fix this
-void accel_from_a(float acceleration_rad_s2, float initial_vel_rad_s, uint16_t duration_ms)
-{
-    const float steps_per_rad = 200.0f / (2.0f * M_PI);
-    const uint16_t step_interval_ms = 10;  // Chosen smallest time slice
-    uint16_t num_steps = duration_ms / step_interval_ms;
-
-    float current_vel = initial_vel_rad_s;
-
-    for (uint16_t i = 0; i < num_steps; i++)
-    {
-        current_vel += acceleration_rad_s2 * (step_interval_ms / 1000.0f);  // Convert ms to s
-        float vel_steps_per_sec = current_vel * steps_per_rad;
-        vel_temp_1[0] = (int32_t)vel_steps_per_sec;
-        vel_temp_1[1] = 0;
-
-        l6470_set_vel(&motor_set_1, vel_temp_1);
-        HAL_Delay(step_interval_ms);
-    }
-}
-
 
 // Map voltages to degrees using linearization
-static inline int8_t mapVoltageToAngle(float v, float vMin, float vMax)
+static inline float mapVoltageToAngle(float v, float vMin, float vMax)
 {
 	if(v < vMin)
 	{
@@ -313,8 +295,8 @@ static inline int8_t mapVoltageToAngle(float v, float vMin, float vMax)
 	}
 
 	float scale = (v - vMin) / (vMax - vMin); // Normalized
-	scale = (int8_t)((scale * 42.0f) - 21.0f); // [0,1] * 42 = [0, 42] - 21 = [-21,21] --> [-21 ... +21]
-	scale *= M_PI / 180; // Convert degrees to radians
+	scale = ((scale * 42.0f) - 21.0f); // [0,1] * 42 = [0, 42] - 21 = [-21,21] --> [-21 ... +21]
+	scale *= (M_PI / 180.0f); // Convert degrees to radians
 	return scale;
 
 }
@@ -423,9 +405,6 @@ int main(void)
 	  if(buttonFlag == true)
 	  {
 
-		  // HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // OFF (How to use the LED)
-		  // HAL_Delay(100); // was 100
-
 		  pot_Y_voltage = (3.3f * adc_buffer[0]) / 4095.0f; // Y - axis (forward/backward) angle
 		  pot_X_voltage = (3.3f * adc_buffer[1]) / 4095.0f; // X -Axis (Left/Right) angle
 
@@ -433,55 +412,61 @@ int main(void)
 		  // printf("Z-X: %.2f V\n\r", pot2_voltage);
 
 		  // Parse X and Y voltages and convert them to angles asymmetrically, then to x,y values, then to Vx, Vy valuse
-		  angleY = mapVoltageToAngle(pot_Y_voltage, Y_MIN_V, Y_MAX_V);
-		  angleX = mapVoltageToAngle(pot_X_voltage, X_MIN_V, X_MAX_V);
+		  myControlVariables.curThetaX = mapVoltageToAngle(pot_X_voltage, X_MIN_V, X_MAX_V);
+		  myControlVariables.curThetaY = mapVoltageToAngle(pot_Y_voltage, Y_MIN_V, Y_MAX_V);
 
-		  omni_drive(angleX, angleY, 0.0f, 0.0f);
+		  // Compute the integral / accumulation of error
+		  myControlVariables.integralX += 0.5 * (myControlVariables.curThetaX + myControlVariables.prevThetaX) * CONTROL_LOOP_TIME;
+		  myControlVariables.integralY += 0.5 * (myControlVariables.curThetaY + myControlVariables.prevThetaY) * CONTROL_LOOP_TIME;
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		  // anti-windup: clamp integrals  --> TODO: Later implement: if (velocity saturated) do not integrate
+		  if (myControlVariables.integralX > MAX_INTEGRAL) myControlVariables.integralX = MAX_INTEGRAL;
+		  if (myControlVariables.integralX < MIN_INTEGRAL) myControlVariables.integralX = MIN_INTEGRAL;
+		  if (myControlVariables.integralY > MAX_INTEGRAL) myControlVariables.integralY = MAX_INTEGRAL;
+		  if (myControlVariables.integralY < MIN_INTEGRAL) myControlVariables.integralY = MIN_INTEGRAL;
 
-		  // Motor Speed test
-		  // omni_drive(-angleX, -angleY, 0.0f, 0.0f);
-		  // float speed = 10*M_PI;
-		  // l6470_set_vel(&motor_set_1, &speed);
+		  if(fabsf(myControlVariables.curThetaX) < deadband)
+		  {
+			  myControlVariables.integralX = 0;
+		  }
 
-/////////////////////////////////////////////////////////////////////
+		  if(fabsf(myControlVariables.curThetaY) < deadband)
+		  {
+			  myControlVariables.integralY = 0;
+		  }
 
-//		  buttonFlag = false;
-//
-//  	  l6470_enable(&motor_set_1);
-//  	  l6470_enable(&motor_set_2);
-//
-//		  switch(pushButtonCallCount)
-//		  {
-//		  		case 0:
-//		  			pushButtonCallCount = 1;
-//		  			forward_motion();
-//		  			break;
-//
-//		  		case 1:
-//		  			pushButtonCallCount = 2;
-//		  			backward_motion();
-//		  			break;
-//
-//		  		case 2:
-//		  			pushButtonCallCount = 3;
-//		  			left_motion();
-//		  			break;
-//
-//		  		case 3:
-//		  			pushButtonCallCount = 0;
-//		  			right_motion();
-//		  			break;
-//		  }
-//
-//  			HAL_Delay(2000); // Duration of omni movement
-//
-//  			l6470_soft_stop(&motor_set_1);
-//  			l6470_soft_stop(&motor_set_2);
-//
-//  			l6470_disable(&motor_set_1);
-//  			l6470_disable(&motor_set_2);
+		  // TODO: Do we also need to turn off the P control if we are within 1 degree of vertical?
+
+		  // u = Kp * cur_theta + Ki * 0.5 * [cur_theta + prev_theta] * Control_Loop_Time ---> the 0.5 factor in the second term comes from the trapezoid rule
+		  myControlVariables.curInputU_X = (K_P_X * myControlVariables.curThetaX) + (K_I_X * myControlVariables.integralX); // Use negative to oppose the tilt
+		  myControlVariables.curInputU_Y = (K_P_Y * myControlVariables.curThetaY) + (K_I_Y * myControlVariables.integralY); // Use negative to oppose the tilt
+
+		  // Accel = (V2 - V1) / (CONTROL_LOOP_TIME) ---> V2 = Accel * CONTROL_LOOP_TIME + V1
+		  myControlVariables.curCommandedCartVelocityX = (myControlVariables.curInputU_X * CONTROL_LOOP_TIME) + myControlVariables.prevCommandedCartVelocityX;
+		  myControlVariables.curCommandedCartVelocityY = (myControlVariables.curInputU_Y * CONTROL_LOOP_TIME) + myControlVariables.prevCommandedCartVelocityY;
+
+		  // --- clamp velocities to safe range ---
+		  if (myControlVariables.curCommandedCartVelocityX > MAX_CART_VEL) myControlVariables.curCommandedCartVelocityX = MAX_CART_VEL;
+		  if (myControlVariables.curCommandedCartVelocityX < MIN_CART_VEL) myControlVariables.curCommandedCartVelocityX = MIN_CART_VEL;
+		  if (myControlVariables.curCommandedCartVelocityY > MAX_CART_VEL) myControlVariables.curCommandedCartVelocityY = MAX_CART_VEL;
+		  if (myControlVariables.curCommandedCartVelocityY < MIN_CART_VEL) myControlVariables.curCommandedCartVelocityY = MIN_CART_VEL;
+
+		  omni_drive(myControlVariables.curCommandedCartVelocityX, myControlVariables.curCommandedCartVelocityY, 0.0f);
+
+		  // Update previous values
+		  myControlVariables.prevThetaX = myControlVariables.curThetaX;
+		  myControlVariables.prevThetaY = myControlVariables.curThetaY;
+
+		  // TODO: Do we need to save the previous inputs U?
+		  myControlVariables.prevInputU_X = myControlVariables.curInputU_X;
+		  myControlVariables.prevInputU_Y = myControlVariables.curInputU_Y;
+
+		  myControlVariables.prevCommandedCartVelocityX = myControlVariables.curCommandedCartVelocityX;
+		  myControlVariables.prevCommandedCartVelocityY = myControlVariables.curCommandedCartVelocityY;
+
+//		  HAL_Delay(50);
+
+
 	  }
 
     /* USER CODE END WHILE */
