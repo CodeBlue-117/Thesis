@@ -69,18 +69,26 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 
 #define DEBOUNCE_DELAY 200  // 50ms debounce time
 
+// TODO: Tune these
 #define K_P_X 50.0f // Proportional constant for x-dir
 #define K_P_Y 50.0f // proportional constant for y-dir
-#define K_I_X 0.01f // Integral constant for x-dir
-#define K_I_Y 0.01f // Integral constant for y-dir
+#define K_I_X 0.05f // 0.01f // Integral constant for x-dir
+#define K_I_Y 0.05f //0.01f // Integral constant for y-dir
+#define K_D_X 0.5f  // 5.0f
+#define K_D_Y 0.5f  // 5.0f
 
-#define CONTROL_LOOP_TIME 0.003f
+#define DEFAULT_DT	  0.003f
 
-#define MAX_CART_VEL  0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)
-#define MIN_CART_VEL -0.9f
+#define MAX_CART_VEL  0.5f // 0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)
+#define MIN_CART_VEL -0.5f //-0.9f
 
 #define MAX_INTEGRAL  5.0f // anti-windup cap on integral, tune
 #define MIN_INTEGRAL -5.0f
+
+#define POT_FC_HZ	  15.0f // TODO: Tune this
+
+#define DEADBAND 	  (0.25f * M_PI/180.0f)  // 1 degree for the dead band (no integral) // TODO: TUNE
+
 
 /* USER CODE END PD */
 
@@ -126,7 +134,6 @@ const float J_Inv[3][3] = {{0.667, 0, 1}, {-0.333, 0.577, 1}, {-0.333, -0.577, 1
 static bool stopNow 				= false;
 static bool prepareStop 			= false;
 
-float deadband 						= 0.5f * M_PI/180.0f;  // 1 degree for the dead band (no integral)
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // Control System Variables
@@ -159,6 +166,9 @@ typedef struct controlVariables
 } controlVariables;
 
 controlVariables myControlVariables = {0};
+
+static float potX_filt = 0.0f;
+static float potY_filt = 0.0f;
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -243,6 +253,27 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef * hspi)
 	}
 }
 
+static inline void update_pot_filter(float rawX, float rawY, float dt)
+{
+
+	// Computer alpha from cutoff
+	float tau = 1.0f / (2.0 * M_PI * POT_FC_HZ);
+	float alpha = dt / (tau + dt);
+
+	// First time filter initialization (no sudden jump)
+	static bool initialized = false;
+	if(!initialized)
+	{
+		potX_filt = rawX;
+		potY_filt = rawY;
+		initialized = true;
+	}
+
+	// exponential smoothing
+	potX_filt += alpha * (rawX - potX_filt);
+	potY_filt += alpha * (rawY - potY_filt);
+}
+
 // TODO: Verify these delays are required
 void omni_drive(float Vx, float Vy, float omega)
 {
@@ -270,11 +301,6 @@ void omni_drive(float Vx, float Vy, float omega)
 	// Wheel mapping to motor sets
 	float motor_set_1_speed[2] = {w[1], w[2]}; // Motor 3 and motor 1 on motor_set_1
 	float motor_set_2_speed[2] = {0, w[0]};    // motor 2 on motor_set_2
-
-
-	  printf("Vx=%.4f Vy=%.4f  v_wheel=[%.4f %.4f %.4f]  w=[%.4f %.4f %.4f]\n\r",
-	         Vx, Vy, v_wheel[0], v_wheel[1], v_wheel[2],
-	         w[0], w[1], w[2]);
 
 	// Transmit velocities to motor driver
 	l6470_set_vel(&motor_set_1, motor_set_1_speed);
@@ -377,17 +403,25 @@ int main(void)
   while (1)
   {
 
-//	  static uint32_t oldTick = 0;
-//	  static uint32_t newTick = 0;
-//	  static uint32_t diff	  = 0;
-//
-//	  newTick = HAL_GetTick();
-//
-//	  diff = newTick - oldTick;
-//
-//	  printf("Tick Count: %lu\n\r", diff);
-//
-//	  oldTick = newTick;
+	  static uint32_t lastTick = 0;
+	  uint32_t nowTick = HAL_GetTick();
+	  float dt;
+
+	  if(lastTick == 0)
+	  {
+		  dt = DEFAULT_DT;
+	  }
+	  else
+	  {
+		  dt = (nowTick - lastTick) * 0.001f; // ms -> s
+	  }
+
+	  if(dt <= 0.0f)
+	  {
+		  dt = DEFAULT_DT;
+	  }
+
+	  lastTick = nowTick;
 
 	  if(stopNow)
 	  {
@@ -408,16 +442,34 @@ int main(void)
 		  pot_Y_voltage = (3.3f * adc_buffer[0]) / 4095.0f; // Y - axis (forward/backward) angle
 		  pot_X_voltage = (3.3f * adc_buffer[1]) / 4095.0f; // X -Axis (Left/Right) angle
 
-		  // printf("Z-Y: %.2f V\n\r", pot1_voltage);
-		  // printf("Z-X: %.2f V\n\r", pot2_voltage);
+		  // printf("BEFORE: Z-X: %.2f V\n\r", pot_X_voltage);
+		  // printf("BEFORE: Z-Y: %.2f V\n\r", pot_Y_voltage);
+
+		  update_pot_filter(pot_X_voltage, pot_Y_voltage, dt);
+
+		  // printf("AFTER: Z-X: %.2f V\n\r", potX_filt);
+		  // printf("AFTER: Z-Y: %.2f V\n\r", potY_filt);
 
 		  // Parse X and Y voltages and convert them to angles asymmetrically, then to x,y values, then to Vx, Vy valuse
-		  myControlVariables.curThetaX = mapVoltageToAngle(pot_X_voltage, X_MIN_V, X_MAX_V);
-		  myControlVariables.curThetaY = mapVoltageToAngle(pot_Y_voltage, Y_MIN_V, Y_MAX_V);
+		  myControlVariables.curThetaX = mapVoltageToAngle(potX_filt, X_MIN_V, X_MAX_V);
+		  myControlVariables.curThetaY = mapVoltageToAngle(potY_filt, Y_MIN_V, Y_MAX_V);
 
+		  // Deadband
+		  if(fabs(myControlVariables.curThetaX) < DEADBAND) // TODO: Tune the deadband
+		  {
+			  myControlVariables.curThetaX = 0.0f;
+			  myControlVariables.integralX = 0.0f;
+		  }
+		  if(fabs(myControlVariables.curThetaY) < DEADBAND) // TODO: Tune the deadband
+		  {
+			  myControlVariables.curThetaY = 0.0f;
+			  myControlVariables.integralY = 0.0f;
+		  }
+
+		  // --- Integral Control ---
 		  // Compute the integral / accumulation of error
-		  myControlVariables.integralX += 0.5 * (myControlVariables.curThetaX + myControlVariables.prevThetaX) * CONTROL_LOOP_TIME;
-		  myControlVariables.integralY += 0.5 * (myControlVariables.curThetaY + myControlVariables.prevThetaY) * CONTROL_LOOP_TIME;
+		  myControlVariables.integralX += 0.5 * (myControlVariables.curThetaX + myControlVariables.prevThetaX) * dt;
+		  myControlVariables.integralY += 0.5 * (myControlVariables.curThetaY + myControlVariables.prevThetaY) * dt;
 
 		  // anti-windup: clamp integrals  --> TODO: Later implement: if (velocity saturated) do not integrate
 		  if (myControlVariables.integralX > MAX_INTEGRAL) myControlVariables.integralX = MAX_INTEGRAL;
@@ -425,25 +477,17 @@ int main(void)
 		  if (myControlVariables.integralY > MAX_INTEGRAL) myControlVariables.integralY = MAX_INTEGRAL;
 		  if (myControlVariables.integralY < MIN_INTEGRAL) myControlVariables.integralY = MIN_INTEGRAL;
 
-		  if(fabsf(myControlVariables.curThetaX) < deadband)
-		  {
-			  myControlVariables.integralX = 0;
-		  }
-
-		  if(fabsf(myControlVariables.curThetaY) < deadband)
-		  {
-			  myControlVariables.integralY = 0;
-		  }
-
-		  // TODO: Do we also need to turn off the P control if we are within 1 degree of vertical?
+		  // --- Derivative Control ---
+		  float theta_dotX = (myControlVariables.curThetaX -  myControlVariables.prevThetaX) / dt;
+		  float theta_dotY = (myControlVariables.curThetaY -  myControlVariables.prevThetaY) / dt;
 
 		  // u = Kp * cur_theta + Ki * 0.5 * [cur_theta + prev_theta] * Control_Loop_Time ---> the 0.5 factor in the second term comes from the trapezoid rule
-		  myControlVariables.curInputU_X = (K_P_X * myControlVariables.curThetaX) + (K_I_X * myControlVariables.integralX); // Use negative to oppose the tilt
-		  myControlVariables.curInputU_Y = (K_P_Y * myControlVariables.curThetaY) + (K_I_Y * myControlVariables.integralY); // Use negative to oppose the tilt
+		  myControlVariables.curInputU_X = (K_P_X * myControlVariables.curThetaX) + (K_I_X * myControlVariables.integralX) + (K_D_X * theta_dotX); // Use negative to oppose the tilt
+		  myControlVariables.curInputU_Y = (K_P_Y * myControlVariables.curThetaY) + (K_I_Y * myControlVariables.integralY) + (K_D_Y * theta_dotY); // Use negative to oppose the tilt
 
 		  // Accel = (V2 - V1) / (CONTROL_LOOP_TIME) ---> V2 = Accel * CONTROL_LOOP_TIME + V1
-		  myControlVariables.curCommandedCartVelocityX = (myControlVariables.curInputU_X * CONTROL_LOOP_TIME) + myControlVariables.prevCommandedCartVelocityX;
-		  myControlVariables.curCommandedCartVelocityY = (myControlVariables.curInputU_Y * CONTROL_LOOP_TIME) + myControlVariables.prevCommandedCartVelocityY;
+		  myControlVariables.curCommandedCartVelocityX = (myControlVariables.curInputU_X * dt) + myControlVariables.prevCommandedCartVelocityX;
+		  myControlVariables.curCommandedCartVelocityY = (myControlVariables.curInputU_Y * dt) + myControlVariables.prevCommandedCartVelocityY;
 
 		  // --- clamp velocities to safe range ---
 		  if (myControlVariables.curCommandedCartVelocityX > MAX_CART_VEL) myControlVariables.curCommandedCartVelocityX = MAX_CART_VEL;
