@@ -79,18 +79,20 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 
 #define DEFAULT_DT	  0.003f
 
-#define MAX_CART_VEL  0.5f // 0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)
-#define MIN_CART_VEL -0.5f //-0.9f
+#define MAX_CART_VEL 	0.5f // 0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)
+#define MIN_CART_VEL 	-0.5f //-0.9f
 
-#define MAX_INTEGRAL  5.0f // anti-windup cap on integral, tune
-#define MIN_INTEGRAL -5.0f
+#define MAX_INTEGRAL  	5.0f // anti-windup cap on integral, tune
+#define MIN_INTEGRAL 	-5.0f
 
-#define POT_FC_HZ	  15.0f // TODO: Tune this
+#define POT_FC_HZ	  	15.0f // TODO: Tune this
 
-#define DEADBAND 	  (0.25f * M_PI/180.0f)  // 1 degree for the dead band (no integral) // TODO: TUNE
+#define DEADBAND 	  	(0.25f * M_PI/180.0f)  // 1 degree for the dead band (no integral) // TODO: TUNE
 
-#define MPU6000_ADDR (0x68 << 1) // 0xD0
+#define MPU6000_ADDR 	(0x68 << 1) // 0xD0
 
+#define PWR_MGMT_REG 	(0x6B)
+#define SIGNAL_PATH_REG (0x68)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -328,6 +330,72 @@ static inline float mapVoltageToAngle(float v, float vMin, float vMax)
 
 }
 
+HAL_StatusTypeDef IMU_Write(uint16_t reg, uint8_t data)
+{
+	HAL_StatusTypeDef status;
+	status = HAL_I2C_Mem_Write(&hi2c1, MPU6000_ADDR, reg, 1, &data, 1, HAL_MAX_DELAY);
+	return status;
+
+}
+
+
+HAL_StatusTypeDef IMU_Read(uint16_t reg, uint8_t *buf, uint8_t len)
+{
+
+	HAL_StatusTypeDef status;
+	status = HAL_I2C_Mem_Read(&hi2c1, MPU6000_ADDR, reg, 1, buf, len, HAL_MAX_DELAY);
+	return status;
+}
+
+
+uint8_t initializeIMU(void)
+{
+	  HAL_StatusTypeDef status;
+
+	  // Read WhoAmI and verify it is 0x68
+	  uint8_t reg = 0x75;
+	  uint8_t receiveData = 0;
+
+	  status = IMU_Read(reg, &receiveData, 1);
+	  if(status != HAL_OK)
+	  {
+		  printf("Error reading WhoAmI register\n\r");
+		  return 1;
+	  }
+
+	  HAL_Delay(100);
+
+	  if(receiveData != 0x68)
+	  {
+		  printf("Error reading WhoAmI register\n\r");
+		  return 1;
+	  }
+
+	  HAL_Delay(100);
+
+	  // Device Reset
+	  status = IMU_Write(PWR_MGMT_REG, 0x07); // Reset GYRO, ACCEL and TEMP 0000-0111 = 0x07
+	  if(status != HAL_OK)
+	  {
+		  printf("Error reading WhoAmI register\n\r");
+		  return 1;
+	  }
+
+	  HAL_Delay(100);
+
+      //Signal Path Reset
+
+	  HAL_Delay(100);
+
+	  // Wakeup and Clock Source
+
+	  // Configure DLPF
+
+	  // Configure Gyro
+
+	  // Configure Accel
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -405,33 +473,6 @@ int main(void)
   {
 
 	  //////////////////////////////////////////////////////////////////////
-
-	  // TODO: Use T2C to Configure registers,
-	  // 1. Exit Sleep Mode
-	  // 2. Set Digital Low Pass Filter (GLPF, 44Hz good default)
-	  // 3. set accelerometer range, +- 2g is best resolution
-	  // 4. Set Sample rate
-
-	  uint8_t reg = 0x75;
-	  uint8_t receiveData = 0;
-
-	  // TODO: Try to read Accel data
-	  // Write register address
-	  HAL_StatusTypeDef status = HAL_I2C_Master_Transmit(&hi2c1, MPU6000_ADDR, &reg, (uint16_t)(sizeof(reg)), 1000);
-	  if(status != HAL_OK)
-	  {
-		  printf("Error Sending MasterTransmit\n\r");
-	  }
-
-	  // Read one byte
-	  // HAL_StatusTypeDef status = HAL_I2C_Master_Transmit(hi2c1, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout)
-	  status = HAL_I2C_Master_Receive(&hi2c1, MPU6000_ADDR, &receiveData, (uint16_t)(sizeof(receiveData)), 1000);
-	  if(status != HAL_OK)
-	  {
-		  printf("Error receiving MasterReceive\n\r");
-	  }
-
-	  printf("Received byte: %02X\n\r", receiveData);
 
 
 
