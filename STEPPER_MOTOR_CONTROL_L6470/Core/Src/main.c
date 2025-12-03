@@ -89,10 +89,12 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 
 #define DEADBAND 	  	(0.25f * M_PI/180.0f)  // 1 degree for the dead band (no integral) // TODO: TUNE
 
-#define MPU6000_ADDR 	(0x68 << 1) // 0xD0
+#define MPU6000_ADDR 		(0x68 << 1) // 0xD0
 
-#define PWR_MGMT_REG 	(0x6B)
-#define SIGNAL_PATH_REG (0x68)
+#define PWR_MGMT_REG_1		(0x6B)
+#define SIGNAL_PATH_REG 	(0x68)
+#define CONFIG_REG			(0x1A)
+#define ACCEL_CONFIG_REG	(0x1C)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -352,6 +354,8 @@ uint8_t initializeIMU(void)
 {
 	  HAL_StatusTypeDef status;
 
+	  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	  // Read WhoAmI and verify it is 0x68
 	  uint8_t reg = 0x75;
 	  uint8_t receiveData = 0;
@@ -373,8 +377,10 @@ uint8_t initializeIMU(void)
 
 	  HAL_Delay(100);
 
+	  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	  // Device Reset
-	  status = IMU_Write(PWR_MGMT_REG, 0x07); // Reset GYRO, ACCEL and TEMP 0000-0111 = 0x07
+	  status = IMU_Write(PWR_MGMT_REG_1, 0x80); // 1000-0000
 	  if(status != HAL_OK)
 	  {
 		  printf("Error reading WhoAmI register\n\r");
@@ -383,17 +389,55 @@ uint8_t initializeIMU(void)
 
 	  HAL_Delay(100);
 
+	  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
       //Signal Path Reset
+	  status = IMU_Write(SIGNAL_PATH_REG, 0x07); // Reset GYRO, ACCEL and TEMP 0000-0111 = 0x07
+	  if(status != HAL_OK)
+	  {
+		  printf("Error resetting accel and gyro\n\r");
+		  return 1;
+	  }
 
 	  HAL_Delay(100);
 
+	  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	  // Wakeup and Clock Source
+	  status = IMU_Write(PWR_MGMT_REG_1, 0x01); // Clock Source PLL from x-axis
+	  if(status != HAL_OK)
+	  {
+		  printf("Error setting clock source\n\r");
+		  return 1;
+	  }
+
+	  HAL_Delay(100);
+
+	  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	  // Configure DLPF
+	  status = IMU_Write(CONFIG_REG, 0x02); // DLPF in CONFIG REG set to 94Hz bandwidth and 3ms delay (try 0x01 for 184Hz BW and 2ms delay)
+	  if(status != HAL_OK)
+	  {
+		  printf("Error setting clock source\n\r");
+		  return 1;
+	  }
+	  HAL_Delay(100);
 
-	  // Configure Gyro
+	  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	  // Configure Accel
+	  // Configure Accel Full Scale Range
+	  status = IMU_Write(ACCEL_CONFIG_REG, 0x00); // Configure Accel for full scale range +2g
+	  if(status != HAL_OK)
+	  {
+		  printf("Error setting clock source\n\r");
+		  return 1;
+	  }
+	  HAL_Delay(100);
+
+	  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	  return status;
 }
 
 /* USER CODE END 0 */
