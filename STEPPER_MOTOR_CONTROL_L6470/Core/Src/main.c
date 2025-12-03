@@ -139,6 +139,10 @@ const float J_Inv[3][3] = {{0.667, 0, 1}, {-0.333, 0.577, 1}, {-0.333, -0.577, 1
 static bool stopNow 				= false;
 static bool prepareStop 			= false;
 
+/////////////////////////////////////////////////////////
+// IMU variables
+int16_t ax, ay, az;
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // Control System Variables
@@ -440,6 +444,23 @@ uint8_t initializeIMU(void)
 	  return status;
 }
 
+uint8_t IMU_ReadAccel(int16_t *ax, int16_t *ay, int16_t *az)
+{
+	uint8_t buf[6];
+
+	if(HAL_I2C_Mem_Read(&hi2c1, MPU6000_ADDR, 0x3B, 1, buf, 6, HAL_MAX_DELAY) != HAL_OK)
+	{
+		return 1;
+	}
+
+	*ax = (int16_t)((buf[0] << 8) | buf[1]);
+	*ay = (int16_t)((buf[2] << 8) | buf[3]);
+	*az = (int16_t)((buf[4] << 8) | buf[5]);
+
+	return 0;
+
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -509,6 +530,16 @@ int main(void)
 	 l6470_enable(&motor_set_1);
 	 l6470_enable(&motor_set_2);
 
+	 uint8_t retVal = initializeIMU();
+	 if(retVal == HAL_OK)
+	 {
+		 printf("IMU initialized!\n\r");
+	 }
+	 else
+	 {
+		 printf("IMU FAILED to initialize, retVal: %d\n\r", retVal);
+	 }
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -518,7 +549,16 @@ int main(void)
 
 	  //////////////////////////////////////////////////////////////////////
 
+	  if(IMU_ReadAccel(&ax, &ay, &az) == 0)
+	  {
+		  float xg = ax / 16384.0f;
+		  float yg = ay / 16384.0f;
+		  float zg = az / 16384.0f;
 
+		  printf("AX: %.2f, AY: %.2f, AZ %.2f\n\r", xg, yg, zg);
+
+		  HAL_Delay(50);
+	  }
 
 
 
