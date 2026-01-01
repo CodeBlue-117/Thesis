@@ -140,8 +140,8 @@ const float J[3][3] 	= {{-1, 0.5, 0.5}, {0, 0.866, -0.866}, {-0.333, -0.333, -0.
 const float J_Inv[3][3] = {{0.667, 0, 1}, {-0.333, 0.577, 1}, {-0.333, -0.577, 1}};
 
 // FIltered X,Y POT values TODO: Remove these until tested
-static float potX_filt = 0.0f;
-static float potY_filt = 0.0f;
+//static float potX_filt = 0.0f;
+//static float potY_filt = 0.0f;
 
 uint16_t adc_buffer[2];  						// NOTE: adc_buffer[0] = Z-X pot, adc_buffer[1] = Z-Y pot
 int16_t ax, ay, az;  							// IMU variables
@@ -541,21 +541,21 @@ int main(void)
 
 	  //////////////////////////////////////////////////////////////////////
 
-	  if(IMU_ReadAccel(&ax, &ay, &az) == 0)
-	  {
-		  float xg = ax / 16384.0f;
-		  float yg = ay / 16384.0f;
-		  float zg = az / 16384.0f;
-
-		  printf("AX: %.2f, AY: %.2f, AZ %.2f\n\r", xg, yg, zg);
-
-		  HAL_Delay(50);
-	  }
+//	  if(IMU_ReadAccel(&ax, &ay, &az) == 0)
+//	  {
+//		  float xg = ax / 16384.0f;
+//		  float yg = ay / 16384.0f;
+//		  float zg = az / 16384.0f;
+//
+//		  printf("AX: %.2f, AY: %.2f, AZ %.2f\n\r", xg, yg, zg);
+//
+//		  HAL_Delay(50);
+//	  }
 
 	  /////////////////////////////////////////////////////////////////////
-
-//	  static uint32_t lastTick = 0;
-//	  uint32_t nowTick = HAL_GetTick();
+//
+//	  static float lastTick = 0.0f;
+//	  uint32_t nowTick = HAL_GetTick(); // TODO: Should we change nowTick to a float?
 //	  float dt;
 //
 //	  if(lastTick == 0)
@@ -573,38 +573,41 @@ int main(void)
 //	  }
 //
 //	  lastTick = nowTick;
-//
-//	  if(stopNow)
-//	  {
-//
-//		  stopNow = false;
-//
-//			l6470_soft_stop(&motor_set_1);
-//			l6470_soft_stop(&motor_set_2);
-//
-//			l6470_disable(&motor_set_1);
-//			l6470_disable(&motor_set_2);
-//
-//	  }
-//
-//	  if(buttonFlag == true)
-//	  {
-//
-//		  pot_Y_voltage = (3.3f * adc_buffer[0]) / 4095.0f; // Y - axis (forward/backward) angle
-//		  pot_X_voltage = (3.3f * adc_buffer[1]) / 4095.0f; // X -Axis (Left/Right) angle
-//
-//		  // printf("BEFORE: Z-X: %.2f V\n\r", pot_X_voltage);
-//		  // printf("BEFORE: Z-Y: %.2f V\n\r", pot_Y_voltage);
-//
-//		  // update_pot_filter(pot_X_voltage, pot_Y_voltage, dt); // TODO: REPLACE ALL INSTANCES OF potX_filt and potY_filt with pot_X_voltage, pot_Y_voltage
-//
-//		  // printf("AFTER: Z-X: %.2f V\n\r", potX_filt);
-//		  // printf("AFTER: Z-Y: %.2f V\n\r", potY_filt);
-//
-//		  // Parse X and Y voltages and convert them to angles asymmetrically, then to x,y values, then to Vx, Vy valuse
-//		  myControlVariables.curThetaX = mapVoltageToAngle(potX_filt, X_MIN_V, X_MAX_V);
-//		  myControlVariables.curThetaY = mapVoltageToAngle(potY_filt, Y_MIN_V, Y_MAX_V);
-//
+
+	  if(stopNow)
+	  {
+
+		  stopNow = false;
+
+			l6470_soft_stop(&motor_set_1);
+			l6470_soft_stop(&motor_set_2);
+
+			l6470_disable(&motor_set_1);
+			l6470_disable(&motor_set_2);
+
+	  }
+
+	  if(buttonFlag == true)
+	  {
+
+		  pot_Y_voltage = (3.3f * adc_buffer[0]) / 4095.0f; // Y - axis (forward/backward) angle
+		  pot_X_voltage = (3.3f * adc_buffer[1]) / 4095.0f; // X -Axis (Left/Right) angle
+
+		   printf("(VALOTAGE): Z-X: %.2f V\n\r", pot_X_voltage);
+		   printf("(VOLTAGE): Z-Y: %.2f V\n\r", pot_Y_voltage);
+
+		  // update_pot_filter(pot_X_voltage, pot_Y_voltage, dt); // TODO: REPLACE ALL INSTANCES OF potX_filt and potY_filt with pot_X_voltage, pot_Y_voltage
+
+		  // printf("AFTER: Z-X: %.2f V\n\r", potX_filt);
+		  // printf("AFTER: Z-Y: %.2f V\n\r", potY_filt);
+
+		  // Parse X and Y voltages and convert them to angles asymmetrically, then to x,y values, then to Vx, Vy valuse
+		  myControlVariables.curThetaX = mapVoltageToAngle(pot_X_voltage, X_MIN_V, X_MAX_V);
+		  myControlVariables.curThetaY = mapVoltageToAngle(pot_Y_voltage, Y_MIN_V, Y_MAX_V);
+
+		   printf("(ANGLE): Z-X: %.2f V\n\r", myControlVariables.curThetaX);
+		   printf("(ANGLE): Z-Y: %.2f V\n\r", myControlVariables.curThetaY);
+
 //		  // Deadband
 //		  if(fabs(myControlVariables.curThetaX) < DEADBAND) // TODO: Tune the deadband
 //		  {
@@ -659,7 +662,7 @@ int main(void)
 //
 //		  myControlVariables.prevCommandedCartVelocityX = myControlVariables.curCommandedCartVelocityX;
 //		  myControlVariables.prevCommandedCartVelocityY = myControlVariables.curCommandedCartVelocityY;
-//	  }
+	  }
 
     /* USER CODE END WHILE */
 
