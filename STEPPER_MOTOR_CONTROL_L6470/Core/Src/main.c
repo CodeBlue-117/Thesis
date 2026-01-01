@@ -18,11 +18,8 @@
 
 // MASTER TODO:
 
-// TODO: Begin developing control system
-// TODO: Configure software to read IMU data
 // TODO: Reduce delay to minimum in l6470_transmit_spi
 // TODO: Test F/B/L/R with different accelerations
-// TODO: Combine Acceleration and omni direction functions
 // TODO: Implement DMA
 
 
@@ -67,9 +64,17 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define DEBOUNCE_DELAY 200  // 50ms debounce time
+#define MPU6000_ADDR 		(0x68 << 1) // 0xD0
+#define PWR_MGMT_REG_1		(0x6B)
+#define SIGNAL_PATH_REG 	(0x68)
+#define CONFIG_REG			(0x1A)
+#define ACCEL_CONFIG_REG	(0x1C)
+#define DEBOUNCE_DELAY 	200  // 50ms debounce time
+#define DEFAULT_DT	  	0.003f
 
-// TODO: Tune these
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// TODO: Tune these PID parameters
 #define K_P_X 50.0f // Proportional constant for x-dir
 #define K_P_Y 50.0f // proportional constant for y-dir
 #define K_I_X 0.05f // 0.01f // Integral constant for x-dir
@@ -77,31 +82,27 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 #define K_D_X 0.5f  // 5.0f
 #define K_D_Y 0.5f  // 5.0f
 
-#define DEFAULT_DT	  0.003f
-
+// TODO: Increase the MAX VEL
 #define MAX_CART_VEL 	0.5f // 0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)
 #define MIN_CART_VEL 	-0.5f //-0.9f
 
+// Tune the max integral???
 #define MAX_INTEGRAL  	5.0f // anti-windup cap on integral, tune
 #define MIN_INTEGRAL 	-5.0f
 
+// TODO: Remove input POT filter until tested -> Model filter with random data and see what the output is.
 #define POT_FC_HZ	  	15.0f // TODO: Tune this
 
-#define DEADBAND 	  	(0.25f * M_PI/180.0f)  // 1 degree for the dead band (no integral) // TODO: TUNE
+// TODO: TUNE the DEADBAND
+#define DEADBAND 	  	(0.25f * M_PI/180.0f)  // 0.5 degree for the dead band (no integral)
 
-#define MPU6000_ADDR 		(0x68 << 1) // 0xD0
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define PWR_MGMT_REG_1		(0x6B)
-#define SIGNAL_PATH_REG 	(0x68)
-#define CONFIG_REG			(0x1A)
-#define ACCEL_CONFIG_REG	(0x1C)
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
-
-
 
 /* USER CODE END PM */
 
@@ -125,29 +126,27 @@ UART_HandleTypeDef huart2;
 
 static uint32_t currentTime;  					// Get current system time
 static uint32_t lastPressTime 		= 0; 		// Debounce for GPIO pushbutton
-static bool buttonFlag 				= false;
+static bool buttonFlag 				= false;	// flag to START motors on button press interrupt
+static bool stopNow 				= false;	// flag to SHUT OFF motors on button press interrupt
+static bool prepareStop 			= false;	// Debounce for shutoff stopNow
 
 float vel_temp_1[2];							// motor 2, 3
 float vel_temp_2[2];							// motor 1 (second element, had to troubleshoot)
+float pot_Y_voltage 				= 0.0f;     // Y POT VOLTAGE
+float pot_X_voltage 				= 0.0f;		// X POT VOLTAGE
 
-float pot_Y_voltage 				= 0.0f;
-float pot_X_voltage 				= 0.0f;
-
+// JACOBIAN and INVERSE JACOBIAN for the transformation matrix mapping x and y to the three wheels (pi / 3) [120 deg] offset
 const float J[3][3] 	= {{-1, 0.5, 0.5}, {0, 0.866, -0.866}, {-0.333, -0.333, -0.333}};
 const float J_Inv[3][3] = {{0.667, 0, 1}, {-0.333, 0.577, 1}, {-0.333, -0.577, 1}};
 
-static bool stopNow 				= false;
-static bool prepareStop 			= false;
+// FIltered X,Y POT values TODO: Remove these until tested
+static float potX_filt = 0.0f;
+static float potY_filt = 0.0f;
 
-/////////////////////////////////////////////////////////
-// IMU variables
-int16_t ax, ay, az;
+uint16_t adc_buffer[2];  						// NOTE: adc_buffer[0] = Z-X pot, adc_buffer[1] = Z-Y pot
+int16_t ax, ay, az;  							// IMU variables
 
-
-////////////////////////////////////////////////////////////////////////////////////////////
-// Control System Variables
-
-typedef struct controlVariables
+typedef struct controlVariables 				// PID Control System Variables
 {
 	float prevCommandedCartVelocityX;
 	float prevCommandedCartVelocityY;
@@ -175,13 +174,6 @@ typedef struct controlVariables
 } controlVariables;
 
 controlVariables myControlVariables = {0};
-
-static float potX_filt = 0.0f;
-static float potY_filt = 0.0f;
-
-////////////////////////////////////////////////////////////////////////////////////////////
-
-uint16_t adc_buffer[2];  						// adc_buffer[0] = Z-X pot, adc_buffer[1] = Z-Y pot
 
 MotorSetTypedef motor_set_1 = { // TODO: Finish initializing the structs
 
@@ -262,26 +254,26 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef * hspi)
 	}
 }
 
-static inline void update_pot_filter(float rawX, float rawY, float dt)
-{
-
-	// Computer alpha from cutoff
-	float tau = 1.0f / (2.0 * M_PI * POT_FC_HZ);
-	float alpha = dt / (tau + dt);
-
-	// First time filter initialization (no sudden jump)
-	static bool initialized = false;
-	if(!initialized)
-	{
-		potX_filt = rawX;
-		potY_filt = rawY;
-		initialized = true;
-	}
-
-	// exponential smoothing
-	potX_filt += alpha * (rawX - potX_filt);
-	potY_filt += alpha * (rawY - potY_filt);
-}
+//static inline void update_pot_filter(float rawX, float rawY, float dt)
+//{
+//
+//	// Computer alpha from cutoff
+//	float tau = 1.0f / (2.0 * M_PI * POT_FC_HZ);
+//	float alpha = dt / (tau + dt);
+//
+//	// First time filter initialization (no sudden jump)
+//	static bool initialized = false;
+//	if(!initialized)
+//	{
+//		potX_filt = rawX;
+//		potY_filt = rawY;
+//		initialized = true;
+//	}
+//
+//	// exponential smoothing
+//	potX_filt += alpha * (rawX - potX_filt);
+//	potY_filt += alpha * (rawY - potY_filt);
+//}
 
 // TODO: Verify these delays are required
 void omni_drive(float Vx, float Vy, float omega)
@@ -560,9 +552,6 @@ int main(void)
 		  HAL_Delay(50);
 	  }
 
-
-
-
 	  /////////////////////////////////////////////////////////////////////
 
 //	  static uint32_t lastTick = 0;
@@ -607,7 +596,7 @@ int main(void)
 //		  // printf("BEFORE: Z-X: %.2f V\n\r", pot_X_voltage);
 //		  // printf("BEFORE: Z-Y: %.2f V\n\r", pot_Y_voltage);
 //
-//		  update_pot_filter(pot_X_voltage, pot_Y_voltage, dt);
+//		  // update_pot_filter(pot_X_voltage, pot_Y_voltage, dt); // TODO: REPLACE ALL INSTANCES OF potX_filt and potY_filt with pot_X_voltage, pot_Y_voltage
 //
 //		  // printf("AFTER: Z-X: %.2f V\n\r", potX_filt);
 //		  // printf("AFTER: Z-Y: %.2f V\n\r", potY_filt);
@@ -657,6 +646,7 @@ int main(void)
 //		  if (myControlVariables.curCommandedCartVelocityY > MAX_CART_VEL) myControlVariables.curCommandedCartVelocityY = MAX_CART_VEL;
 //		  if (myControlVariables.curCommandedCartVelocityY < MIN_CART_VEL) myControlVariables.curCommandedCartVelocityY = MIN_CART_VEL;
 //
+//        // Send Commands to Motors
 //		  omni_drive(myControlVariables.curCommandedCartVelocityX, myControlVariables.curCommandedCartVelocityY, 0.0f);
 //
 //		  // Update previous values
@@ -669,10 +659,6 @@ int main(void)
 //
 //		  myControlVariables.prevCommandedCartVelocityX = myControlVariables.curCommandedCartVelocityX;
 //		  myControlVariables.prevCommandedCartVelocityY = myControlVariables.curCommandedCartVelocityY;
-//
-//////		  HAL_Delay(50);
-//
-//
 //	  }
 
     /* USER CODE END WHILE */

@@ -285,20 +285,14 @@ void l6470_init_chip_2(MotorSetTypedef* stepper_motor)
 void l6470_transmit_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t data_length)
 {
 
-	// TODO: Find the minimum delay necessary for this function to work
 	uint8_t receive_data[data_length]; // NOT USED
 
 	for (int i = 0; i < 4 * stepper_motor->num_motors; i+=2)
 	{
 
-		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
-		// HAL_Delay(1);
-
-		HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, &data[i], receive_data, 2, 1000);
-
-		// HAL_Delay(1);
-		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
-		// HAL_Delay(1);
+		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET); // Pull CS Low
+		HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, &data[i], receive_data, 2, 1000);		// Send Data
+		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);	// Pull CS High
 
 	}
 
@@ -626,7 +620,6 @@ void l6470_get_status(MotorSetTypedef* stepper_motor, uint16_t* m1_status, uint1
 
 }
 
-//////////////////////////
 
 void l6470_dump_params_chip1(MotorSetTypedef* stepper_motor)
 {
@@ -719,7 +712,6 @@ void l6470_dump_params_chip1(MotorSetTypedef* stepper_motor)
     printf("\n\r");
 }
 
-///////////
 
 void l6470_dump_params_chip2(MotorSetTypedef* stepper_motor)
 {
@@ -811,9 +803,5 @@ void l6470_dump_params_chip2(MotorSetTypedef* stepper_motor)
     l6470_get_param_chip_2(stepper_motor, ADC_OUT, L6470_LEN1);
     printf("\n\r");
 }
-
-
-////////////////////////////////////////////
-
 
 
