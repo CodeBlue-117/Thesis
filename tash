@@ -1,0 +1,439 @@
+[1mdiff --git a/STEPPER_MOTOR_CONTROL_L6470/Core/Src/main.c b/STEPPER_MOTOR_CONTROL_L6470/Core/Src/main.c[m
+[1mindex c7c512b..fb4b5ae 100644[m
+[1m--- a/STEPPER_MOTOR_CONTROL_L6470/Core/Src/main.c[m
+[1m+++ b/STEPPER_MOTOR_CONTROL_L6470/Core/Src/main.c[m
+[36m@@ -202,6 +202,336 @@[m [mMotorSetTypedef motor_set_2 = {[m
+ };[m
+ [m
+ [m
+[32m+[m[32m/* USER CODE END PV */[m
+[32m+[m
+[32m+[m[32m/* Private function prototypes -----------------------------------------------*/[m
+[32m+[m[32mvoid SystemClock_Config(void);[m
+[32m+[m[32mstatic void MX_GPIO_Init(void);[m
+[32m+[m[32mstatic void MX_DMA_Init(void);[m
+[32m+[m[32mstatic void MX_SPI1_Init(void);[m
+[32m+[m[32mstatic void MX_SPI2_Init(void);[m
+[32m+[m[32mstatic void MX_USART2_UART_Init(void);[m
+[32m+[m[32mstatic void MX_ADC1_Init(void);[m
+[32m+[m[32mstatic void MX_USART1_UART_Init(void);[m
+[32m+[m[32mstatic void MX_I2C1_Init(void);[m
+[32m+[m[32m/* USER CODE BEGIN PFP */[m
+[32m+[m[32mvoid forward_motion(void);[m
+[32m+[m[32mvoid backward_motion(void);[m
+[32m+[m[32mvoid left_motion(void);[m
+[32m+[m[32mvoid right_motion(void);[m
+[32m+[m[32mvoid l6470_get_param_chip_1(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t length);[m
+[32m+[m[32mvoid l6470_get_param_chip_2(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t length);[m
+[32m+[m[32mvoid l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);[m
+[32m+[m
+[32m+[m
+[32m+[m[32m/* USER CODE END PTD */[m
+[32m+[m
+[32m+[m[32m/* Private define ------------------------------------------------------------*/[m
+[32m+[m[32m/* USER CODE BEGIN PD */[m
+[32m+[m
+[32m+[m[32m#define MPU6000_ADDR 		(0x68 << 1) // 0xD0[m
+[32m+[m[32m#define PWR_MGMT_REG_1		(0x6B)[m
+[32m+[m[32m#define SIGNAL_PATH_REG 	(0x68)[m
+[32m+[m[32m#define CONFIG_REG			(0x1A)[m
+[32m+[m[32m#define ACCEL_CONFIG_REG	(0x1C)[m
+[32m+[m[32m#define DEBOUNCE_DELAY 	200  // 50ms debounce time[m
+[32m+[m[32m#define DEFAULT_DT	  	0.003f[m
+[32m+[m
+[32m+[m[32m//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////[m
+[32m+[m
+[32m+[m[32m// TODO: Tune these PID parameters[m
+[32m+[m[32m#define K_P_X 50.0f // Proportional constant for x-dir[m
+[32m+[m[32m#define K_P_Y 50.0f // proportional constant for y-dir[m
+[32m+[m[32m#define K_I_X 0.05f // 0.01f // Integral constant for x-dir[m
+[32m+[m[32m#define K_I_Y 0.05f //0.01f // Integral constant for y-dir[m
+[32m+[m[32m#define K_D_X 0.5f  // 5.0f[m
+[32m+[m[32m#define K_D_Y 0.5f  // 5.0f[m
+[32m+[m
+[32m+[m[32m// TODO: Increase the MAX VEL[m
+[32m+[m[32m#define MAX_CART_VEL 	0.5f // 0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)[m
+[32m+[m[32m#define MIN_CART_VEL 	-0.5f //-0.9f[m
+[32m+[m
+[32m+[m[32m// Tune the max integral???[m
+[32m+[m[32m#define MAX_INTEGRAL  	5.0f // anti-windup cap on integral, tune[m
+[32m+[m[32m#define MIN_INTEGRAL 	-5.0f[m
+[32m+[m
+[32m+[m[32m// TODO: Remove input POT filter until tested -> Model filter with random data and see what the output is.[m
+[32m+[m[32m#define POT_FC_HZ	  	15.0f // TODO: Tune this[m
+[32m+[m
+[32m+[m[32m// TODO: TUNE the DEADBAND[m
+[32m+[m[32m#define DEADBAND 	  	(0.25f * M_PI/180.0f)  // 0.5 degree for the dead band (no integral)[m
+[32m+[m
+[32m+[m[32m///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////[m
+[32m+[m
+[32m+[m
+[32m+[m[32m/* USER CODE END PD */[m
+[32m+[m
+[32m+[m[32m/* Private macro -------------------------------------------------------------*/[m
+[32m+[m[32m/* USER CODE BEGIN PM */[m
+[32m+[m
+[32m+[m[32m/* USER CODE END PM */[m
+[32m+[m
+[32m+[m[32m/* Private variables ---------------------------------------------------------*/[m
+[32m+[m[32mADC_HandleTypeDef hadc1;[m
+[32m+[m[32mDMA_HandleTypeDef hdma_adc1;[m
+[32m+[m
+[32m+[m[32mI2C_HandleTypeDef hi2c1;[m
+[32m+[m
+[32m+[m[32mSPI_HandleTypeDef hspi1;[m
+[32m+[m[32mSPI_HandleTypeDef hspi2;[m
+[32m+[m[32mDMA_HandleTypeDef hdma_spi1_rx;[m
+[32m+[m[32mDMA_HandleTypeDef hdma_spi1_tx;[m
+[32m+[m[32mDMA_HandleTypeDef hdma_spi2_rx;[m
+[32m+[m[32mDMA_HandleTypeDef hdma_spi2_tx;[m
+[32m+[m
+[32m+[m[32mUART_HandleTypeDef huart1;[m
+[32m+[m[32mUART_HandleTypeDef huart2;[m
+[32m+[m
+[32m+[m[32m/* USER CODE BEGIN PV */[m
+[32m+[m
+[32m+[m[32mstatic uint32_t currentTime;  					// Get current system time[m
+[32m+[m[32mstatic uint32_t lastPressTime 		= 0; 		// Debounce for GPIO pushbutton[m
+[32m+[m[32mstatic bool buttonFlag 				= false;	// flag to START motors on button press interrupt[m
+[32m+[m[32mstatic bool stopNow 				= false;	// flag to SHUT OFF motors on button press interrupt[m
+[32m+[m[32mstatic bool prepareStop 			= false;	// Debounce for shutoff stopNow[m
+[32m+[m
+[32m+[m[32mfloat vel_temp_1[2];							// motor 2, 3[m
+[32m+[m[32mfloat vel_temp_2[2];							// motor 1 (second element, had to troubleshoot)[m
+[32m+[m[32mfloat pot_Y_voltage 				= 0.0f;     // Y POT VOLTAGE[m
+[32m+[m[32mfloat pot_X_voltage 				= 0.0f;		// X POT VOLTAGE[m
+[32m+[m
+[32m+[m[32m// JACOBIAN and INVERSE JACOBIAN for the transformation matrix mapping x and y to the three wheels (pi / 3) [120 deg] offset[m
+[32m+[m[32mconst float J[3][3] 	= {{-1, 0.5, 0.5}, {0, 0.866, -0.866}, {-0.333, -0.333, -0.333}};[m
+[32m+[m[32mconst float J_Inv[3][3] = {{0.667, 0, 1}, {-0.333, 0.577, 1}, {-0.333, -0.577, 1}};[m
+[32m+[m
+[32m+[m[32m// FIltered X,Y POT values TODO: Remove these until tested[m
+[32m+[m[32m//static float potX_filt = 0.0f;[m
+[32m+[m[32m//static float potY_filt = 0.0f;[m
+[32m+[m
+[32m+[m[32muint16_t adc_buffer[2];  						// NOTE: adc_buffer[0] = Z-X pot, adc_buffer[1] = Z-Y pot[m
+[32m+[m[32mint16_t ax, ay, az;  							// IMU variables[m
+[32m+[m
+[32m+[m[32mtypedef struct controlVariables 				// PID Control System Variables[m
+[32m+[m[32m{[m
+[32m+[m	[32mfloat prevCommandedCartVelocityX;[m
+[32m+[m	[32mfloat prevCommandedCartVelocityY;[m
+[32m+[m
+[32m+[m	[32mfloat curCommandedCartVelocityX;[m
+[32m+[m	[32mfloat curCommandedCartVelocityY;[m
+[32m+[m
+[32m+[m	[32mfloat prevThetaX;[m
+[32m+[m	[32mfloat prevThetaY;[m
+[32m+[m
+[32m+[m	[32mfloat curThetaX;[m
+[32m+[m	[32mfloat curThetaY;[m
+[32m+[m
+[32m+[m	[32m// Can also include Theta_dotX/Y for Derivative control[m
+[32m+[m
+[32m+[m	[32mfloat prevInputU_X;[m
+[32m+[m	[32mfloat prevInputU_Y;[m
+[32m+[m
+[32m+[m	[32mfloat curInputU_X;[m
+[32m+[m	[32mfloat curInputU_Y;[m
+[32m+[m
+[32m+[m	[32mfloat integralX;[m
+[32m+[m	[32mfloat integralY;[m
+[32m+[m
+[32m+[m[32m} controlVariables;[m
+[32m+[m
+[32m+[m[32mcontrolVariables myControlVariables = {0};[m
+[32m+[m
+[32m+[m[32mMotorSetTypedef motor_set_1 = { // TODO: Finish initializing the structs[m
+[32m+[m
+[32m+[m		[32m.identifier     = 1,[m
+[32m+[m		[32m.gpio_rst_port  = STEPPER_RST_GPIO_Port,[m
+[32m+[m		[32m.gpio_rst_pin 	= STEPPER_RST_Pin,[m
+[32m+[m		[32m.gpio_cs_port 	= STEPPER_SPI1_CS_GPIO_Port,[m
+[32m+[m		[32m.gpio_cs_pin 	= STEPPER_SPI1_CS_Pin,[m
+[32m+[m		[32m.hspi_l6470 	= &hspi1,[m
+[32m+[m		[32m.num_motors 	= 2,[m
+[32m+[m		[32m.spi_dma_busy 	= 0,[m
+[32m+[m
+[32m+[m[32m};[m
+[32m+[m
+[32m+[m[32mMotorSetTypedef motor_set_2 = {[m
+[32m+[m
+[32m+[m		[32m.identifier     = 2,[m
+[32m+[m		[32m.gpio_rst_port 	= STEPPER_RST_GPIO_Port,[m
+[32m+[m		[32m.gpio_rst_pin 	= STEPPER_RST_Pin,[m
+[32m+[m		[32m.gpio_cs_port 	= STEPPER_SPI2_CS_GPIO_Port,[m
+[32m+[m		[32m.gpio_cs_pin 	= STEPPER_SPI2_CS_Pin,[m
+[32m+[m		[32m.hspi_l6470 	= &hspi2,[m
+[32m+[m		[32m.num_motors		= 2, // This has to be two in order to get the motor 1 to work[m
+[32m+[m		[32m.spi_dma_busy 	= 0,[m
+[32m+[m
+[32m+[m[32m};[m
+[32m+[m
+[32m+[m
+[32m+[m[32m/* USER CODE END PV */[m
+[32m+[m
+[32m+[m[32m/* Private function prototypes -----------------------------------------------*/[m
+[32m+[m[32mvoid SystemClock_Config(void);[m
+[32m+[m[32mstatic void MX_GPIO_Init(void);[m
+[32m+[m[32mstatic void MX_DMA_Init(void);[m
+[32m+[m[32mstatic void MX_SPI1_Init(void);[m
+[32m+[m[32mstatic void MX_SPI2_Init(void);[m
+[32m+[m[32mstatic void MX_USART2_UART_Init(void);[m
+[32m+[m[32mstatic void MX_ADC1_Init(void);[m
+[32m+[m[32mstatic void MX_USART1_UART_Init(void);[m
+[32m+[m[32mstatic void MX_I2C1_Init(void);[m
+[32m+[m[32m/* USER CODE BEGIN PFP */[m
+[32m+[m[32mvoid forward_motion(void);[m
+[32m+[m[32mvoid backward_motion(void);[m
+[32m+[m[32mvoid left_motion(void);[m
+[32m+[m[32mvoid right_motion(void);[m
+[32m+[m[32mvoid l6470_get_param_chip_1(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t length);[m
+[32m+[m[32mvoid l6470_get_param_chip_2(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t length);[m
+[32m+[m[32mvoid l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);[m
+[32m+[m
+[32m+[m
+[32m+[m[32m/* USER CODE END PTD */[m
+[32m+[m
+[32m+[m[32m/* Private define ------------------------------------------------------------*/[m
+[32m+[m[32m/* USER CODE BEGIN PD */[m
+[32m+[m
+[32m+[m[32m#define MPU6000_ADDR 		(0x68 << 1) // 0xD0[m
+[32m+[m[32m#define PWR_MGMT_REG_1		(0x6B)[m
+[32m+[m[32m#define SIGNAL_PATH_REG 	(0x68)[m
+[32m+[m[32m#define CONFIG_REG			(0x1A)[m
+[32m+[m[32m#define ACCEL_CONFIG_REG	(0x1C)[m
+[32m+[m[32m#define DEBOUNCE_DELAY 	200  // 50ms debounce time[m
+[32m+[m[32m#define DEFAULT_DT	  	0.003f[m
+[32m+[m
+[32m+[m[32m//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////[m
+[32m+[m
+[32m+[m[32m// TODO: Tune these PID parameters[m
+[32m+[m[32m#define K_P_X 50.0f // Proportional constant for x-dir[m
+[32m+[m[32m#define K_P_Y 50.0f // proportional constant for y-dir[m
+[32m+[m[32m#define K_I_X 0.05f // 0.01f // Integral constant for x-dir[m
+[32m+[m[32m#define K_I_Y 0.05f //0.01f // Integral constant for y-dir[m
+[32m+[m[32m#define K_D_X 0.5f  // 5.0f[m
+[32m+[m[32m#define K_D_Y 0.5f  // 5.0f[m
+[32m+[m
+[32m+[m[32m// TODO: Increase the MAX VEL[m
+[32m+[m[32m#define MAX_CART_VEL 	0.5f // 0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)[m
+[32m+[m[32m#define MIN_CART_VEL 	-0.5f //-0.9f[m
+[32m+[m
+[32m+[m[32m// Tune the max integral???[m
+[32m+[m[32m#define MAX_INTEGRAL  	5.0f // anti-windup cap on integral, tune[m
+[32m+[m[32m#define MIN_INTEGRAL 	-5.0f[m
+[32m+[m
+[32m+[m[32m// TODO: Remove input POT filter until tested -> Model filter with random data and see what the output is.[m
+[32m+[m[32m#define POT_FC_HZ	  	15.0f // TODO: Tune this[m
+[32m+[m
+[32m+[m[32m// TODO: TUNE the DEADBAND[m
+[32m+[m[32m#define DEADBAND 	  	(0.25f * M_PI/180.0f)  // 0.5 degree for the dead band (no integral)[m
+[32m+[m
+[32m+[m[32m///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////[m
+[32m+[m
+[32m+[m
+[32m+[m[32m/* USER CODE END PD */[m
+[32m+[m
+[32m+[m[32m/* Private macro -------------------------------------------------------------*/[m
+[32m+[m[32m/* USER CODE BEGIN PM */[m
+[32m+[m
+[32m+[m[32m/* USER CODE END PM */[m
+[32m+[m
+[32m+[m[32m/* Private variables ---------------------------------------------------------*/[m
+[32m+[m[32mADC_HandleTypeDef hadc1;[m
+[32m+[m[32mDMA_HandleTypeDef hdma_adc1;[m
+[32m+[m
+[32m+[m[32mI2C_HandleTypeDef hi2c1;[m
+[32m+[m
+[32m+[m[32mSPI_HandleTypeDef hspi1;[m
+[32m+[m[32mSPI_HandleTypeDef hspi2;[m
+[32m+[m[32mDMA_HandleTypeDef hdma_spi1_rx;[m
+[32m+[m[32mDMA_HandleTypeDef hdma_spi1_tx;[m
+[32m+[m[32mDMA_HandleTypeDef hdma_spi2_rx;[m
+[32m+[m[32mDMA_HandleTypeDef hdma_spi2_tx;[m
+[32m+[m
+[32m+[m[32mUART_HandleTypeDef huart1;[m
+[32m+[m[32mUART_HandleTypeDef huart2;[m
+[32m+[m
+[32m+[m[32m/* USER CODE BEGIN PV */[m
+[32m+[m
+[32m+[m[32mstatic uint32_t currentTime;  					// Get current system time[m
+[32m+[m[32mstatic uint32_t lastPressTime 		= 0; 		// Debounce for GPIO pushbutton[m
+[32m+[m[32mstatic bool buttonFlag 				= false;	// flag to START motors on button press interrupt[m
+[32m+[m[32mstatic bool stopNow 				= false;	// flag to SHUT OFF motors on button press interrupt[m
+[32m+[m[32mstatic bool prepareStop 			= false;	// Debounce for shutoff stopNow[m
+[32m+[m
+[32m+[m[32mfloat vel_temp_1[2];							// motor 2, 3[m
+[32m+[m[32mfloat vel_temp_2[2];							// motor 1 (second element, had to troubleshoot)[m
+[32m+[m[32mfloat pot_Y_voltage 				= 0.0f;     // Y POT VOLTAGE[m
+[32m+[m[32mfloat pot_X_voltage 				= 0.0f;		// X POT VOLTAGE[m
+[32m+[m
+[32m+[m[32m// JACOBIAN and INVERSE JACOBIAN for the transformation matrix mapping x and y to the three wheels (pi / 3) [120 deg] offset[m
+[32m+[m[32mconst float J[3][3] 	= {{-1, 0.5, 0.5}, {0, 0.866, -0.866}, {-0.333, -0.333, -0.333}};[m
+[32m+[m[32mconst float J_Inv[3][3] = {{0.667, 0, 1}, {-0.333, 0.577, 1}, {-0.333, -0.577, 1}};[m
+[32m+[m
+[32m+[m[32m// FIltered X,Y POT values TODO: Remove these until tested[m
+[32m+[m[32m//static float potX_filt = 0.0f;[m
+[32m+[m[32m//static float potY_filt = 0.0f;[m
+[32m+[m
+[32m+[m[32muint16_t adc_buffer[2];  						// NOTE: adc_buffer[0] = Z-X pot, adc_buffer[1] = Z-Y pot[m
+[32m+[m[32mint16_t ax, ay, az;  							// IMU variables[m
+[32m+[m
+[32m+[m[32mtypedef struct controlVariables 				// PID Control System Variables[m
+[32m+[m[32m{[m
+[32m+[m	[32mfloat prevCommandedCartVelocityX;[m
+[32m+[m	[32mfloat prevCommandedCartVelocityY;[m
+[32m+[m
+[32m+[m	[32mfloat curCommandedCartVelocityX;[m
+[32m+[m	[32mfloat curCommandedCartVelocityY;[m
+[32m+[m
+[32m+[m	[32mfloat prevThetaX;[m
+[32m+[m	[32mfloat prevThetaY;[m
+[32m+[m
+[32m+[m	[32mfloat curThetaX;[m
+[32m+[m	[32mfloat curThetaY;[m
+[32m+[m
+[32m+[m	[32m// Can also include Theta_dotX/Y for Derivative control[m
+[32m+[m
+[32m+[m	[32mfloat prevInputU_X;[m
+[32m+[m	[32mfloat prevInputU_Y;[m
+[32m+[m
+[32m+[m	[32mfloat curInputU_X;[m
+[32m+[m	[32mfloat curInputU_Y;[m
+[32m+[m
+[32m+[m	[32mfloat integralX;[m
+[32m+[m	[32mfloat integralY;[m
+[32m+[m
+[32m+[m[32m} controlVariables;[m
+[32m+[m
+[32m+[m[32mcontrolVariables myControlVariables = {0};[m
+[32m+[m
+[32m+[m[32mMotorSetTypedef motor_set_1 = { // TODO: Finish initializing the structs[m
+[32m+[m
+[32m+[m		[32m.identifier     = 1,[m
+[32m+[m		[32m.gpio_rst_port  = STEPPER_RST_GPIO_Port,[m
+[32m+[m		[32m.gpio_rst_pin 	= STEPPER_RST_Pin,[m
+[32m+[m		[32m.gpio_cs_port 	= STEPPER_SPI1_CS_GPIO_Port,[m
+[32m+[m		[32m.gpio_cs_pin 	= STEPPER_SPI1_CS_Pin,[m
+[32m+[m		[32m.hspi_l6470 	= &hspi1,[m
+[32m+[m		[32m.num_motors 	= 2,[m
+[32m+[m		[32m.spi_dma_busy 	= 0,[m
+[32m+[m
+[32m+[m[32m};[m
+[32m+[m
+[32m+[m[32mMotorSetTypedef motor_set_2 = {[m
+[32m+[m
+[32m+[m		[32m.identifier     = 2,[m
+[32m+[m		[32m.gpio_rst_port 	= STEPPER_RST_GPIO_Port,[m
+[32m+[m		[32m.gpio_rst_pin 	= STEPPER_RST_Pin,[m
+[32m+[m		[32m.gpio_cs_port 	= STEPPER_SPI2_CS_GPIO_Port,[m
+[32m+[m		[32m.gpio_cs_pin 	= STEPPER_SPI2_CS_Pin,[m
+[32m+[m		[32m.hspi_l6470 	= &hspi2,[m
+[32m+[m		[32m.num_motors		= 2, // This has to be two in order to get the motor 1 to work[m
+[32m+[m		[32m.spi_dma_busy 	= 0,[m
+[32m+[m
+[32m+[m[32m};[m
+[32m+[m
+[32m+[m
+ /* USER CODE END PV */[m
+ [m
+ /* Private function prototypes -----------------------------------------------*/[m
+[36m@@ -602,11 +932,11 @@[m [mint main(void)[m
+ 		  // printf("AFTER: Z-Y: %.2f V\n\r", potY_filt);[m
+ [m
+ 		  // Parse X and Y voltages and convert them to angles asymmetrically, then to x,y values, then to Vx, Vy valuse[m
+[31m-		  myControlVariables.curThetaX = mapVoltageToAngle(pot_X_voltage, X_MIN_V, X_MAX_V);[m
+[31m-		  myControlVariables.curThetaY = mapVoltageToAngle(pot_Y_voltage, Y_MIN_V, Y_MAX_V);[m
+[31m-[m
+[31m-		   printf("(ANGLE): Z-X: %.2f V\n\r", myControlVariables.curThetaX);[m
+[31m-		   printf("(ANGLE): Z-Y: %.2f V\n\r", myControlVariables.curThetaY);[m
+[32m+[m[32m//		  myControlVariables.curThetaX = mapVoltageToAngle(pot_X_voltage, X_MIN_V, X_MAX_V);[m
+[32m+[m[32m//		  myControlVariables.curThetaY = mapVoltageToAngle(pot_Y_voltage, Y_MIN_V, Y_MAX_V);[m
+[32m+[m[32m//[m
+[32m+[m[32m//		   printf("(ANGLE): Z-X: %.2f V\n\r", myControlVariables.curThetaX);[m
+[32m+[m[32m//		   printf("(ANGLE): Z-Y: %.2f V\n\r", myControlVariables.curThetaY);[m
+ [m
+ //		  // Deadband[m
+ //		  if(fabs(myControlVariables.curThetaX) < DEADBAND) // TODO: Tune the deadband[m
+[36m@@ -709,7 +1039,7 @@[m [mvoid SystemClock_Config(void)[m
+   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;[m
+   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;[m
+   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;[m
+[31m-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;[m
+[32m+[m[32m  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;[m
+ [m
+   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)[m
+   {[m
+[36m@@ -739,7 +1069,7 @@[m [mstatic void MX_ADC1_Init(void)[m
+   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)[m
+   */[m
+   hadc1.Instance = ADC1;[m
+[31m-  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;[m
+[32m+[m[32m  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;[m
+   hadc1.Init.Resolution = ADC_RESOLUTION_12B;[m
+   hadc1.Init.ScanConvMode = ENABLE;[m
+   hadc1.Init.ContinuousConvMode = ENABLE;[m
+[1mdiff --git a/STEPPER_MOTOR_CONTROL_L6470/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c b/STEPPER_MOTOR_CONTROL_L6470/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c[m
+[1mindex b90e59a..b3ce9bb 100644[m
+[1m--- a/STEPPER_MOTOR_CONTROL_L6470/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c[m
+[1m+++ b/STEPPER_MOTOR_CONTROL_L6470/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c[m
+[36m@@ -106,7 +106,7 @@[m
+ [m
+ /* Includes ------------------------------------------------------------------*/[m
+ #include "stm32f4xx_hal.h"[m
+[31m-#include "main.h"[m
+[32m+[m
+ /** @addtogroup STM32F4xx_HAL_Driver[m
+   * @{[m
+   */[m
+[1mdiff --git a/STEPPER_MOTOR_CONTROL_L6470/STEPPER_MOTOR_CONTROL_L6470.ioc b/STEPPER_MOTOR_CONTROL_L6470/STEPPER_MOTOR_CONTROL_L6470.ioc[m
+[1mindex 1b51239..9f222c4 100644[m
+[1m--- a/STEPPER_MOTOR_CONTROL_L6470/STEPPER_MOTOR_CONTROL_L6470.ioc[m
+[1m+++ b/STEPPER_MOTOR_CONTROL_L6470/STEPPER_MOTOR_CONTROL_L6470.ioc[m
+[36m@@ -268,6 +268,13 @@[m [mPC14-OSC32_IN.Locked=true[m
+ PC14-OSC32_IN.Signal=RCC_OSC32_IN[m
+ PC15-OSC32_OUT.Locked=true[m
+ PC15-OSC32_OUT.Signal=RCC_OSC32_OUT[m
+[32m+[m[32mPCC.Checker=false[m
+[32m+[m[32mPCC.Line=STM32F401[m
+[32m+[m[32mPCC.MCU=STM32F401R(D-E)Tx[m
+[32m+[m[32mPCC.PartNumber=STM32F401RETx[m
+[32m+[m[32mPCC.Series=STM32F4[m
+[32m+[m[32mPCC.Temperature=25[m
+[32m+[m[32mPCC.Vdd=3.3[m
+ PH0\ -\ OSC_IN.Locked=true[m
+ PH0\ -\ OSC_IN.Signal=RCC_OSC_IN[m
+ PH1\ -\ OSC_OUT.Locked=true[m
+[36m@@ -285,6 +292,7 @@[m [mProjectManager.DeletePrevious=true[m
+ ProjectManager.DeviceId=STM32F401RETx[m
+ ProjectManager.FirmwarePackage=STM32Cube FW_F4 V1.28.1[m
+ ProjectManager.FreePins=false[m
+[32m+[m[32mProjectManager.FreePinsContext=[m
+ ProjectManager.HalAssertFull=false[m
+ ProjectManager.HeapSize=0x200[m
+ ProjectManager.KeepUserCode=true[m
+[36m@@ -310,7 +318,8 @@[m [mRCC.AHBFreq_Value=80000000[m
+ RCC.APB1CLKDivider=RCC_HCLK_DIV2[m
+ RCC.APB1Freq_Value=40000000[m
+ RCC.APB1TimFreq_Value=80000000[m
+[31m-RCC.APB2Freq_Value=80000000[m
+[32m+[m[32mRCC.APB2CLKDivider=RCC_HCLK_DIV2[m
+[32m+[m[32mRCC.APB2Freq_Value=40000000[m
+ RCC.APB2TimFreq_Value=80000000[m
+ RCC.CortexFreq_Value=80000000[m
+ RCC.FCLKCortexFreq_Value=80000000[m
+[36m@@ -318,7 +327,7 @@[m [mRCC.HCLKFreq_Value=80000000[m
+ RCC.HSE_VALUE=8000000[m
+ RCC.HSI_VALUE=16000000[m
+ RCC.I2SClocksFreq_Value=96000000[m
+[31m-RCC.IPParameters=48MHZClocksFreq_Value,AHBFreq_Value,APB1CLKDivider,APB1Freq_Value,APB1TimFreq_Value,APB2Freq_Value,APB2TimFreq_Value,CortexFreq_Value,FCLKCortexFreq_Value,HCLKFreq_Value,HSE_VALUE,HSI_VALUE,I2SClocksFreq_Value,LSE_VALUE,LSI_VALUE,MCO2PinFreq_Value,PLLCLKFreq_Value,PLLN,PLLP,PLLQ,PLLQCLKFreq_Value,RTCFreq_Value,RTCHSEDivFreq_Value,SYSCLKFreq_VALUE,SYSCLKSource,VCOI2SOutputFreq_Value,VCOInputFreq_Value,VCOOutputFreq_Value,VcooutputI2S[m
+[32m+[m[32mRCC.IPParameters=48MHZClocksFreq_Value,AHBFreq_Value,APB1CLKDivider,APB1Freq_Value,APB1TimFreq_Value,APB2CLKDivider,APB2Freq_Value,APB2TimFreq_Value,CortexFreq_Value,FCLKCortexFreq_Value,HCLKFreq_Value,HSE_VALUE,HSI_VALUE,I2SClocksFreq_Value,LSE_VALUE,LSI_VALUE,MCO2PinFreq_Value,PLLCLKFreq_Value,PLLN,PLLP,PLLQ,PLLQCLKFreq_Value,RTCFreq_Value,RTCHSEDivFreq_Value,SYSCLKFreq_VALUE,SYSCLKSource,VCOI2SOutputFreq_Value,VCOInputFreq_Value,VCOOutputFreq_Value,VcooutputI2S[m
+ RCC.LSE_VALUE=32768[m
+ RCC.LSI_VALUE=32000[m
+ RCC.MCO2PinFreq_Value=80000000[m
+[36m@@ -365,4 +374,3 @@[m [mVP_SYS_VS_Systick.Mode=SysTick[m
+ VP_SYS_VS_Systick.Signal=SYS_VS_Systick[m
+ board=NUCLEO-F401RE[m
+ boardIOC=true[m
+[31m-isbadioc=false[m
