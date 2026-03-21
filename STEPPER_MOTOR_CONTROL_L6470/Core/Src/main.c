@@ -17,7 +17,7 @@
 // NOTE: 10 PI is the highest achievable speed with one motor (5rps)
 
 // MASTER TODO:
-
+// TODO: Change the SPI1 and SPI2 prescalers to 16 to give a 2.5MHZ clock signal to the IHM02A1's (MAX capability is 5MHZ on IHM02A1)
 // TODO: Reduce delay to minimum in l6470_transmit_spi
 // TODO: Test F/B/L/R with different accelerations
 // TODO: Implement DMA
