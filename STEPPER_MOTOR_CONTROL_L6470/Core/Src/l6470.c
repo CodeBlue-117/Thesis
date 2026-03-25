@@ -409,7 +409,6 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
         // Convert velocity to stepper motor speed format
         speed = (uint32_t)(vel[i] * STEPS_PER_REVOLUTION * 67.108864f / TWOPI);
 
-        // TODO: There are 6 serious bugs in this when optimizing for SPEED ---> Need to fix
         // Store speed data in the transmission buffer
         stepper_motor->spd_tx_buffer[NUM_MOTORS + i]     = (uint8_t)(speed >> 16);
         stepper_motor->spd_tx_buffer[NUM_MOTORS * 2 + i] = (uint8_t)(speed >> 8);
