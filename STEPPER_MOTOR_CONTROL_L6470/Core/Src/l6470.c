@@ -28,7 +28,7 @@ void l6470_enable(MotorSetTypedef* stepper_motor)
 
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
     HAL_Delay(1);
-    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, 1000);
+    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, HAL_MAX_DELAY);
     HAL_Delay(1);
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
     HAL_Delay(2);
@@ -50,7 +50,7 @@ void l6470_disable(MotorSetTypedef* stepper_motor)
 
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
     HAL_Delay(1);
-    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, 1000);
+    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, HAL_MAX_DELAY);
     HAL_Delay(1);
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
     HAL_Delay(2);
@@ -68,7 +68,7 @@ void l6470_reset(MotorSetTypedef* stepper_motor)
 
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
     HAL_Delay(1);
-    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, 1000);
+    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, HAL_MAX_DELAY);
     HAL_Delay(1);
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
     HAL_Delay(2);
@@ -86,7 +86,7 @@ void l6470_soft_stop(MotorSetTypedef* stepper_motor)
 
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
     HAL_Delay(1);
-    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, 1000);
+    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, HAL_MAX_DELAY);
     HAL_Delay(1);
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
     HAL_Delay(1);
@@ -103,7 +103,7 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor)
     {
         HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
         HAL_Delay(1);
-        HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, 1000);
+        HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, HAL_MAX_DELAY);
         HAL_Delay(1);
         HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
         HAL_Delay(2);
@@ -291,7 +291,7 @@ void l6470_transmit_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t d
 	{
 
 		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET); // Pull CS Low
-		HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, &data[i], receive_data, 2, 1000);		// Send Data
+		HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, &data[i], receive_data, 2, HAL_MAX_DELAY);		// Send Data
 		HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);	// Pull CS High
 
 	}
@@ -309,7 +309,7 @@ void l6470_receive_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t da
 	uint8_t data_raw[data_length]; // NOT USED
 	HAL_GPIO_WritePin(stepper_motor ->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
 
-	HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(stepper_motor ->hspi_l6470, data_raw, data, data_length, 1000);
+	HAL_StatusTypeDef status = HAL_SPI_TransmitReceive(stepper_motor ->hspi_l6470, data_raw, data, data_length, HAL_MAX_DELAY);
 	if(status != HAL_OK)
 	{
 		printf("SPI RECEIVE ERROR: %02X\n\r", status);
@@ -432,7 +432,7 @@ void l6470_set_param_chip_1(MotorSetTypedef* stepper_motor, uint8_t param, uint8
 
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
     HAL_Delay(1);
-    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, 1000);
+    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, HAL_MAX_DELAY);
     HAL_Delay(1);
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
     HAL_Delay(2);
@@ -445,7 +445,7 @@ void l6470_set_param_chip_1(MotorSetTypedef* stepper_motor, uint8_t param, uint8
 
         HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
         HAL_Delay(1);
-        HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, 1000);
+        HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, HAL_MAX_DELAY);
         HAL_Delay(1);
         HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
         HAL_Delay(2);
@@ -466,7 +466,7 @@ void l6470_set_param_chip_2(MotorSetTypedef* stepper_motor, uint8_t param, uint8
 
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
     HAL_Delay(1);
-    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, 1000);
+    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, HAL_MAX_DELAY);
     HAL_Delay(1);
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
     HAL_Delay(2);
@@ -479,7 +479,7 @@ void l6470_set_param_chip_2(MotorSetTypedef* stepper_motor, uint8_t param, uint8
 
         HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
         HAL_Delay(1);
-        HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, 1000);
+        HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, HAL_MAX_DELAY);
         HAL_Delay(1);
         HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
         HAL_Delay(2);
@@ -500,7 +500,7 @@ void l6470_get_param_chip_1(MotorSetTypedef* stepper_motor, uint8_t param, uint8
 
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
     HAL_Delay(1);
-    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, 1000);
+    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, HAL_MAX_DELAY);
     HAL_Delay(1);
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
     HAL_Delay(2);
@@ -515,7 +515,7 @@ void l6470_get_param_chip_1(MotorSetTypedef* stepper_motor, uint8_t param, uint8
 
         HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
         HAL_Delay(1);
-        HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, 1000);
+        HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, HAL_MAX_DELAY);
         HAL_Delay(1);
         HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
         HAL_Delay(2);
@@ -545,7 +545,7 @@ uint32_t l6470_get_param_chip_2(MotorSetTypedef* stepper_motor, uint8_t param, u
 
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
     HAL_Delay(1);
-    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, 1000);
+    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, HAL_MAX_DELAY);
     HAL_Delay(1);
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
     HAL_Delay(2);
@@ -558,7 +558,7 @@ uint32_t l6470_get_param_chip_2(MotorSetTypedef* stepper_motor, uint8_t param, u
 
         HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
         HAL_Delay(1);
-        HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, 1000);
+        HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, HAL_MAX_DELAY);
         HAL_Delay(1);
         HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
         HAL_Delay(2);
@@ -583,7 +583,7 @@ void l6470_get_status(MotorSetTypedef* stepper_motor, uint16_t* m1_status, uint1
     // Send GET_STATUS command
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
     HAL_Delay(1);
-    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, 1000);
+    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, HAL_MAX_DELAY);
     HAL_Delay(1);
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
     HAL_Delay(2);
@@ -598,7 +598,7 @@ void l6470_get_status(MotorSetTypedef* stepper_motor, uint16_t* m1_status, uint1
 
         HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
         HAL_Delay(1);
-        HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, 1000);
+        HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, HAL_MAX_DELAY);
         HAL_Delay(1);
         HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
         HAL_Delay(2);
