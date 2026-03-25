@@ -22,7 +22,25 @@
 // TODO: Test F/B/L/R with different accelerations
 // TODO: Implement DMA
 
+// --------------------------------------------------- FROM MATLAB ------------------------------------------------------------ //
+//%% System Parameters
+//L = 0.8382; %% The threaded section of rod, 3 normal sections of rod, plu the bob section is 33 inches or about 0.8382m
+//g = 9.81; %% Gravity
+//M  = 1.775; %% the mass of the entire robot body with batteries and pendulum guard is 1.775 kg
+//m_r = 0.06;  %% Each section of pendulum rod is 0.015 kg, se we are using 4 sections -> 0.060 kg
+//m_b = 0.056; %% The mass of the bob is about 0.56kg
+//%b = 0.1; %% WORKS
+//b = 0.001;
+//mu = 0.3; %% Coefficient of Friction for Omni Wheels
 
+//%% PID gains
+//%Kp = 6500; Kd = 150; Ki = 15; %% WORKS
+//%% Kp = 40; Kd = 0; Ki = 5; %% WORKS
+//%% Kp = 30; Kd = 1; Ki = 5; %% WORKS
+//%% Kp = 21; Kd = 0; Ki = 2; %% WORKS -- BEST
+//Kp = 30; Kd = 0; Ki = 2; %% WORKS -- BEST
+
+// ---------------------------------------------------------------------------------------------------------------------------- //
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -326,6 +344,7 @@ static inline float mapVoltageToAngle(float v, float vMin, float vMax)
 
 
 
+
 /* USER CODE END 0 */
 
 /**
@@ -460,16 +479,16 @@ int main(void)
 			l6470_disable(&motor_set_1);
 			l6470_disable(&motor_set_2);
 
-		   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // OFF (How to use the LED)
-		   HAL_Delay(100); // was 100
+//		   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // OFF (How to use the LED)
+//		   HAL_Delay(100); // was 100
 
 	  }
 
 	  if(buttonFlag == true)
 	  {
 
-		  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET); // OFF (How to use the LED)
-		  HAL_Delay(100); // was 100
+//		  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET); // ON (How to use the LED)
+//		  HAL_Delay(100); // was 100
 
 		  pot_Y_voltage = (3.3f * adc_buffer[0]) / 4095.0f; // Y - axis (forward/backward) angle
 		  pot_X_voltage = (3.3f * adc_buffer[1]) / 4095.0f; // X -Axis (Left/Right) angle

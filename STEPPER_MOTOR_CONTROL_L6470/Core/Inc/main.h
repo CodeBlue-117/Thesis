@@ -41,10 +41,10 @@ extern "C" {
 #define WHEEL_RADIUS 	 0.03f // each wheel has a radius of 30mm = 0.03m
 #define OMNI_BODY_RADIUS 88.9f // The omni body has a radius of 88.1mm
 
-#define X_MIN_V			 1.36
-#define X_MAX_V 		 1.83
-#define Y_MIN_V 		 1.39
-#define Y_MAX_V 		 1.87
+#define X_MIN_V			 0.39
+#define X_MAX_V 		 2.86
+#define Y_MIN_V 		 0.64
+#define Y_MAX_V 		 2.72
 /* USER CODE END EC */
 
 /* Exported macro ------------------------------------------------------------*/
