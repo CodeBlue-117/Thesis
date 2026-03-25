@@ -49,7 +49,7 @@ extern "C" {
 
 /* Exported macro ------------------------------------------------------------*/
 /* USER CODE BEGIN EM */
-
+extern I2C_HandleTypeDef hi2c1;
 /* USER CODE END EM */
 
 /* Exported functions prototypes ---------------------------------------------*/

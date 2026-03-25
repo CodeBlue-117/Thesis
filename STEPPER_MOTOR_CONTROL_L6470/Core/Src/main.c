@@ -35,6 +35,7 @@
 #include "stdint.h"
 #include "stdbool.h"
 #include "math.h"
+#include "intfc_imu.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -62,36 +63,27 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define MPU6000_ADDR 		(0x68 << 1) // 0xD0
-#define PWR_MGMT_REG_1		(0x6B)
-#define SIGNAL_PATH_REG 	(0x68)
-#define CONFIG_REG			(0x1A)
-#define ACCEL_CONFIG_REG	(0x1C)
-#define DEBOUNCE_DELAY 	200  // 50ms debounce time
-#define DEFAULT_DT	  	0.003f
-
 // TODO: Tune these PID parameters
-#define K_P_X 50.0f // Proportional constant for x-dir
-#define K_P_Y 50.0f // proportional constant for y-dir
-#define K_I_X 0.05f // 0.01f // Integral constant for x-dir
-#define K_I_Y 0.05f //0.01f // Integral constant for y-dir
-#define K_D_X 0.5f  // 5.0f
-#define K_D_Y 0.5f  // 5.0f
+#define K_P_X 				50.0f // Proportional constant for x-dir
+#define K_P_Y 				50.0f // proportional constant for y-dir
+#define K_I_X 				0.05f // 0.01f // Integral constant for x-dir
+#define K_I_Y 				0.05f //0.01f // Integral constant for y-dir
+#define K_D_X 				0.5f  // 5.0f
+#define K_D_Y 				0.5f  // 5.0f
 
 // TODO: Increase the MAX VEL
-#define MAX_CART_VEL 	0.5f // 0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)
-#define MIN_CART_VEL 	-0.5f //-0.9f
+#define MAX_CART_VEL 		0.5f // 0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)
+#define MIN_CART_VEL 	   -0.5f //-0.9f
 
 // Tune the max integral???
-#define MAX_INTEGRAL  	5.0f // anti-windup cap on integral, tune
-#define MIN_INTEGRAL 	-5.0f
+#define MAX_INTEGRAL  		5.0f // anti-windup cap on integral, tune
+#define MIN_INTEGRAL 	   -5.0f
 
 // TODO: Remove input POT filter until tested -> Model filter with random data and see what the output is.
-#define POT_FC_HZ	  	15.0f // TODO: Tune this
+#define POT_FC_HZ	  		15.0f // TODO: Tune this
 
 // TODO: TUNE the DEADBAND
-#define DEADBAND 	  	(0.25f * M_PI/180.0f)  // 0.5 degree for the dead band (no integral)
-
+#define DEADBAND 	  		(0.25f * M_PI/180.0f)  // 0.5 degree for the dead band (no integral)
 
 /* USER CODE END PD */
 
@@ -324,136 +316,15 @@ static inline float mapVoltageToAngle(float v, float vMin, float vMax)
 	}
 
 	float scale = (v - vMin) / (vMax - vMin); // Normalized
-	scale = ((scale * 42.0f) - 21.0f); // [0,1] * 42 = [0, 42] - 21 = [-21,21] --> [-21 ... +21]
+	scale = ((scale * 60.0f) - 30.0f); // [0,1] * 60 = [0, 60] - 30 = [-30,30] --> [-30 ... +30]
 	scale *= (M_PI / 180.0f); // Convert degrees to radians
 	return scale;
 
 }
 
-HAL_StatusTypeDef IMU_Write(uint16_t reg, uint8_t data)
-{
-	HAL_StatusTypeDef status;
-	status = HAL_I2C_Mem_Write(&hi2c1, MPU6000_ADDR, reg, 1, &data, 1, HAL_MAX_DELAY);
-	return status;
-
-}
 
 
-HAL_StatusTypeDef IMU_Read(uint16_t reg, uint8_t *buf, uint8_t len)
-{
 
-	HAL_StatusTypeDef status;
-	status = HAL_I2C_Mem_Read(&hi2c1, MPU6000_ADDR, reg, 1, buf, len, HAL_MAX_DELAY);
-	return status;
-}
-
-
-uint8_t initializeIMU(void)
-{
-	  HAL_StatusTypeDef status;
-
-	  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	  // Read WhoAmI and verify it is 0x68
-	  uint8_t reg = 0x75;
-	  uint8_t receiveData = 0;
-
-	  status = IMU_Read(reg, &receiveData, 1);
-	  if(status != HAL_OK)
-	  {
-		  printf("Error reading WhoAmI register\n\r");
-		  return 1;
-	  }
-
-	  HAL_Delay(100);
-
-	  if(receiveData != 0x68)
-	  {
-		  printf("Error reading WhoAmI register\n\r");
-		  return 1;
-	  }
-
-	  HAL_Delay(100);
-
-	  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	  // Device Reset
-	  status = IMU_Write(PWR_MGMT_REG_1, 0x80); // 1000-0000
-	  if(status != HAL_OK)
-	  {
-		  printf("Error reading WhoAmI register\n\r");
-		  return 1;
-	  }
-
-	  HAL_Delay(100);
-
-	  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-      //Signal Path Reset
-	  status = IMU_Write(SIGNAL_PATH_REG, 0x07); // Reset GYRO, ACCEL and TEMP 0000-0111 = 0x07
-	  if(status != HAL_OK)
-	  {
-		  printf("Error resetting accel and gyro\n\r");
-		  return 1;
-	  }
-
-	  HAL_Delay(100);
-
-	  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	  // Wakeup and Clock Source
-	  status = IMU_Write(PWR_MGMT_REG_1, 0x01); // Clock Source PLL from x-axis
-	  if(status != HAL_OK)
-	  {
-		  printf("Error setting clock source\n\r");
-		  return 1;
-	  }
-
-	  HAL_Delay(100);
-
-	  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	  // Configure DLPF
-	  status = IMU_Write(CONFIG_REG, 0x02); // DLPF in CONFIG REG set to 94Hz bandwidth and 3ms delay (try 0x01 for 184Hz BW and 2ms delay)
-	  if(status != HAL_OK)
-	  {
-		  printf("Error setting clock source\n\r");
-		  return 1;
-	  }
-	  HAL_Delay(100);
-
-	  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	  // Configure Accel Full Scale Range
-	  status = IMU_Write(ACCEL_CONFIG_REG, 0x00); // Configure Accel for full scale range +2g
-	  if(status != HAL_OK)
-	  {
-		  printf("Error setting clock source\n\r");
-		  return 1;
-	  }
-	  HAL_Delay(100);
-
-	  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	  return status;
-}
-
-uint8_t IMU_ReadAccel(int16_t *ax, int16_t *ay, int16_t *az)
-{
-	uint8_t buf[6];
-
-	if(HAL_I2C_Mem_Read(&hi2c1, MPU6000_ADDR, 0x3B, 1, buf, 6, HAL_MAX_DELAY) != HAL_OK)
-	{
-		return 1;
-	}
-
-	*ax = (int16_t)((buf[0] << 8) | buf[1]);
-	*ay = (int16_t)((buf[2] << 8) | buf[3]);
-	*az = (int16_t)((buf[4] << 8) | buf[5]);
-
-	return 0;
-
-}
 
 /* USER CODE END 0 */
 
