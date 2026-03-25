@@ -49,7 +49,6 @@ static void MX_USART2_UART_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_I2C1_Init(void);
-/* USER CODE BEGIN PFP */
 void forward_motion(void);
 void backward_motion(void);
 void left_motion(void);
@@ -57,7 +56,6 @@ void right_motion(void);
 void l6470_get_param_chip_1(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t length);
 void l6470_get_param_chip_2(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t length);
 void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
-
 
 /* USER CODE END PTD */
 
@@ -71,8 +69,6 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 #define ACCEL_CONFIG_REG	(0x1C)
 #define DEBOUNCE_DELAY 	200  // 50ms debounce time
 #define DEFAULT_DT	  	0.003f
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // TODO: Tune these PID parameters
 #define K_P_X 50.0f // Proportional constant for x-dir
@@ -95,8 +91,6 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 
 // TODO: TUNE the DEADBAND
 #define DEADBAND 	  	(0.25f * M_PI/180.0f)  // 0.5 degree for the dead band (no integral)
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 /* USER CODE END PD */
@@ -204,12 +198,10 @@ MotorSetTypedef motor_set_2 = {
 
 /* USER CODE END PV */
 
-
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
 
 /* USER CODE END PM */
-
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN PFP */
@@ -319,6 +311,7 @@ void omni_drive(float Vx, float Vy, float omega)
 }
 
 // Map voltages to degrees using linearization
+// TODO: Modify this for Joystick Hall Effect Sensor input
 static inline float mapVoltageToAngle(float v, float vMin, float vMax)
 {
 	if(v < vMin)
@@ -534,12 +527,14 @@ int main(void)
 	 uint8_t retVal = initializeIMU();
 	 if(retVal == HAL_OK)
 	 {
-		 printf("IMU initialized!\n\r");
+		 printf("\n\rIMU initialized!\n\r");
 	 }
 	 else
 	 {
 		 printf("IMU FAILED to initialize, retVal: %d\n\r", retVal);
 	 }
+
+	 printf("Hello World!\n\r");
 
   /* USER CODE END 2 */
 
@@ -594,16 +589,24 @@ int main(void)
 			l6470_disable(&motor_set_1);
 			l6470_disable(&motor_set_2);
 
+		   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // OFF (How to use the LED)
+		   HAL_Delay(100); // was 100
+
 	  }
 
 	  if(buttonFlag == true)
 	  {
 
+		  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET); // OFF (How to use the LED)
+		  HAL_Delay(100); // was 100
+
 		  pot_Y_voltage = (3.3f * adc_buffer[0]) / 4095.0f; // Y - axis (forward/backward) angle
 		  pot_X_voltage = (3.3f * adc_buffer[1]) / 4095.0f; // X -Axis (Left/Right) angle
 
-		   printf("(VALOTAGE): Z-X: %.2f V\n\r", pot_X_voltage);
-		   printf("(VOLTAGE): Z-Y: %.2f V\n\r", pot_Y_voltage);
+		  printf("(VOLTAGE): Z-X: %.2f V\n\r", pot_X_voltage);
+		  printf("(VOLTAGE): Z-Y: %.2f V\n\r", pot_Y_voltage);
+
+		  HAL_Delay(100);
 
 		  // update_pot_filter(pot_X_voltage, pot_Y_voltage, dt); // TODO: REPLACE ALL INSTANCES OF potX_filt and potY_filt with pot_X_voltage, pot_Y_voltage
 
@@ -611,11 +614,11 @@ int main(void)
 		  // printf("AFTER: Z-Y: %.2f V\n\r", potY_filt);
 
 		  // Parse X and Y voltages and convert them to angles asymmetrically, then to x,y values, then to Vx, Vy valuse
-		  myControlVariables.curThetaX = mapVoltageToAngle(pot_X_voltage, X_MIN_V, X_MAX_V);
-		  myControlVariables.curThetaY = mapVoltageToAngle(pot_Y_voltage, Y_MIN_V, Y_MAX_V);
-
-		   printf("(ANGLE): Z-X: %.2f V\n\r", myControlVariables.curThetaX);
-		   printf("(ANGLE): Z-Y: %.2f V\n\r", myControlVariables.curThetaY);
+//		  myControlVariables.curThetaX = mapVoltageToAngle(pot_X_voltage, X_MIN_V, X_MAX_V);
+//		  myControlVariables.curThetaY = mapVoltageToAngle(pot_Y_voltage, Y_MIN_V, Y_MAX_V);
+//
+//		   printf("(ANGLE): Z-X: %.2f V\n\r", myControlVariables.curThetaX);
+//		   printf("(ANGLE): Z-Y: %.2f V\n\r", myControlVariables.curThetaY);
 
 //		  // Deadband
 //		  if(fabs(myControlVariables.curThetaX) < DEADBAND) // TODO: Tune the deadband
@@ -1066,8 +1069,8 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin : USER_BUTTON_Pin */
   GPIO_InitStruct.Pin = USER_BUTTON_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   HAL_GPIO_Init(USER_BUTTON_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : IMU_INT_Pin */
