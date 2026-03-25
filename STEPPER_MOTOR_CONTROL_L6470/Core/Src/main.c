@@ -205,6 +205,8 @@ MotorSetTypedef motor_set_2 = {
 
 };
 
+static bool toggle = false;
+
 
 /* USER CODE END PV */
 
@@ -321,7 +323,6 @@ void omni_drive(float Vx, float Vy, float omega)
 }
 
 // Map voltages to degrees using linearization
-// TODO: Modify this for Joystick Hall Effect Sensor input
 static inline float mapVoltageToAngle(float v, float vMin, float vMax)
 {
 	if(v < vMin)
@@ -339,11 +340,6 @@ static inline float mapVoltageToAngle(float v, float vMin, float vMax)
 	return scale;
 
 }
-
-
-
-
-
 
 /* USER CODE END 0 */
 
@@ -400,13 +396,6 @@ int main(void)
   	 l6470_init_chip_1(&motor_set_1);
   	 l6470_init_chip_2(&motor_set_2);
 
-  	 // uint16_t m1_stat, m2_stat;
-  	 // l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
-  	 // l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
-
-  	 //	l6470_dump_params_chip1(&motor_set_1);
-  	 //	l6470_dump_params_chip2(&motor_set_2);
-
   	 l6470_disable(&motor_set_1); // TODO: Always disable motors
   	 l6470_disable(&motor_set_2); // TODO: Always  disable motors
 
@@ -447,123 +436,131 @@ int main(void)
 //	  }
 
 	  /////////////////////////////////////////////////////////////////////
-//
-//	  static float lastTick = 0.0f;
-//	  uint32_t nowTick = HAL_GetTick(); // TODO: Should we change nowTick to a float?
-//	  float dt;
-//
-//	  if(lastTick == 0)
-//	  {
-//		  dt = DEFAULT_DT;
-//	  }
-//	  else
-//	  {
-//		  dt = (nowTick - lastTick) * 0.001f; // ms -> s
-//	  }
-//
-//	  if(dt <= 0.0f)
-//	  {
-//		  dt = DEFAULT_DT;
-//	  }
-//
-//	  lastTick = nowTick;
+
+	  static float lastTick = 0.0f;
+	  uint32_t nowTick = HAL_GetTick(); // TODO: Should we change nowTick to a float?
+	  float dt;
+
+	  if(lastTick == 0)
+	  {
+		  dt = DEFAULT_DT;
+	  }
+	  else
+	  {
+		  dt = (nowTick - lastTick) * 0.001f; // ms -> s
+	  }
+
+	  if(dt <= 0.0f)
+	  {
+		  dt = DEFAULT_DT;
+	  }
+
+	  lastTick = nowTick;
 
 	  if(stopNow)
 	  {
 
+		  if(toggle)
+		  {
+			  toggle = false;
+			  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // OFF (How to use the LED)
+		  }
+
 		  stopNow = false;
 
-			l6470_soft_stop(&motor_set_1);
-			l6470_soft_stop(&motor_set_2);
+		  l6470_soft_stop(&motor_set_1);
+		  l6470_soft_stop(&motor_set_2);
 
-			l6470_disable(&motor_set_1);
-			l6470_disable(&motor_set_2);
+		  l6470_disable(&motor_set_1);
+		  l6470_disable(&motor_set_2);
 
-//		   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // OFF (How to use the LED)
-//		   HAL_Delay(100); // was 100
 
 	  }
 
 	  if(buttonFlag == true)
 	  {
 
-//		  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET); // ON (How to use the LED)
-//		  HAL_Delay(100); // was 100
+		  if(!toggle)
+		  {
+			  toggle = true;
+			  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET); // ON (How to use the LED)
+		  }
 
 		  pot_Y_voltage = (3.3f * adc_buffer[0]) / 4095.0f; // Y - axis (forward/backward) angle
 		  pot_X_voltage = (3.3f * adc_buffer[1]) / 4095.0f; // X -Axis (Left/Right) angle
 
-		  printf("(VOLTAGE): Z-X: %.2f V\n\r", pot_X_voltage);
-		  printf("(VOLTAGE): Z-Y: %.2f V\n\r", pot_Y_voltage);
+//		  printf("(VOLTAGE): Z-X: %.2f V\n\r", pot_X_voltage);
+//		  printf("(VOLTAGE): Z-Y: %.2f V\n\r", pot_Y_voltage);
+//		  HAL_Delay(100);
 
-		  HAL_Delay(100);
+// 		  update_pot_filter(pot_X_voltage, pot_Y_voltage, dt); // TODO: REPLACE ALL INSTANCES OF potX_filt and potY_filt with pot_X_voltage, pot_Y_voltage
 
-		  // update_pot_filter(pot_X_voltage, pot_Y_voltage, dt); // TODO: REPLACE ALL INSTANCES OF potX_filt and potY_filt with pot_X_voltage, pot_Y_voltage
-
-		  // printf("AFTER: Z-X: %.2f V\n\r", potX_filt);
-		  // printf("AFTER: Z-Y: %.2f V\n\r", potY_filt);
+// 		  printf("AFTER: Z-X: %.2f V\n\r", potX_filt);
+//        printf("AFTER: Z-Y: %.2f V\n\r", potY_filt);
 
 		  // Parse X and Y voltages and convert them to angles asymmetrically, then to x,y values, then to Vx, Vy valuse
-//		  myControlVariables.curThetaX = mapVoltageToAngle(pot_X_voltage, X_MIN_V, X_MAX_V);
-//		  myControlVariables.curThetaY = mapVoltageToAngle(pot_Y_voltage, Y_MIN_V, Y_MAX_V);
-//
+		  myControlVariables.curThetaX = mapVoltageToAngle(pot_X_voltage, X_MIN_V, X_MAX_V);
+		  myControlVariables.curThetaY = mapVoltageToAngle(pot_Y_voltage, Y_MIN_V, Y_MAX_V);
+
+		  myControlVariables.curThetaY = -myControlVariables.curThetaY; // Need to take negative of angle due to orientation. Or can change the rotation matrix ???
+
 //		   printf("(ANGLE): Z-X: %.2f V\n\r", myControlVariables.curThetaX);
 //		   printf("(ANGLE): Z-Y: %.2f V\n\r", myControlVariables.curThetaY);
 
-//		  // Deadband
-//		  if(fabs(myControlVariables.curThetaX) < DEADBAND) // TODO: Tune the deadband
-//		  {
-//			  myControlVariables.curThetaX = 0.0f;
-//			  myControlVariables.integralX = 0.0f;
-//		  }
-//		  if(fabs(myControlVariables.curThetaY) < DEADBAND) // TODO: Tune the deadband
-//		  {
-//			  myControlVariables.curThetaY = 0.0f;
-//			  myControlVariables.integralY = 0.0f;
-//		  }
-//
-//		  // --- Integral Control ---
-//		  // Compute the integral / accumulation of error
-//		  myControlVariables.integralX += 0.5 * (myControlVariables.curThetaX + myControlVariables.prevThetaX) * dt;
-//		  myControlVariables.integralY += 0.5 * (myControlVariables.curThetaY + myControlVariables.prevThetaY) * dt;
-//
-//		  // anti-windup: clamp integrals  --> TODO: Later implement: if (velocity saturated) do not integrate
-//		  if (myControlVariables.integralX > MAX_INTEGRAL) myControlVariables.integralX = MAX_INTEGRAL;
-//		  if (myControlVariables.integralX < MIN_INTEGRAL) myControlVariables.integralX = MIN_INTEGRAL;
-//		  if (myControlVariables.integralY > MAX_INTEGRAL) myControlVariables.integralY = MAX_INTEGRAL;
-//		  if (myControlVariables.integralY < MIN_INTEGRAL) myControlVariables.integralY = MIN_INTEGRAL;
-//
-//		  // --- Derivative Control ---
-//		  float theta_dotX = (myControlVariables.curThetaX -  myControlVariables.prevThetaX) / dt;
-//		  float theta_dotY = (myControlVariables.curThetaY -  myControlVariables.prevThetaY) / dt;
-//
-//		  // u = Kp * cur_theta + Ki * 0.5 * [cur_theta + prev_theta] * Control_Loop_Time ---> the 0.5 factor in the second term comes from the trapezoid rule
-//		  myControlVariables.curInputU_X = (K_P_X * myControlVariables.curThetaX) + (K_I_X * myControlVariables.integralX) + (K_D_X * theta_dotX); // Use negative to oppose the tilt
-//		  myControlVariables.curInputU_Y = (K_P_Y * myControlVariables.curThetaY) + (K_I_Y * myControlVariables.integralY) + (K_D_Y * theta_dotY); // Use negative to oppose the tilt
-//
-//		  // Accel = (V2 - V1) / (CONTROL_LOOP_TIME) ---> V2 = Accel * CONTROL_LOOP_TIME + V1
-//		  myControlVariables.curCommandedCartVelocityX = (myControlVariables.curInputU_X * dt) + myControlVariables.prevCommandedCartVelocityX;
-//		  myControlVariables.curCommandedCartVelocityY = (myControlVariables.curInputU_Y * dt) + myControlVariables.prevCommandedCartVelocityY;
-//
-//		  // --- clamp velocities to safe range ---
-//		  if (myControlVariables.curCommandedCartVelocityX > MAX_CART_VEL) myControlVariables.curCommandedCartVelocityX = MAX_CART_VEL;
-//		  if (myControlVariables.curCommandedCartVelocityX < MIN_CART_VEL) myControlVariables.curCommandedCartVelocityX = MIN_CART_VEL;
-//		  if (myControlVariables.curCommandedCartVelocityY > MAX_CART_VEL) myControlVariables.curCommandedCartVelocityY = MAX_CART_VEL;
-//		  if (myControlVariables.curCommandedCartVelocityY < MIN_CART_VEL) myControlVariables.curCommandedCartVelocityY = MIN_CART_VEL;
-//
-//        // Send Commands to Motors
-//		  omni_drive(myControlVariables.curCommandedCartVelocityX, myControlVariables.curCommandedCartVelocityY, 0.0f);
-//
-//		  // Update previous values
-//		  myControlVariables.prevThetaX = myControlVariables.curThetaX;
-//		  myControlVariables.prevThetaY = myControlVariables.curThetaY;
-//
-//		  // TODO: Do we need to save the previous inputs U?
-//		  myControlVariables.prevInputU_X = myControlVariables.curInputU_X;
-//		  myControlVariables.prevInputU_Y = myControlVariables.curInputU_Y;
-//
-//		  myControlVariables.prevCommandedCartVelocityX = myControlVariables.curCommandedCartVelocityX;
-//		  myControlVariables.prevCommandedCartVelocityY = myControlVariables.curCommandedCartVelocityY;
+		  // Deadband
+		  if(fabs(myControlVariables.curThetaX) < DEADBAND) // TODO: Tune the deadband
+		  {
+			  myControlVariables.curThetaX = 0.0f;
+			  myControlVariables.integralX = 0.0f;
+		  }
+		  if(fabs(myControlVariables.curThetaY) < DEADBAND) // TODO: Tune the deadband
+		  {
+			  myControlVariables.curThetaY = 0.0f;
+			  myControlVariables.integralY = 0.0f;
+		  }
+
+		  // --- Integral Control ---
+		  // Compute the integral / accumulation of error
+		  myControlVariables.integralX += 0.5 * (myControlVariables.curThetaX + myControlVariables.prevThetaX) * dt;
+		  myControlVariables.integralY += 0.5 * (myControlVariables.curThetaY + myControlVariables.prevThetaY) * dt;
+
+		  // anti-windup: clamp integrals  --> TODO: Later implement: if (velocity saturated) do not integrate
+		  if (myControlVariables.integralX > MAX_INTEGRAL) myControlVariables.integralX = MAX_INTEGRAL;
+		  if (myControlVariables.integralX < MIN_INTEGRAL) myControlVariables.integralX = MIN_INTEGRAL;
+		  if (myControlVariables.integralY > MAX_INTEGRAL) myControlVariables.integralY = MAX_INTEGRAL;
+		  if (myControlVariables.integralY < MIN_INTEGRAL) myControlVariables.integralY = MIN_INTEGRAL;
+
+		  // --- Derivative Control ---
+		  float theta_dotX = (myControlVariables.curThetaX -  myControlVariables.prevThetaX) / dt;
+		  float theta_dotY = (myControlVariables.curThetaY -  myControlVariables.prevThetaY) / dt;
+
+		  // u = Kp * cur_theta + Ki * 0.5 * [cur_theta + prev_theta] * Control_Loop_Time ---> the 0.5 factor in the second term comes from the trapezoid rule
+		  myControlVariables.curInputU_X = (K_P_X * myControlVariables.curThetaX) + (K_I_X * myControlVariables.integralX) + (K_D_X * theta_dotX); // Use negative to oppose the tilt
+		  myControlVariables.curInputU_Y = (K_P_Y * myControlVariables.curThetaY) + (K_I_Y * myControlVariables.integralY) + (K_D_Y * theta_dotY); // Use negative to oppose the tilt
+
+		  // Accel = (V2 - V1) / (CONTROL_LOOP_TIME) ---> V2 = Accel * CONTROL_LOOP_TIME + V1
+		  myControlVariables.curCommandedCartVelocityX = (myControlVariables.curInputU_X * dt) + myControlVariables.prevCommandedCartVelocityX;
+		  myControlVariables.curCommandedCartVelocityY = (myControlVariables.curInputU_Y * dt) + myControlVariables.prevCommandedCartVelocityY;
+
+		  // --- clamp velocities to safe range ---
+		  if (myControlVariables.curCommandedCartVelocityX > MAX_CART_VEL) myControlVariables.curCommandedCartVelocityX = MAX_CART_VEL;
+		  if (myControlVariables.curCommandedCartVelocityX < MIN_CART_VEL) myControlVariables.curCommandedCartVelocityX = MIN_CART_VEL;
+		  if (myControlVariables.curCommandedCartVelocityY > MAX_CART_VEL) myControlVariables.curCommandedCartVelocityY = MAX_CART_VEL;
+		  if (myControlVariables.curCommandedCartVelocityY < MIN_CART_VEL) myControlVariables.curCommandedCartVelocityY = MIN_CART_VEL;
+
+        // Send Commands to Motors
+		  omni_drive(myControlVariables.curCommandedCartVelocityX, myControlVariables.curCommandedCartVelocityY, 0.0f);
+
+		  // Update previous values
+		  myControlVariables.prevThetaX = myControlVariables.curThetaX;
+		  myControlVariables.prevThetaY = myControlVariables.curThetaY;
+
+		  // TODO: Do we need to save the previous inputs U?
+		  myControlVariables.prevInputU_X = myControlVariables.curInputU_X;
+		  myControlVariables.prevInputU_Y = myControlVariables.curInputU_Y;
+
+		  myControlVariables.prevCommandedCartVelocityX = myControlVariables.curCommandedCartVelocityX;
+		  myControlVariables.prevCommandedCartVelocityY = myControlVariables.curCommandedCartVelocityY;
 	  }
 
     /* USER CODE END WHILE */

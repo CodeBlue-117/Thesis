@@ -7,17 +7,17 @@
 
 #include "main.h"
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 		  // Motor Speed test
 		  // omni_drive(-angleX, -angleY, 0.0f, 0.0f);
 		  // float speed = 10*M_PI;
 		  // l6470_set_vel(&motor_set_1, &speed);
 
-
-
 		  // HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // OFF (How to use the LED)
 		  // HAL_Delay(100); // was 100
 
-/////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //		  static uint8_t pushButtonCallCount = 0;
 
@@ -57,6 +57,8 @@
 //  			l6470_disable(&motor_set_1);
 //  			l6470_disable(&motor_set_2);
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 //void forward_motion(void)
 //{
 //	omni_drive(0.0f, 6.0f, 0.0f, WHEEL_RADIUS); //12.0f is 2 rps // 24.0 works!!!!
@@ -77,7 +79,9 @@
 //	omni_drive(6.0f, 0.0f, 0.0f, WHEEL_RADIUS);
 //}
 //
-//
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 //// TODO: Review, test and fix this
 //void accel(uint8_t start_time, uint8_t end_time, uint8_t start_vel, uint8_t end_vel) // time is in milliseconds, vel is in rad/s
 //{
@@ -102,7 +106,9 @@
 // 	 l6470_disable(&motor_set_2);
 //
 //}
-//
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 //// TODO: Review, test and fix this
 //void accel_from_a(float acceleration_rad_s2, float initial_vel_rad_s, uint16_t duration_ms)
 //{
@@ -123,3 +129,12 @@
 //        HAL_Delay(step_interval_ms);
 //    }
 //}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  	 // uint16_t m1_stat, m2_stat;
+  	 // l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
+  	 // l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
+
+  	 //	l6470_dump_params_chip1(&motor_set_1);
+  	 //	l6470_dump_params_chip2(&motor_set_2);
