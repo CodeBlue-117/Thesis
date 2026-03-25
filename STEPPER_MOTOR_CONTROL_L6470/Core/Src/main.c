@@ -84,24 +84,25 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 // TODO: Tune these PID parameters
 #define K_P_X 				50.0f // Proportional constant for x-dir
 #define K_P_Y 				50.0f // proportional constant for y-dir
-#define K_I_X 				0.05f // 0.01f // Integral constant for x-dir
-#define K_I_Y 				0.05f //0.01f // Integral constant for y-dir
-#define K_D_X 				0.5f  // 5.0f
-#define K_D_Y 				0.5f  // 5.0f
+#define K_I_X 				0.1f // 0.01f // Integral constant for x-dir
+#define K_I_Y 				0.1f //0.01f // Integral constant for y-dir
+#define K_D_X 				0.0f  // 5.0f
+#define K_D_Y 				0.0f  // 5.0f
 
 // TODO: Increase the MAX VEL
-#define MAX_CART_VEL 		0.5f // 0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)
-#define MIN_CART_VEL 	   -0.5f //-0.9f
+#define MAX_CART_VEL 		0.525f // 0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)
+#define MIN_CART_VEL 	   -0.525f //-0.9f
 
 // Tune the max integral???
 #define MAX_INTEGRAL  		5.0f // anti-windup cap on integral, tune
 #define MIN_INTEGRAL 	   -5.0f
 
 // TODO: Remove input POT filter until tested -> Model filter with random data and see what the output is.
-#define POT_FC_HZ	  		15.0f // TODO: Tune this
+//#define POT_FC_HZ	  		15.0f // TODO: Tune this
 
 // TODO: TUNE the DEADBAND
-#define DEADBAND 	  		(0.25f * M_PI/180.0f)  // 0.5 degree for the dead band (no integral)
+//#define DEADBAND 	  		(0.25f * M_PI/180.0f)  // 0.5 degree for the dead band (no integral)
+#define DEADBAND 	  		(0.125f * M_PI/180.0f)  // 0.25 degree for the dead band (no integral)
 
 /* USER CODE END PD */
 
@@ -205,8 +206,14 @@ MotorSetTypedef motor_set_2 = {
 
 };
 
-static bool toggle = false;
+float scale 			= 0.0f;
+float theta_dotX 		= 0.0f;
+float theta_dotY 		= 0.0f;
+float dt 				= 0.0f;
+static float lastTick 	= 0.0f;
+uint32_t nowTick 		= 0;
 
+static bool toggle 		= false;
 
 /* USER CODE END PV */
 
@@ -267,27 +274,6 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef * hspi)
 	}
 }
 
-//static inline void update_pot_filter(float rawX, float rawY, float dt)
-//{
-//
-//	// Computer alpha from cutoff
-//	float tau = 1.0f / (2.0 * M_PI * POT_FC_HZ);
-//	float alpha = dt / (tau + dt);
-//
-//	// First time filter initialization (no sudden jump)
-//	static bool initialized = false;
-//	if(!initialized)
-//	{
-//		potX_filt = rawX;
-//		potY_filt = rawY;
-//		initialized = true;
-//	}
-//
-//	// exponential smoothing
-//	potX_filt += alpha * (rawX - potX_filt);
-//	potY_filt += alpha * (rawY - potY_filt);
-//}
-
 // TODO: Verify these delays are required
 void omni_drive(float Vx, float Vy, float omega)
 {
@@ -322,6 +308,28 @@ void omni_drive(float Vx, float Vy, float omega)
 
 }
 
+//static inline void update_pot_filter(float rawX, float rawY, float dt)
+//{
+//
+//	// Computer alpha from cutoff
+//	float tau = 1.0f / (2.0 * M_PI * POT_FC_HZ);
+//	float alpha = dt / (tau + dt);
+//
+//	// First time filter initialization (no sudden jump)
+//	static bool initialized = false;
+//	if(!initialized)
+//	{
+//		potX_filt = rawX;
+//		potY_filt = rawY;
+//		initialized = true;
+//	}
+//
+//	// exponential smoothing
+//	potX_filt += alpha * (rawX - potX_filt);
+//	potY_filt += alpha * (rawY - potY_filt);
+//}
+
+
 // Map voltages to degrees using linearization
 static inline float mapVoltageToAngle(float v, float vMin, float vMax)
 {
@@ -334,7 +342,7 @@ static inline float mapVoltageToAngle(float v, float vMin, float vMax)
 		v = vMax;
 	}
 
-	float scale = (v - vMin) / (vMax - vMin); // Normalized
+	scale = (v - vMin) / (vMax - vMin); // Normalized
 	scale = ((scale * 60.0f) - 30.0f); // [0,1] * 60 = [0, 60] - 30 = [-30,30] --> [-30 ... +30]
 	scale *= (M_PI / 180.0f); // Convert degrees to radians
 	return scale;
@@ -403,6 +411,9 @@ int main(void)
 	 l6470_enable(&motor_set_1);
 	 l6470_enable(&motor_set_2);
 
+  	 l6470_disable(&motor_set_1); // TODO: Always disable motors
+  	 l6470_disable(&motor_set_2); // TODO: Always  disable motors
+
 	 uint8_t retVal = initializeIMU();
 	 if(retVal == HAL_OK)
 	 {
@@ -412,8 +423,6 @@ int main(void)
 	 {
 		 printf("IMU FAILED to initialize, retVal: %d\n\r", retVal);
 	 }
-
-	 printf("Hello World!\n\r");
 
   /* USER CODE END 2 */
 
@@ -437,9 +446,7 @@ int main(void)
 
 	  /////////////////////////////////////////////////////////////////////
 
-	  static float lastTick = 0.0f;
-	  uint32_t nowTick = HAL_GetTick(); // TODO: Should we change nowTick to a float?
-	  float dt;
+	  nowTick = HAL_GetTick(); // TODO: Should we change nowTick to a float?
 
 	  if(lastTick == 0)
 	  {
@@ -502,7 +509,9 @@ int main(void)
 		  myControlVariables.curThetaX = mapVoltageToAngle(pot_X_voltage, X_MIN_V, X_MAX_V);
 		  myControlVariables.curThetaY = mapVoltageToAngle(pot_Y_voltage, Y_MIN_V, Y_MAX_V);
 
+		  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		  myControlVariables.curThetaY = -myControlVariables.curThetaY; // Need to take negative of angle due to orientation. Or can change the rotation matrix ???
+		  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //		   printf("(ANGLE): Z-X: %.2f V\n\r", myControlVariables.curThetaX);
 //		   printf("(ANGLE): Z-Y: %.2f V\n\r", myControlVariables.curThetaY);
@@ -531,8 +540,8 @@ int main(void)
 		  if (myControlVariables.integralY < MIN_INTEGRAL) myControlVariables.integralY = MIN_INTEGRAL;
 
 		  // --- Derivative Control ---
-		  float theta_dotX = (myControlVariables.curThetaX -  myControlVariables.prevThetaX) / dt;
-		  float theta_dotY = (myControlVariables.curThetaY -  myControlVariables.prevThetaY) / dt;
+		  theta_dotX = (myControlVariables.curThetaX -  myControlVariables.prevThetaX) / dt;
+		  theta_dotY = (myControlVariables.curThetaY -  myControlVariables.prevThetaY) / dt;
 
 		  // u = Kp * cur_theta + Ki * 0.5 * [cur_theta + prev_theta] * Control_Loop_Time ---> the 0.5 factor in the second term comes from the trapezoid rule
 		  myControlVariables.curInputU_X = (K_P_X * myControlVariables.curThetaX) + (K_I_X * myControlVariables.integralX) + (K_D_X * theta_dotX); // Use negative to oppose the tilt
