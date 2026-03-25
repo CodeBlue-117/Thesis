@@ -38,6 +38,8 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
+#define NUM_MOTORS		2
+
 #define WHEEL_RADIUS 	 0.03f // each wheel has a radius of 30mm = 0.03m
 #define OMNI_BODY_RADIUS 88.9f // The omni body has a radius of 88.1mm
 

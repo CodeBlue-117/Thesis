@@ -411,9 +411,9 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
 
         // TODO: There are 6 serious bugs in this when optimizing for SPEED ---> Need to fix
         // Store speed data in the transmission buffer
-        stepper_motor->spd_tx_buffer[stepper_motor->num_motors + i]     = (uint8_t)(speed >> 16);
-        stepper_motor->spd_tx_buffer[stepper_motor->num_motors * 2 + i] = (uint8_t)(speed >> 8);
-        stepper_motor->spd_tx_buffer[stepper_motor->num_motors * 3 + i] = (uint8_t)(speed);
+        stepper_motor->spd_tx_buffer[NUM_MOTORS + i]     = (uint8_t)(speed >> 16);
+        stepper_motor->spd_tx_buffer[NUM_MOTORS * 2 + i] = (uint8_t)(speed >> 8);
+        stepper_motor->spd_tx_buffer[NUM_MOTORS * 3 + i] = (uint8_t)(speed);
     }
 
     l6470_transmit_spi(stepper_motor, stepper_motor->spd_tx_buffer, sizeof(stepper_motor->spd_tx_buffer));
