@@ -17,8 +17,6 @@
 // NOTE: 10 PI is the highest achievable speed with one motor (5rps)
 
 // MASTER TODO:
-// TODO: Reduce delay to minimum in l6470_transmit_spi
-// TODO: Test F/B/L/R with different accelerations
 // TODO: Implement DMA
 
 // --------------------------------------------------- FROM MATLAB ------------------------------------------------------------ //
@@ -88,11 +86,11 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 #define K_D_X 				0.0f  // 5.0f
 #define K_D_Y 				0.0f  // 5.0f
 
-// TODO: Increase the MAX VEL
+// TODO: Tune the max vel
 #define MAX_CART_VEL 		0.525f // 0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)
 #define MIN_CART_VEL 	   -0.525f //-0.9f
 
-// Tune the max integral???
+// TODO: Tune the max integral???
 #define MAX_INTEGRAL  		5.0f // anti-windup cap on integral, tune
 #define MIN_INTEGRAL 	   -5.0f
 
@@ -277,7 +275,6 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef * hspi)
 	}
 }
 
-// TODO: Verify these delays are required
 void omni_drive(float Vx, float Vy, float omega)
 {
 
@@ -407,15 +404,15 @@ int main(void)
   	 l6470_init_chip_1(&motor_set_1);
   	 l6470_init_chip_2(&motor_set_2);
 
-  	 l6470_disable(&motor_set_1); // TODO: Always disable motors
-  	 l6470_disable(&motor_set_2); // TODO: Always  disable motors
+  	 l6470_disable(&motor_set_1);
+  	 l6470_disable(&motor_set_2);
 
  	 // --- Enable motors in safe state (e.g. holding position, no motion) ---
 	 l6470_enable(&motor_set_1);
 	 l6470_enable(&motor_set_2);
 
-  	 l6470_disable(&motor_set_1); // TODO: Always disable motors
-  	 l6470_disable(&motor_set_2); // TODO: Always  disable motors
+  	 l6470_disable(&motor_set_1);
+  	 l6470_disable(&motor_set_2);
 
 	 uint8_t retVal = initializeIMU();
 	 if(retVal == HAL_OK)
@@ -520,12 +517,12 @@ int main(void)
 //		   printf("(ANGLE): Z-Y: %.2f V\n\r", myControlVariables.curThetaY);
 
 		  // Deadband
-		  if(fabs(myControlVariables.curThetaX) < DEADBAND) // TODO: Tune the deadband
+		  if(fabs(myControlVariables.curThetaX) < DEADBAND)
 		  {
 			  myControlVariables.curThetaX = 0.0f;
 			  myControlVariables.integralX = 0.0f;
 		  }
-		  if(fabs(myControlVariables.curThetaY) < DEADBAND) // TODO: Tune the deadband
+		  if(fabs(myControlVariables.curThetaY) < DEADBAND)
 		  {
 			  myControlVariables.curThetaY = 0.0f;
 			  myControlVariables.integralY = 0.0f;
