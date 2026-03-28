@@ -123,7 +123,8 @@ void l6470_init_chip_1(MotorSetTypedef* stepper_motor)
     uint8_t reg_temp_3[3] = {0, 0, 0};
 
     // Set STEP_MODE to 1/128 microstepping
-    reg_temp_1 = (uint8_t)ONE_HUNDRED_TWENTY_EIGHTH_STEP;
+//    reg_temp_1 = (uint8_t)ONE_HUNDRED_TWENTY_EIGHTH_STEP; // TODO: Tune this
+    reg_temp_1 = (uint8_t)SIXTEENTH_STEP;
     l6470_set_param_chip_1(stepper_motor, STEP_MODE, &reg_temp_1, 1);
     HAL_Delay(10);
 
@@ -135,8 +136,12 @@ void l6470_init_chip_1(MotorSetTypedef* stepper_motor)
     HAL_Delay(10);
 
     // Set max ACC and DEC: 0x0FFE = 4094 (59559 step/s²)
-    reg_temp_2[0] = 0x0F;
-    reg_temp_2[1] = 0xFE;
+//    reg_temp_2[0] = 0x0F;
+//    reg_temp_2[1] = 0xFE;
+
+    // Set to half of max
+    reg_temp_2[0] = 0x07;
+    reg_temp_2[1] = 0xFF;
     l6470_set_param_chip_1(stepper_motor, ACC, reg_temp_2, 2);
     HAL_Delay(10);
     l6470_set_param_chip_1(stepper_motor, DEC, reg_temp_2, 2);
@@ -187,6 +192,8 @@ void l6470_init_chip_1(MotorSetTypedef* stepper_motor)
     l6470_set_param_chip_1(stepper_motor, CONFIG, reg_temp_2, 2);
     HAL_Delay(10);
 
+    // TODO: Set MAX SPEED
+
     // Initialize SPI buffers
     stepper_motor->spi_dma_busy = 0; // TODO: Unused?
     stepper_motor->spi_tx_count = 0; // TODO: Unused?
@@ -205,7 +212,8 @@ void l6470_init_chip_2(MotorSetTypedef* stepper_motor)
     uint8_t reg_temp_3[3] = {0, 0, 0};
 
     // Set STEP_MODE to 1/128 microstepping
-    reg_temp_1 = (uint8_t)ONE_HUNDRED_TWENTY_EIGHTH_STEP;
+//    reg_temp_1 = (uint8_t)ONE_HUNDRED_TWENTY_EIGHTH_STEP; // TODO: Tune this
+    reg_temp_1 = (uint8_t)SIXTEENTH_STEP;
     l6470_set_param_chip_2(stepper_motor, STEP_MODE, &reg_temp_1, 1);
     HAL_Delay(10);
 
@@ -216,8 +224,12 @@ void l6470_init_chip_2(MotorSetTypedef* stepper_motor)
     HAL_Delay(10);
 
     // Set max ACC and DEC: 0x0FFE = 4094 (59559 step/s²)
-    reg_temp_2[0] = 0x0F;
-    reg_temp_2[1] = 0xFE;
+//    reg_temp_2[0] = 0x0F;
+//    reg_temp_2[1] = 0xFE;
+
+    // Set to half of max
+    reg_temp_2[0] = 0x07;
+    reg_temp_2[1] = 0xFF;
     l6470_set_param_chip_2(stepper_motor, ACC, reg_temp_2, 2);
     HAL_Delay(10);
     l6470_set_param_chip_2(stepper_motor, DEC, reg_temp_2, 2);
@@ -268,6 +280,8 @@ void l6470_init_chip_2(MotorSetTypedef* stepper_motor)
     l6470_set_param_chip_2(stepper_motor, CONFIG, reg_temp_2, 2);
     HAL_Delay(10);
 
+    // TODO: Set MAX SPEED
+
     // Initialize SPI buffers
     stepper_motor->spi_dma_busy = 0; // TODO: Unused?
     stepper_motor->spi_tx_count = 0; // TODO: Unused?
@@ -297,6 +311,40 @@ void l6470_transmit_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t d
 	}
 
 }
+
+uint8_t l6470_get_busy(MotorSetTypedef* stepper_motor, uint16_t* m1_status, uint16_t* m2_status)
+{
+    uint8_t tx[2] = { 0xD0, 0xD0 }; // GET_STATUS command for both
+    uint8_t rx[2] = { 0 };
+
+    *m1_status = 0;
+    *m2_status = 0;
+
+    // Send GET_STATUS command
+    HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
+    HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, HAL_MAX_DELAY);
+    HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
+
+    // Now read 2 bytes (MSB first) from each motor
+    for (int i = 0; i < 2; i++)
+    {
+        tx[0] = 0;
+        tx[1] = 0;
+        rx[0] = 0;
+        rx[1] = 0;
+
+        HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
+        HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, HAL_MAX_DELAY);
+        HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
+
+        *m1_status = (*m1_status << 8) | rx[0];
+        *m2_status = (*m2_status << 8) | rx[1];
+
+    }
+
+    return (((*m1_status & BUSY_MASK) != 0) && ((*m2_status & BUSY_MASK) != 0));
+}
+
 
 /*
  * @brief receiving data through spi
@@ -619,6 +667,7 @@ void l6470_get_status(MotorSetTypedef* stepper_motor, uint16_t* m1_status, uint1
     }
 
 }
+
 
 
 void l6470_dump_params_chip1(MotorSetTypedef* stepper_motor)

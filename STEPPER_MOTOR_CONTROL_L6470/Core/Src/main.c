@@ -32,10 +32,10 @@
 
 //%% PID gains
 //%Kp = 6500; Kd = 150; Ki = 15; %% WORKS
-//%% Kp = 40; Kd = 0; Ki = 5; %% WORKS
-//%% Kp = 30; Kd = 1; Ki = 5; %% WORKS
-//%% Kp = 21; Kd = 0; Ki = 2; %% WORKS -- BEST
-//Kp = 30; Kd = 0; Ki = 2; %% WORKS -- BEST
+//%% Kp = 40; Kd = 0; Ki = 5; 	 %% WORKS
+//%% Kp = 30; Kd = 1; Ki = 5; 	 %% WORKS
+//%% Kp = 21; Kd = 0; Ki = 2; 	 %% WORKS -- BEST
+//Kp = 30; Kd = 0; Ki = 2; 		 %% WORKS -- BEST
 
 // ---------------------------------------------------------------------------------------------------------------------------- //
 /* USER CODE END Header */
@@ -79,10 +79,10 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 /* USER CODE BEGIN PD */
 
 // TODO: Tune these PID parameters
-#define K_P_X 				50.0f // Proportional constant for x-dir
-#define K_P_Y 				50.0f // proportional constant for y-dir
-#define K_I_X 				0.1f // 0.01f // Integral constant for x-dir
-#define K_I_Y 				0.1f //0.01f // Integral constant for y-dir
+#define K_P_X 				30.0f // Proportional constant for x-dir
+#define K_P_Y 				30.0f // proportional constant for y-dir
+#define K_I_X 				2.0f // 0.01f // Integral constant for x-dir
+#define K_I_Y 				2.0f //0.01f // Integral constant for y-dir
 #define K_D_X 				0.0f  // 5.0f
 #define K_D_Y 				0.0f  // 5.0f
 
@@ -212,6 +212,11 @@ uint32_t nowTick 		= 0;
 
 static bool toggle 		= false;
 
+uint16_t  m1_status = 0; // L6470 #1
+uint16_t  m2_status = 0; // L6470 #2
+uint16_t  m3_status = 0; // L6470 #3
+uint16_t  m4_status = 0; // L6470 #4
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -302,6 +307,7 @@ void omni_drive(float Vx, float Vy, float omega)
 	float motor_set_1_speed[2] = {w[1], w[2]}; // Motor 3 and motor 1 on motor_set_1
 	float motor_set_2_speed[2] = {0, w[0]};    // motor 2 on motor_set_2
 
+	// TODO: Place BUSY check here
 	// Transmit velocities to motor driver
 	l6470_set_vel(&motor_set_1, motor_set_1_speed);
 	l6470_set_vel(&motor_set_2, motor_set_2_speed);
@@ -348,6 +354,8 @@ static inline float mapVoltageToAngle(float v, float vMin, float vMax)
 	return scale;
 
 }
+
+
 
 /* USER CODE END 0 */
 
@@ -557,8 +565,13 @@ int main(void)
 		  if (myControlVariables.curCommandedCartVelocityY > MAX_CART_VEL) myControlVariables.curCommandedCartVelocityY = MAX_CART_VEL;
 		  if (myControlVariables.curCommandedCartVelocityY < MIN_CART_VEL) myControlVariables.curCommandedCartVelocityY = MIN_CART_VEL;
 
-        // Send Commands to Motors
-		  omni_drive(myControlVariables.curCommandedCartVelocityX, myControlVariables.curCommandedCartVelocityY, 0.0f);
+
+		  if((l6470_get_busy(&motor_set_1, &m1_status, &m2_status)) && (l6470_get_busy(&motor_set_2, &m3_status, &m4_status)))
+		  {
+		        // Send Commands to Motors
+				omni_drive(myControlVariables.curCommandedCartVelocityX, myControlVariables.curCommandedCartVelocityY, 0.0f);
+		  }
+
 
 		  // Update previous values
 		  myControlVariables.prevThetaX = myControlVariables.curThetaX;

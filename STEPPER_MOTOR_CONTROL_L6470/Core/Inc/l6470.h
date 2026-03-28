@@ -27,8 +27,8 @@
 #define STEPS_PER_REVOLUTION  			200	                /*!< Steps per revolution 	*/
 #define TWOPI                       	6.283185f			/*!< Two pi value 			*/
 #define KVAL_HOLD_PERCENT           	5  // TODO: Optimize these
-#define KVAL_RUN_PERCENT            	50 // TODO: Optimize these --- lower values allow for smoother motor motion, higher values allow for larger torque
-#define KVAL_ACCDEC_PERCENT         	50 // TODO: Optimize these --- lower values allow for smoother motor motion, higher values allow for larger torque
+#define KVAL_RUN_PERCENT            	60 // TODO: Optimize these --- lower values allow for smoother motor motion, higher values allow for larger torque
+#define KVAL_ACCDEC_PERCENT         	60 // TODO: Optimize these --- lower values allow for smoother motor motion, higher values allow for larger torque
 #define DEFAULT_ZERO_POS				0
 
 // Microstepping Modes
@@ -76,6 +76,8 @@
 #define ALARM_EN        				0x17 /*!< Alarms enables */
 #define CONFIG          				0x18 /*!< CONFIG Register */
 #define STATUS          				0x19 /*!< STatus Register */
+
+#define BUSY_MASK						(1 << 1)
 
 typedef struct
 {
@@ -128,6 +130,7 @@ void l6470_receive_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t da
 void l6470_transmit_spi(MotorSetTypedef* stepper_motor, uint8_t* data, uint8_t data_length);
 void l6470_set_param_chip_1(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t *value, uint8_t length);
 void l6470_set_param_chip_2(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t *value, uint8_t length);
+uint8_t l6470_get_busy(MotorSetTypedef* stepper_motor, uint16_t* m1_status, uint16_t* m2_status);
 
 uint32_t l6470_get_param(MotorSetTypedef* stepper_motor, uint8_t param, uint8_t length);
 void l6470_soft_stop(MotorSetTypedef* stepper_motor);
