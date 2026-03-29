@@ -214,13 +214,14 @@ void l6470_init_chip_2(MotorSetTypedef* stepper_motor)
     // Set STEP_MODE to 1/128 microstepping
 //    reg_temp_1 = (uint8_t)ONE_HUNDRED_TWENTY_EIGHTH_STEP; // TODO: Tune this
     reg_temp_1 = (uint8_t)THIRTY_SECOND_STEP;
-    l6470_set_param_chip_2(stepper_motor, STEP_MODE, &reg_temp_1, 1);
+    // TODO: Note that I use l6470_set_param_chip_1 function also for
+    l6470_set_param_chip_1(stepper_motor, STEP_MODE, &reg_temp_1, 1);
     HAL_Delay(10);
 
     // Zero ABS_POS and EL_POS
-    l6470_set_param_chip_2(stepper_motor, ABS_POS, reg_temp_3, 3);
+    l6470_set_param_chip_1(stepper_motor, ABS_POS, reg_temp_3, 3);
     HAL_Delay(10);
-    l6470_set_param_chip_2(stepper_motor, EL_POS, reg_temp_3, 3);
+    l6470_set_param_chip_1(stepper_motor, EL_POS, reg_temp_3, 3);
     HAL_Delay(10);
 
     // Set max ACC and DEC: 0x0FFE = 4094 (59559 step/s²)
@@ -230,54 +231,54 @@ void l6470_init_chip_2(MotorSetTypedef* stepper_motor)
     // Set to half of max
     reg_temp_2[0] = 0x07;
     reg_temp_2[1] = 0xFF;
-    l6470_set_param_chip_2(stepper_motor, ACC, reg_temp_2, 2);
+    l6470_set_param_chip_1(stepper_motor, ACC, reg_temp_2, 2);
     HAL_Delay(10);
-    l6470_set_param_chip_2(stepper_motor, DEC, reg_temp_2, 2);
+    l6470_set_param_chip_1(stepper_motor, DEC, reg_temp_2, 2);
     HAL_Delay(10);
 
     // Set current levels
     reg_temp_1 = (uint8_t)(KVAL_HOLD_PERCENT * 255 / 100);
-    l6470_set_param_chip_2(stepper_motor, KVAL_HOLD, &reg_temp_1, 1);
+    l6470_set_param_chip_1(stepper_motor, KVAL_HOLD, &reg_temp_1, 1);
     HAL_Delay(10);
 
     reg_temp_1 = (uint8_t)(KVAL_RUN_PERCENT * 255 / 100);
-    l6470_set_param_chip_2(stepper_motor, KVAL_RUN, &reg_temp_1, 1);
+    l6470_set_param_chip_1(stepper_motor, KVAL_RUN, &reg_temp_1, 1);
     HAL_Delay(10);
 
     reg_temp_1 = (uint8_t)(KVAL_ACCDEC_PERCENT * 255 / 100);
-    l6470_set_param_chip_2(stepper_motor, KVAL_ACC, &reg_temp_1, 1);
+    l6470_set_param_chip_1(stepper_motor, KVAL_ACC, &reg_temp_1, 1);
     HAL_Delay(10);
-    l6470_set_param_chip_2(stepper_motor, KVAL_DEC, &reg_temp_1, 1);
+    l6470_set_param_chip_1(stepper_motor, KVAL_DEC, &reg_temp_1, 1);
     HAL_Delay(10);
 
     // Set BEMF compensation slopes
     reg_temp_1 = 0x19;  // ST_SLP = 0.038% s/step
-    l6470_set_param_chip_2(stepper_motor, ST_SLP, &reg_temp_1, 1);
+    l6470_set_param_chip_1(stepper_motor, ST_SLP, &reg_temp_1, 1);
     HAL_Delay(10);
 
     reg_temp_1 = 0x29;  // FN_SLP_ACC = 0.063% s/step
-    l6470_set_param_chip_2(stepper_motor, FN_SLP_ACC, &reg_temp_1, 1);
+    l6470_set_param_chip_1(stepper_motor, FN_SLP_ACC, &reg_temp_1, 1);
     HAL_Delay(10);
 
     reg_temp_1 = 0x29;  // FN_SLP_DEC = 0.063% s/step
-    l6470_set_param_chip_2(stepper_motor, FN_SLP_DEC, &reg_temp_1, 1);
+    l6470_set_param_chip_1(stepper_motor, FN_SLP_DEC, &reg_temp_1, 1);
     HAL_Delay(10);
 
     // Set intersect speed to 0x0408 (≈61.5 steps/s)
     reg_temp_2[0] = 0x04;
     reg_temp_2[1] = 0x08;
-    l6470_set_param_chip_2(stepper_motor, INT_SPEED, reg_temp_2, 2);
+    l6470_set_param_chip_1(stepper_motor, INT_SPEED, reg_temp_2, 2);
     HAL_Delay(10);
 
     // Set overcurrent threshold for 1A (OCD_TH = 1)
     reg_temp_1 = 0x08; // was 0x01
-    l6470_set_param_chip_2(stepper_motor, OCD_TH, &reg_temp_1, 1);
+    l6470_set_param_chip_1(stepper_motor, OCD_TH, &reg_temp_1, 1);
     HAL_Delay(10);
 
     // Set CONFIG register: 0x2E88 → internal oscillator, 2MHz, OC shutdown, slew rate = 320V/μs
     reg_temp_2[0] = 0x2E;
     reg_temp_2[1] = 0x80;
-    l6470_set_param_chip_2(stepper_motor, CONFIG, reg_temp_2, 2);
+	l6470_set_param_chip_1(stepper_motor, CONFIG, reg_temp_2, 2);
     HAL_Delay(10);
 
     // TODO: Set MAX SPEED
