@@ -124,7 +124,7 @@ void l6470_init_chip_1(MotorSetTypedef* stepper_motor)
 
     // Set STEP_MODE to 1/128 microstepping
 //    reg_temp_1 = (uint8_t)ONE_HUNDRED_TWENTY_EIGHTH_STEP; // TODO: Tune this
-    reg_temp_1 = (uint8_t)SIXTEENTH_STEP;
+    reg_temp_1 = (uint8_t)THIRTY_SECOND_STEP;
     l6470_set_param_chip_1(stepper_motor, STEP_MODE, &reg_temp_1, 1);
     HAL_Delay(10);
 
@@ -213,7 +213,7 @@ void l6470_init_chip_2(MotorSetTypedef* stepper_motor)
 
     // Set STEP_MODE to 1/128 microstepping
 //    reg_temp_1 = (uint8_t)ONE_HUNDRED_TWENTY_EIGHTH_STEP; // TODO: Tune this
-    reg_temp_1 = (uint8_t)SIXTEENTH_STEP;
+    reg_temp_1 = (uint8_t)THIRTY_SECOND_STEP;
     l6470_set_param_chip_2(stepper_motor, STEP_MODE, &reg_temp_1, 1);
     HAL_Delay(10);
 
@@ -317,8 +317,15 @@ uint8_t l6470_get_busy(MotorSetTypedef* stepper_motor, uint16_t* m1_status, uint
     uint8_t tx[2] = { 0xD0, 0xD0 }; // GET_STATUS command for both
     uint8_t rx[2] = { 0 };
 
+    uint8_t busy1 = 0;
+    uint8_t busy2 = 0;
+
     *m1_status = 0;
-    *m2_status = 0;
+
+    if(m2_status)
+    {
+        *m2_status = 0; // Only use m2 for the first IHM02A1. The top IHM02A1 does not have a motor connected to this L6470
+    }
 
     // Send GET_STATUS command
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
@@ -338,11 +345,28 @@ uint8_t l6470_get_busy(MotorSetTypedef* stepper_motor, uint16_t* m1_status, uint
         HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
 
         *m1_status = (*m1_status << 8) | rx[0];
-        *m2_status = (*m2_status << 8) | rx[1];
+
+        if(m2_status)
+        {
+        	*m2_status = (*m2_status << 8) | rx[1];
+        }
 
     }
 
-    return (((*m1_status & BUSY_MASK) != 0) && ((*m2_status & BUSY_MASK) != 0));
+    // Always use busy1
+    busy1 = ((*m1_status & BUSY_MASK) != 0);
+
+    // Only use busy2 if we are using both L6470's
+    if(m2_status)
+    {
+        busy2 = ((*m2_status & BUSY_MASK) != 0);
+    }
+    else
+    {
+    	busy2 = 1;
+    }
+
+    return busy1 && busy2;
 }
 
 

@@ -132,9 +132,52 @@
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  	 // uint16_t m1_stat, m2_stat;
-  	 // l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
-  	 // l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
+ // uint16_t m1_stat, m2_stat;
+ // l6470_get_status(&motor_set_1, &m1_stat, &m2_stat);
+ // l6470_get_status(&motor_set_2, &m1_stat, &m2_stat);
 
-  	 //	l6470_dump_params_chip1(&motor_set_1);
-  	 //	l6470_dump_params_chip2(&motor_set_2);
+ //	l6470_dump_params_chip1(&motor_set_1);
+ //	l6470_dump_params_chip2(&motor_set_2);
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Busy signal checks
+
+//	if((l6470_get_busy(&motor_set_1, &m1_status, &m2_status)) && (l6470_get_busy(&motor_set_2, &m3_status, NULL)))
+//	{
+//
+//		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET); // OFF (How to use the LED)
+//
+//		// Send Commands to Motors
+//		omni_drive(myControlVariables.curCommandedCartVelocityX, myControlVariables.curCommandedCartVelocityY, 0.0f);
+//	}
+//	else
+//	{
+//	  // Breakpoint here
+//	}
+
+//		    // Optional: print which motors are busy
+//			  printf("M1:%d M2:%d M3:%d\n\r",
+//					 !!(m1_status & BUSY_MASK),
+//					 !!(m2_status & BUSY_MASK),
+//					 !!(m3_status & BUSY_MASK));
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	  // OLD dt Calculation
+//	  nowTick = HAL_GetTick(); // TODO: Should we change nowTick to a float?
+//
+//	  if(lastTick == 0)
+//	  {
+//		  dt = DEFAULT_DT;
+//	  }
+//	  else
+//	  {
+//		  dt = (nowTick - lastTick) * 0.001f; // ms -> s
+//	  }
+//
+//	  if(dt <= 0.0f)
+//	  {
+//		  dt = DEFAULT_DT;
+//	  }
+//
+//	  lastTick = nowTick;
