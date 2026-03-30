@@ -22,13 +22,26 @@
 // Parameters
 #define MAX_ACCELERATION    			32  		// 10 pi rad/s = 32 rad/s = 5 rps/s // Used to be: 10  				/*!< max acceleration [rad/sec^2] 			*/
 #define MAX_SPEED_RAD    				31.4f 		// 10_PI rad/s = 31.4f rad/s = 5 rev/s		/*!< max speed [rad / sec] 					*/
-#define MAX_CURRENT         			1.2 				/*!< Max Current of the stepper motor 		*/
+#define MAX_CURRENT         			1.0 				/*!< Max Current of the stepper motor 		*/
 #define STEPS_PER_REVOLUTION  			200	                /*!< Steps per revolution 	*/
 #define TWOPI                       	6.283185f			/*!< Two pi value 			*/
-#define KVAL_HOLD_PERCENT           	5  // TODO: Optimize these
-#define KVAL_RUN_PERCENT            	90 // TODO: Optimize these --- lower values allow for smoother motor motion, higher values allow for larger torque
-#define KVAL_ACCDEC_PERCENT         	90 // TODO: Optimize these --- lower values allow for smoother motor motion, higher values allow for larger torque
 #define DEFAULT_ZERO_POS				0
+
+////////////////////////////////////////////////////////
+//TODO: Tune these
+#define ACC_SMOOTH_VAL					0x05FF
+#define KVAL_HOLD_PERCENT           	5  // TODO: Optimize these
+#define KVAL_RUN_PERCENT            	100 //90 // TODO: Optimize these --- lower values allow for smoother motor motion, higher values allow for larger torque
+#define KVAL_ACCDEC_PERCENT         	100 //90 // TODO: Optimize these --- lower values allow for smoother motor motion, higher values allow for larger torque
+#define ST_SLP_VAL						0x18
+#define FN_SLP_ACC_VAL					0x28
+#define FN_SLP_DEC_VAL					0x28
+#define INT_SPEED_VAL					0x0500
+#define OVERCURRENT_THRESHOLD_VAL		0x08
+#define CONFIG_REG_VAL					0x2A80 // 0x2E80 = max performance (most torque)
+
+
+////////////////////////////////////////////////////////////
 
 // Microstepping Modes
 #define FULL_STEP						0 // 1 Step --- 0b'000

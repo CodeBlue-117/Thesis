@@ -42,7 +42,7 @@ uint8_t initializeIMU(void)
 		  return 1;
 	  }
 
-	  HAL_Delay(100);
+	  HAL_Delay(10);
 
 	  if(receiveData != 0x68)
 	  {
@@ -50,7 +50,7 @@ uint8_t initializeIMU(void)
 		  return 1;
 	  }
 
-	  HAL_Delay(100);
+	  HAL_Delay(10);
 
 	  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -58,7 +58,7 @@ uint8_t initializeIMU(void)
 	  status = IMU_Write(PWR_MGMT_REG_1, 0x80); // 1000-0000
 	  if(status != HAL_OK)
 	  {
-		  printf("Error reading WhoAmI register\n\r");
+		  printf("Error in Device Reset\n\r");
 		  return 1;
 	  }
 
@@ -86,7 +86,7 @@ uint8_t initializeIMU(void)
 		  return 1;
 	  }
 
-	  HAL_Delay(100);
+	  HAL_Delay(10);
 
 	  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -94,10 +94,10 @@ uint8_t initializeIMU(void)
 	  status = IMU_Write(CONFIG_REG, 0x02); // DLPF in CONFIG REG set to 94Hz bandwidth and 3ms delay (try 0x01 for 184Hz BW and 2ms delay)
 	  if(status != HAL_OK)
 	  {
-		  printf("Error setting clock source\n\r");
+		  printf("Error setting DLPF\n\r");
 		  return 1;
 	  }
-	  HAL_Delay(100);
+	  HAL_Delay(10);
 
 	  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -105,10 +105,21 @@ uint8_t initializeIMU(void)
 	  status = IMU_Write(ACCEL_CONFIG_REG, 0x00); // Configure Accel for full scale range +2g
 	  if(status != HAL_OK)
 	  {
-		  printf("Error setting clock source\n\r");
+		  printf("Error setting Accel Config/Full Scale Range\n\r");
 		  return 1;
 	  }
-	  HAL_Delay(100);
+	  HAL_Delay(10);
+
+	  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	  // Configure Gyro Full Scale Range
+	  status = IMU_Write(GYRO_CONFIG_REG, 0x00); // Configure Accel for full scale range +2g
+	  if(status != HAL_OK)
+	  {
+		  printf("Error setting Gyro Config/Full Scale Range\n\r");
+		  return 1;
+	  }
+	  HAL_Delay(10);
 
 	  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -119,7 +130,7 @@ uint8_t IMU_ReadAccel(int16_t *ax, int16_t *ay, int16_t *az)
 {
 	uint8_t buf[6];
 
-	if(HAL_I2C_Mem_Read(&hi2c1, MPU6000_ADDR, 0x3B, 1, buf, 6, HAL_MAX_DELAY) != HAL_OK)
+	if(HAL_I2C_Mem_Read(&hi2c1, MPU6000_ADDR, ACCEL_OUT_REG_START, 1, buf, 6, HAL_MAX_DELAY) != HAL_OK)
 	{
 		return 1;
 	}
@@ -127,6 +138,23 @@ uint8_t IMU_ReadAccel(int16_t *ax, int16_t *ay, int16_t *az)
 	*ax = (int16_t)((buf[0] << 8) | buf[1]);
 	*ay = (int16_t)((buf[2] << 8) | buf[3]);
 	*az = (int16_t)((buf[4] << 8) | buf[5]);
+
+	return 0;
+
+}
+
+uint8_t IMU_ReadGyro(int16_t *wx, int16_t *wy, int16_t *wz)
+{
+	uint8_t buf[6];
+
+	if(HAL_I2C_Mem_Read(&hi2c1, MPU6000_ADDR, GYRO_OUT_REG_START, 1, buf, 6, HAL_MAX_DELAY) != HAL_OK)
+	{
+		return 1;
+	}
+
+	*wx = (int16_t)((buf[0] << 8) | buf[1]);
+	*wy = (int16_t)((buf[2] << 8) | buf[3]);
+	*wz = (int16_t)((buf[4] << 8) | buf[5]);
 
 	return 0;
 

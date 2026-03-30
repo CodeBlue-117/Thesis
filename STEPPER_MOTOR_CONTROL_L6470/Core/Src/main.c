@@ -143,12 +143,14 @@ float pot_X_voltage 				= 0.0f;		// X POT VOLTAGE
 const float J[3][3] 	= {{-1, 0.5, 0.5}, {0, 0.866, -0.866}, {-0.333, -0.333, -0.333}};
 const float J_Inv[3][3] = {{0.667, 0, 1}, {-0.333, 0.577, 1}, {-0.333, -0.577, 1}};
 
-// FIltered X,Y POT values TODO: Remove these until tested
+// TODO: Remove these until tested
+// FIltered X,Y POT values
 //static float potX_filt = 0.0f;
 //static float potY_filt = 0.0f;
 
 uint16_t adc_buffer[2];  						// NOTE: adc_buffer[0] = Z-X pot, adc_buffer[1] = Z-Y pot
-int16_t ax, ay, az;  							// IMU variables
+int16_t ax, ay, az;  							// IMU accel variables
+int16_t wx, wy, wz;								// IMU gyro variables
 
 typedef struct controlVariables 				// PID Control System Variables
 {
@@ -447,21 +449,6 @@ int main(void)
 
 	  now = HAL_GetTick();
 
-	  //////////////////////////////////////////////////////////////////////
-
-//	  if(IMU_ReadAccel(&ax, &ay, &az) == 0)
-//	  {
-//		  float xg = ax / 16384.0f;
-//		  float yg = ay / 16384.0f;
-//		  float zg = az / 16384.0f;
-//
-//		  printf("AX: %.2f, AY: %.2f, AZ %.2f\n\r", xg, yg, zg);
-//
-//		  HAL_Delay(50);
-//	  }
-
-	  /////////////////////////////////////////////////////////////////////
-
 	  if(stopNow)
 	  {
 
@@ -480,6 +467,32 @@ int main(void)
 
 		  if((now - last) >= CONTROL_LOOP_TIME)
 		  {
+
+			  //////////////////////////////////////////////////////////////////////
+
+			  if(IMU_ReadAccel(&ax, &ay, &az) == 0)
+			  {
+				  float xg = ax / 16384.0f;
+				  float yg = ay / 16384.0f;
+				  float zg = az / 16384.0f;
+
+				  printf("AX: %.2f, AY: %.2f, AZ %.2f\n\r", xg, yg, zg);
+
+				  HAL_Delay(5);
+			  }
+
+			  if(IMU_ReadGyro(&wx, &wy, &wz) == 0)
+			  {
+				  float x_dps = wx / 131.0f;
+				  float y_dps = wy / 131.0f;
+				  float z_dps = wz / 131.0f;
+
+				  printf("WX: %.2f, WY: %.2f, WZ %.2f\n\r", x_dps, y_dps, z_dps);
+
+				  HAL_Delay(5);
+			  }
+
+			  /////////////////////////////////////////////////////////////////////
 
 			  dt = (now - last) * 0.001f;
 			  last = now;
@@ -504,8 +517,8 @@ int main(void)
 			  myControlVariables.curThetaY = -myControlVariables.curThetaY; // Need to take negative of angle due to orientation. Or can change the rotation matrix ???
 			  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	//		   printf("(ANGLE): Z-X: %.2f V\n\r", myControlVariables.curThetaX);
-	//		   printf("(ANGLE): Z-Y: %.2f V\n\r", myControlVariables.curThetaY);
+//			  printf("(ANGLE): Z-X: %.2f radians\n\r", myControlVariables.curThetaX);
+//			  printf("(ANGLE): Z-Y: %.2f radians\n\r", myControlVariables.curThetaY);
 
 			  // Deadband
 			  if(fabs(myControlVariables.curThetaX) < DEADBAND)
@@ -553,7 +566,7 @@ int main(void)
 			  if (myControlVariables.curCommandedCartVelocityY < MIN_CART_VEL) myControlVariables.curCommandedCartVelocityY = MIN_CART_VEL;
 
 			  // Send Commands to Motors
-			  omni_drive(myControlVariables.curCommandedCartVelocityX, myControlVariables.curCommandedCartVelocityY, 0.0f);
+//			  omni_drive(myControlVariables.curCommandedCartVelocityX, myControlVariables.curCommandedCartVelocityY, 0.0f);
 
 			  // Update previous values
 			  myControlVariables.prevThetaX = myControlVariables.curThetaX;

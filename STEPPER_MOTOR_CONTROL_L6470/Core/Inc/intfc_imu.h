@@ -19,8 +19,12 @@
 #define SIGNAL_PATH_REG 	(0x68)
 #define CONFIG_REG			(0x1A)
 #define ACCEL_CONFIG_REG	(0x1C)
+#define GYRO_CONFIG_REG		(0x1B)
 #define DEBOUNCE_DELAY 		200  // 50ms debounce time
 #define DEFAULT_DT	  		0.003f
+
+#define ACCEL_OUT_REG_START 0x3B
+#define GYRO_OUT_REG_START  0x43
 
 // Function Prototypes
 HAL_StatusTypeDef IMU_Write(uint16_t reg, uint8_t data);

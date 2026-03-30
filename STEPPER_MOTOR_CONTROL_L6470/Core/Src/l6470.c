@@ -109,7 +109,7 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor)
         HAL_Delay(2);
     }
 
-    // printf("SPI Daisy-chain sync complete\n\r");
+// printf("SPI Daisy-chain sync complete\n\r");
 }
 
 /*
@@ -122,32 +122,32 @@ void l6470_init_chip_1(MotorSetTypedef* stepper_motor)
     uint8_t reg_temp_2[2];
     uint8_t reg_temp_3[3] = {0, 0, 0};
 
-    // Set STEP_MODE to 1/128 microstepping
-//    reg_temp_1 = (uint8_t)ONE_HUNDRED_TWENTY_EIGHTH_STEP; // TODO: Tune this
+// TODO: Tune this
+// reg_temp_1 = (uint8_t)ONE_HUNDRED_TWENTY_EIGHTH_STEP;
     reg_temp_1 = (uint8_t)THIRTY_SECOND_STEP;
     l6470_set_param_chip_1(stepper_motor, STEP_MODE, &reg_temp_1, 1);
     HAL_Delay(10);
 
-    // Zero ABS_POS and EL_POS
+// Zero ABS_POS and EL_POS
     l6470_set_param_chip_1(stepper_motor, ABS_POS, reg_temp_3, 3);
     HAL_Delay(10);
 
     l6470_set_param_chip_1(stepper_motor, EL_POS, reg_temp_3, 3);
     HAL_Delay(10);
 
-    // Set max ACC and DEC: 0x0FFE = 4094 (59559 step/s²)
+// Set max ACC and DEC: 0x0FFE = 4094 (59559 step/s²)
 //    reg_temp_2[0] = 0x0F;
 //    reg_temp_2[1] = 0xFE;
 
     // Set to half of max
-    reg_temp_2[0] = 0x07;
-    reg_temp_2[1] = 0xFF;
+    reg_temp_2[0] = (ACC_SMOOTH_VAL >> 8) & 0xFF; //0x07;
+    reg_temp_2[1] = ACC_SMOOTH_VAL & 0xFF;
     l6470_set_param_chip_1(stepper_motor, ACC, reg_temp_2, 2);
     HAL_Delay(10);
     l6470_set_param_chip_1(stepper_motor, DEC, reg_temp_2, 2);
     HAL_Delay(10);
 
-    // Set current levels
+// Set current levels
     reg_temp_1 = (uint8_t)(KVAL_HOLD_PERCENT * 255 / 100);
     l6470_set_param_chip_1(stepper_motor, KVAL_HOLD, &reg_temp_1, 1);
     HAL_Delay(10);
@@ -162,39 +162,39 @@ void l6470_init_chip_1(MotorSetTypedef* stepper_motor)
     l6470_set_param_chip_1(stepper_motor, KVAL_DEC, &reg_temp_1, 1);
     HAL_Delay(10);
 
-    // Set BEMF compensation slopes
-    reg_temp_1 = 0x19;  // ST_SLP = 0.038% s/step
+// Set BEMF compensation slopes
+    reg_temp_1 = ST_SLP_VAL;  // ST_SLP = 0.038% s/step
     l6470_set_param_chip_1(stepper_motor, ST_SLP, &reg_temp_1, 1);
     HAL_Delay(10);
 
-    reg_temp_1 = 0x29;  // FN_SLP_ACC = 0.063% s/step
+    reg_temp_1 = FN_SLP_ACC_VAL;  // FN_SLP_ACC = 0.063% s/step
     l6470_set_param_chip_1(stepper_motor, FN_SLP_ACC, &reg_temp_1, 1);
     HAL_Delay(10);
 
-    reg_temp_1 = 0x29;  // FN_SLP_DEC = 0.063% s/step
+    reg_temp_1 = FN_SLP_DEC_VAL;  // FN_SLP_DEC = 0.063% s/step
     l6470_set_param_chip_1(stepper_motor, FN_SLP_DEC, &reg_temp_1, 1);
     HAL_Delay(10);
 
-    // Set intersect speed to 0x0408 (≈61.5 steps/s)
-    reg_temp_2[0] = 0x04;
-    reg_temp_2[1] = 0x08;
+// Set intersect speed to 0x0408 (≈61.5 steps/s)
+    reg_temp_2[0] = (INT_SPEED_VAL >> 8) & 0xFF; // 0x04;
+    reg_temp_2[1] = INT_SPEED_VAL & 0xFF; // 0x08;
     l6470_set_param_chip_1(stepper_motor, INT_SPEED, reg_temp_2, 2);
     HAL_Delay(10);
 
-    // Set overcurrent threshold for 1A (OCD_TH = 1)
-    reg_temp_1 = 0x08; // was 0x01
+// Set overcurrent threshold for 1A (OCD_TH = 1)
+    reg_temp_1 = OVERCURRENT_THRESHOLD_VAL; // was 0x01
     l6470_set_param_chip_1(stepper_motor, OCD_TH, &reg_temp_1, 1);
     HAL_Delay(10);
 
-    // Set CONFIG register: 0x2E88 → internal oscillator, 2MHz, OC shutdown, slew rate = 320V/μs
-    reg_temp_2[0] = 0x2E;
-    reg_temp_2[1] = 0x80;
+// Set CONFIG register: 0x2E88 → internal oscillator, 2MHz, OC shutdown, slew rate = 320V/μs
+    reg_temp_2[0] = (CONFIG_REG_VAL >> 8) & 0xFF; // 0x2E; (Highest slew rate causes more noise, less smooth current
+    reg_temp_2[1] = CONFIG_REG_VAL & 0xFF;
     l6470_set_param_chip_1(stepper_motor, CONFIG, reg_temp_2, 2);
     HAL_Delay(10);
 
-    // TODO: Set MAX SPEED
+// TODO: Set MAX SPEED
 
-    // Initialize SPI buffers
+// Initialize SPI buffers
     stepper_motor->spi_dma_busy = 0; // TODO: Unused?
     stepper_motor->spi_tx_count = 0; // TODO: Unused?
 
@@ -211,32 +211,32 @@ void l6470_init_chip_2(MotorSetTypedef* stepper_motor)
     uint8_t reg_temp_2[2];
     uint8_t reg_temp_3[3] = {0, 0, 0};
 
-    // Set STEP_MODE to 1/128 microstepping
-//    reg_temp_1 = (uint8_t)ONE_HUNDRED_TWENTY_EIGHTH_STEP; // TODO: Tune this
+//  TODO: Tune this
+//  reg_temp_1 = (uint8_t)ONE_HUNDRED_TWENTY_EIGHTH_STEP;
     reg_temp_1 = (uint8_t)THIRTY_SECOND_STEP;
-    // TODO: Note that I use l6470_set_param_chip_1 function also for
+// TODO: Note that I use l6470_set_param_chip_1 function also for chip 2, as this sends the proper bytes to turn on the front motor
     l6470_set_param_chip_1(stepper_motor, STEP_MODE, &reg_temp_1, 1);
     HAL_Delay(10);
 
-    // Zero ABS_POS and EL_POS
+// Zero ABS_POS and EL_POS
     l6470_set_param_chip_1(stepper_motor, ABS_POS, reg_temp_3, 3);
     HAL_Delay(10);
     l6470_set_param_chip_1(stepper_motor, EL_POS, reg_temp_3, 3);
     HAL_Delay(10);
 
-    // Set max ACC and DEC: 0x0FFE = 4094 (59559 step/s²)
-//    reg_temp_2[0] = 0x0F;
+// Set max ACC and DEC: 0x0FFE = 4094 (59559 step/s²)
+//    reg_temp_2[0] = 0x0F; (FUll/Highest Value)
 //    reg_temp_2[1] = 0xFE;
 
-    // Set to half of max
-    reg_temp_2[0] = 0x07;
-    reg_temp_2[1] = 0xFF;
+// Set to half of max
+    reg_temp_2[0] = (ACC_SMOOTH_VAL >> 8) & 0xFF; //0x07;
+    reg_temp_2[1] = ACC_SMOOTH_VAL & 0xFF;
     l6470_set_param_chip_1(stepper_motor, ACC, reg_temp_2, 2);
     HAL_Delay(10);
     l6470_set_param_chip_1(stepper_motor, DEC, reg_temp_2, 2);
     HAL_Delay(10);
 
-    // Set current levels
+// Set current levels
     reg_temp_1 = (uint8_t)(KVAL_HOLD_PERCENT * 255 / 100);
     l6470_set_param_chip_1(stepper_motor, KVAL_HOLD, &reg_temp_1, 1);
     HAL_Delay(10);
@@ -251,39 +251,39 @@ void l6470_init_chip_2(MotorSetTypedef* stepper_motor)
     l6470_set_param_chip_1(stepper_motor, KVAL_DEC, &reg_temp_1, 1);
     HAL_Delay(10);
 
-    // Set BEMF compensation slopes
-    reg_temp_1 = 0x19;  // ST_SLP = 0.038% s/step
+// Set BEMF compensation slopes
+    reg_temp_1 = ST_SLP_VAL; // 0x19;  // ST_SLP = 0.038% s/step
     l6470_set_param_chip_1(stepper_motor, ST_SLP, &reg_temp_1, 1);
     HAL_Delay(10);
 
-    reg_temp_1 = 0x29;  // FN_SLP_ACC = 0.063% s/step
+    reg_temp_1 = FN_SLP_ACC_VAL; // 0x29;  // FN_SLP_ACC = 0.063% s/step
     l6470_set_param_chip_1(stepper_motor, FN_SLP_ACC, &reg_temp_1, 1);
     HAL_Delay(10);
 
-    reg_temp_1 = 0x29;  // FN_SLP_DEC = 0.063% s/step
+    reg_temp_1 = FN_SLP_DEC_VAL; // 0x29;  // FN_SLP_DEC = 0.063% s/step
     l6470_set_param_chip_1(stepper_motor, FN_SLP_DEC, &reg_temp_1, 1);
     HAL_Delay(10);
 
-    // Set intersect speed to 0x0408 (≈61.5 steps/s)
-    reg_temp_2[0] = 0x04;
-    reg_temp_2[1] = 0x08;
+// Set intersect speed to 0x0408 (≈61.5 steps/s)
+    reg_temp_2[0] = (INT_SPEED_VAL >> 8) & 0xFF; // 0x04;; // 0x04;
+    reg_temp_2[1] = INT_SPEED_VAL & 0xFF; // 0x04;; // 0x08;
     l6470_set_param_chip_1(stepper_motor, INT_SPEED, reg_temp_2, 2);
     HAL_Delay(10);
 
-    // Set overcurrent threshold for 1A (OCD_TH = 1)
-    reg_temp_1 = 0x08; // was 0x01
+// Set overcurrent threshold for 1A (OCD_TH = 1)
+    reg_temp_1 = OVERCURRENT_THRESHOLD_VAL; // was 0x01
     l6470_set_param_chip_1(stepper_motor, OCD_TH, &reg_temp_1, 1);
     HAL_Delay(10);
 
-    // Set CONFIG register: 0x2E88 → internal oscillator, 2MHz, OC shutdown, slew rate = 320V/μs
-    reg_temp_2[0] = 0x2E;
-    reg_temp_2[1] = 0x80;
+// Set CONFIG register: 0x2E88 → internal oscillator, 2MHz, OC shutdown, slew rate = 320V/μs
+    reg_temp_2[0] = (CONFIG_REG_VAL >> 8) & 0xFF; // 0x2E;
+    reg_temp_2[1] = CONFIG_REG_VAL & 0xFF;
 	l6470_set_param_chip_1(stepper_motor, CONFIG, reg_temp_2, 2);
     HAL_Delay(10);
 
-    // TODO: Set MAX SPEED
+// TODO: Set MAX SPEED
 
-    // Initialize SPI buffers
+// Initialize SPI buffers
     stepper_motor->spi_dma_busy = 0; // TODO: Unused?
     stepper_motor->spi_tx_count = 0; // TODO: Unused?
 
@@ -328,12 +328,12 @@ uint8_t l6470_get_busy(MotorSetTypedef* stepper_motor, uint16_t* m1_status, uint
         *m2_status = 0; // Only use m2 for the first IHM02A1. The top IHM02A1 does not have a motor connected to this L6470
     }
 
-    // Send GET_STATUS command
+// Send GET_STATUS command
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
     HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, HAL_MAX_DELAY);
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
 
-    // Now read 2 bytes (MSB first) from each motor
+// Now read 2 bytes (MSB first) from each motor
     for (int i = 0; i < 2; i++)
     {
         tx[0] = 0;
@@ -354,10 +354,10 @@ uint8_t l6470_get_busy(MotorSetTypedef* stepper_motor, uint16_t* m1_status, uint
 
     }
 
-    // Always use busy1
+// Always use busy1
     busy1 = ((*m1_status & BUSY_MASK) != 0);
 
-    // Only use busy2 if we are using both L6470's
+// Only use busy2 if we are using both L6470's
     if(m2_status)
     {
         busy2 = ((*m2_status & BUSY_MASK) != 0);
@@ -458,7 +458,7 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
 
     for (int i = 0; i < stepper_motor->num_motors; i++)
     {
-        // Clamp velocity to the allowable range
+// Clamp velocity to the allowable range
         if (vel[i] > MAX_SPEED_RAD)
         {
             vel[i] = MAX_SPEED_RAD;
@@ -468,7 +468,7 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
             vel[i] = -MAX_SPEED_RAD;
         }
 
-        // Determine motor direction and store the corresponding command
+// Determine motor direction and store the corresponding command
         if (vel[i] > 0)
         {
             stepper_motor->spd_tx_buffer[i] = 0x51; // Forward direction
@@ -479,10 +479,10 @@ void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel)
             stepper_motor->spd_tx_buffer[i] = 0x50; // Reverse direction
         }
 
-        // Convert velocity to stepper motor speed format
+// Convert velocity to stepper motor speed format
         speed = (uint32_t)(vel[i] * STEPS_PER_REVOLUTION * 67.108864f / TWOPI);
 
-        // Store speed data in the transmission buffer
+// Store speed data in the transmission buffer
         stepper_motor->spd_tx_buffer[NUM_MOTORS + i]     = (uint8_t)(speed >> 16);
         stepper_motor->spd_tx_buffer[NUM_MOTORS * 2 + i] = (uint8_t)(speed >> 8);
         stepper_motor->spd_tx_buffer[NUM_MOTORS * 3 + i] = (uint8_t)(speed);
@@ -596,7 +596,7 @@ void l6470_get_param_chip_1(MotorSetTypedef* stepper_motor, uint8_t param, uint8
         result_motor1 = (result_motor1 << 8) | rx[0];  // Motor1 (first in chain)
         result_motor2 = (result_motor2 << 8) | rx[1];  // Motor2 (second in chain)
 
-        // printf("Byte %d - Motor1: 0x%04X  Motor2: 0x%04X\n\r", i, rx[0], rx[1]);
+// printf("Byte %d - Motor1: 0x%04X  Motor2: 0x%04X\n\r", i, rx[0], rx[1]);
     }
 
      printf("Chip1: Motor1 result: 0x%06lX\n\r", result_motor1);
@@ -637,7 +637,7 @@ uint32_t l6470_get_param_chip_2(MotorSetTypedef* stepper_motor, uint8_t param, u
         HAL_Delay(2);
 
         result = (result << 8) | rx[0];
-        // printf("Byte %d read: 0x%04X\n\r", i, rx[1]);
+// printf("Byte %d read: 0x%04X\n\r", i, rx[1]);
     }
 
     printf("Chip2: Motor1 result: 0x%06lX\n\r", result);
@@ -653,7 +653,7 @@ void l6470_get_status(MotorSetTypedef* stepper_motor, uint16_t* m1_status, uint1
     *m1_status = 0;
     *m2_status = 0;
 
-    // Send GET_STATUS command
+// Send GET_STATUS command
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_RESET);
     HAL_Delay(1);
     HAL_SPI_TransmitReceive(stepper_motor->hspi_l6470, tx, rx, 2, HAL_MAX_DELAY);
@@ -661,7 +661,7 @@ void l6470_get_status(MotorSetTypedef* stepper_motor, uint16_t* m1_status, uint1
     HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
     HAL_Delay(2);
 
-    // Now read 2 bytes (MSB first) from each motor
+// Now read 2 bytes (MSB first) from each motor
     for (int i = 0; i < 2; i++)
     {
         tx[0] = 0;
@@ -751,7 +751,7 @@ void l6470_dump_params_chip1(MotorSetTypedef* stepper_motor)
     l6470_get_param_chip_1(stepper_motor, CONFIG, L6470_LEN2);
     printf("\n\r");
 
-    // From your init()
+// From your init()
     printf("INT_SPEED\n\r");
     l6470_get_param_chip_1(stepper_motor, INT_SPEED, L6470_LEN2);
     printf("\n\r");
@@ -764,7 +764,7 @@ void l6470_dump_params_chip1(MotorSetTypedef* stepper_motor)
     l6470_get_param_chip_1(stepper_motor, EL_POS, L6470_LEN2);
     printf("\n\r");
 
-    // Added extras
+// Added extras
     printf("MIN_SPEED\n\r");
     l6470_get_param_chip_1(stepper_motor, MIN_SPEED, L6470_LEN2);
     printf("\n\r");
@@ -843,7 +843,7 @@ void l6470_dump_params_chip2(MotorSetTypedef* stepper_motor)
     l6470_get_param_chip_2(stepper_motor, CONFIG, L6470_LEN2);
     printf("\n\r");
 
-    // From your init()
+// From your init()
     printf("INT_SPEED\n\r");
     l6470_get_param_chip_2(stepper_motor, INT_SPEED, L6470_LEN2);
     printf("\n\r");
@@ -856,7 +856,7 @@ void l6470_dump_params_chip2(MotorSetTypedef* stepper_motor)
     l6470_get_param_chip_2(stepper_motor, EL_POS, L6470_LEN2);
     printf("\n\r");
 
-    // Added extras
+// Added extras
     printf("MIN_SPEED\n\r");
     l6470_get_param_chip_2(stepper_motor, MIN_SPEED, L6470_LEN2);
     printf("\n\r");
