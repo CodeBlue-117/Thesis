@@ -29,16 +29,16 @@
 
 ////////////////////////////////////////////////////////
 //TODO: Tune these
-#define ACC_SMOOTH_VAL					0x05FF
-#define KVAL_HOLD_PERCENT           	5  // TODO: Optimize these
+#define ACC_SMOOTH_VAL					0x07FF
+#define KVAL_HOLD_PERCENT           	50  // TODO: Optimize these
 #define KVAL_RUN_PERCENT            	100 //90 // TODO: Optimize these --- lower values allow for smoother motor motion, higher values allow for larger torque
 #define KVAL_ACCDEC_PERCENT         	100 //90 // TODO: Optimize these --- lower values allow for smoother motor motion, higher values allow for larger torque
-#define ST_SLP_VAL						0x18
-#define FN_SLP_ACC_VAL					0x28
-#define FN_SLP_DEC_VAL					0x28
+#define ST_SLP_VAL						0x1C
+#define FN_SLP_ACC_VAL					0x30
+#define FN_SLP_DEC_VAL					0x30
 #define INT_SPEED_VAL					0x0500
 #define OVERCURRENT_THRESHOLD_VAL		0x08
-#define CONFIG_REG_VAL					0x2A80 // 0x2E80 = max performance (most torque)
+#define CONFIG_REG_VAL					0x2E80 // 0x2E80 = max performance (most torque)
 
 
 ////////////////////////////////////////////////////////////

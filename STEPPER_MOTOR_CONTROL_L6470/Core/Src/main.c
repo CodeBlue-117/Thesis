@@ -98,10 +98,11 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 //#define POT_FC_HZ	  		15.0f // TODO: Tune this
 
 // TODO: TUNE the DEADBAND
- #define DEADBAND 	  		(0.35f * M_PI/180.0f)  // 0.5 degree for the dead band (no integral)
-//#define DEADBAND 	  		(0.5f * M_PI/180.0f)  // 0.25 degree for the dead band (no integral)
+ #define DEADBAND 	  		(0.25f * M_PI/180.0f)  // 0.5 degree for the dead band (no integral)
+//#define DEADBAND 	  		(0.5f * M_PI/180.0f)  // 1.0 degree for the dead band (no integral)
 
-#define CONTROL_LOOP_TIME	100
+// TODO: Tune this
+#define CONTROL_LOOP_TIME	10
 
 /* USER CODE END PD */
 
@@ -470,27 +471,27 @@ int main(void)
 
 			  //////////////////////////////////////////////////////////////////////
 
-			  if(IMU_ReadAccel(&ax, &ay, &az) == 0)
-			  {
-				  float xg = ax / 16384.0f;
-				  float yg = ay / 16384.0f;
-				  float zg = az / 16384.0f;
+//			  if(IMU_ReadAccel(&ax, &ay, &az) == 0)
+//			  {
+//				  float xg = ax / 16384.0f;
+//				  float yg = ay / 16384.0f;
+//				  float zg = az / 16384.0f;
+//
+//				  printf("AX: %.2f, AY: %.2f, AZ %.2f\n\r", xg, yg, zg);
+//
+//				  HAL_Delay(5);
+//			  }
 
-				  printf("AX: %.2f, AY: %.2f, AZ %.2f\n\r", xg, yg, zg);
-
-				  HAL_Delay(5);
-			  }
-
-			  if(IMU_ReadGyro(&wx, &wy, &wz) == 0)
-			  {
-				  float x_dps = wx / 131.0f;
-				  float y_dps = wy / 131.0f;
-				  float z_dps = wz / 131.0f;
-
-				  printf("WX: %.2f, WY: %.2f, WZ %.2f\n\r", x_dps, y_dps, z_dps);
-
-				  HAL_Delay(5);
-			  }
+//			  if(IMU_ReadGyro(&wx, &wy, &wz) == 0)
+//			  {
+//				  float x_dps = wx / 131.0f;
+//				  float y_dps = wy / 131.0f;
+//				  float z_dps = wz / 131.0f;
+//
+//				  printf("WX: %.2f, WY: %.2f, WZ %.2f\n\r", x_dps, y_dps, z_dps);
+//
+//				  HAL_Delay(5);
+//			  }
 
 			  /////////////////////////////////////////////////////////////////////
 
@@ -566,7 +567,7 @@ int main(void)
 			  if (myControlVariables.curCommandedCartVelocityY < MIN_CART_VEL) myControlVariables.curCommandedCartVelocityY = MIN_CART_VEL;
 
 			  // Send Commands to Motors
-//			  omni_drive(myControlVariables.curCommandedCartVelocityX, myControlVariables.curCommandedCartVelocityY, 0.0f);
+			  omni_drive(myControlVariables.curCommandedCartVelocityX, myControlVariables.curCommandedCartVelocityY, 0.0f);
 
 			  // Update previous values
 			  myControlVariables.prevThetaX = myControlVariables.curThetaX;

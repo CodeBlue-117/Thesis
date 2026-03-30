@@ -31,5 +31,6 @@ HAL_StatusTypeDef IMU_Write(uint16_t reg, uint8_t data);
 HAL_StatusTypeDef IMU_Read(uint16_t reg, uint8_t *buf, uint8_t len);
 uint8_t initializeIMU(void);
 uint8_t IMU_ReadAccel(int16_t *ax, int16_t *ay, int16_t *az);
+uint8_t IMU_ReadGyro(int16_t *wx, int16_t *wy, int16_t *wz);
 
 #endif /* INC_INTFC_IMU_H_ */
