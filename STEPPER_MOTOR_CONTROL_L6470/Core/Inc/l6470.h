@@ -22,23 +22,23 @@
 // Parameters
 #define MAX_ACCELERATION    			32  		// 10 pi rad/s = 32 rad/s = 5 rps/s // Used to be: 10  				/*!< max acceleration [rad/sec^2] 			*/
 #define MAX_SPEED_RAD    				31.4f 		// 10_PI rad/s = 31.4f rad/s = 5 rev/s		/*!< max speed [rad / sec] 					*/
-#define MAX_CURRENT         			1.0 				/*!< Max Current of the stepper motor 		*/
+#define MAX_CURRENT         			0.9 //1.0 				/*!< Max Current of the stepper motor 		*/
 #define STEPS_PER_REVOLUTION  			200	                /*!< Steps per revolution 	*/
 #define TWOPI                       	6.283185f			/*!< Two pi value 			*/
 #define DEFAULT_ZERO_POS				0
 
 ////////////////////////////////////////////////////////
 //TODO: Tune these
-#define ACC_SMOOTH_VAL					0x07FF
-#define KVAL_HOLD_PERCENT           	50  // TODO: Optimize these
-#define KVAL_RUN_PERCENT            	100 //90 // TODO: Optimize these --- lower values allow for smoother motor motion, higher values allow for larger torque
-#define KVAL_ACCDEC_PERCENT         	100 //90 // TODO: Optimize these --- lower values allow for smoother motor motion, higher values allow for larger torque
-#define ST_SLP_VAL						0x1C
-#define FN_SLP_ACC_VAL					0x30
-#define FN_SLP_DEC_VAL					0x30
+#define ACC_SMOOTH_VAL					0x07FF 	// Try 0x05FF (wild card)
+#define KVAL_HOLD_PERCENT           	60  	// TODO: Optimize these
+#define KVAL_RUN_PERCENT            	90 		// TODO: Optimize these --- lower values allow for smoother motor motion, higher values allow for larger torque
+#define KVAL_ACCDEC_PERCENT         	95 		// TODO: Optimize these --- lower values allow for smoother motor motion, higher values allow for larger torque
+#define ST_SLP_VAL						0x1C 	// These do not govern reaction speed or correction force, only how smooth motors move at low speed // try  0x17
+#define FN_SLP_ACC_VAL					0x30 	// try 0x24
+#define FN_SLP_DEC_VAL					0x30 	// try 0x24
 #define INT_SPEED_VAL					0x0500
-#define OVERCURRENT_THRESHOLD_VAL		0x08
-#define CONFIG_REG_VAL					0x2E80 // 0x2E80 = max performance (most torque)
+#define OVERCURRENT_THRESHOLD_VAL		0x03 	// 0011 -> 1.5A
+#define CONFIG_REG_VAL					0x2E80 	// Try 0x3D90 next for better performance
 
 
 ////////////////////////////////////////////////////////////
