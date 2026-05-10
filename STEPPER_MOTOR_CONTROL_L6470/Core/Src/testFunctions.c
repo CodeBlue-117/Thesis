@@ -23,8 +23,8 @@
 
 //		  buttonFlag = false;
 //
-//  	  l6470_enable(&motor_set_1);
-//  	  l6470_enable(&motor_set_2);
+//  	  l6470_Soft_Stop(&motor_set_1);
+//  	  l6470_Soft_Stop(&motor_set_2);
 //
 //		  switch(pushButtonCallCount)
 //		  {
@@ -54,8 +54,8 @@
 //  			l6470_soft_stop(&motor_set_1);
 //  			l6470_soft_stop(&motor_set_2);
 //
-//  			l6470_disable(&motor_set_1);
-//  			l6470_disable(&motor_set_2);
+//  			l6470_Hard_Stop(&motor_set_1);
+//  			l6470_Hard_Stop(&motor_set_2);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -102,8 +102,8 @@
 // 	 l6470_soft_stop(&motor_set_1);
 // 	 l6470_soft_stop(&motor_set_2);
 //
-// 	 l6470_disable(&motor_set_1);
-// 	 l6470_disable(&motor_set_2);
+// 	 l6470_Hard_Stop(&motor_set_1);
+// 	 l6470_Hard_Stop(&motor_set_2);
 //
 //}
 

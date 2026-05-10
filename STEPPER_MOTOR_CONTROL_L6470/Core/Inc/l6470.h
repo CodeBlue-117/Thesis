@@ -127,11 +127,10 @@ typedef struct
 
 }MotorSetTypedef;
 
-
-void l6470_enable(MotorSetTypedef* stepper_motor);
-void l6470_disable(MotorSetTypedef* stepper_motor);
-void l6470_init_chip_1(MotorSetTypedef* stepper_motor);
-void l6470_init_chip_2(MotorSetTypedef* stepper_motor);
+void l6470_Soft_Stop(MotorSetTypedef* stepper_motor);
+void l6470_Hard_Stop(MotorSetTypedef* stepper_motor);
+void L6470_Init_IHM02A1_1(MotorSetTypedef* stepper_motor);
+void L6470_Init_IHM02A1_2(MotorSetTypedef* stepper_motor);
 
 void l6470_set_vel(MotorSetTypedef* stepper_motor, float* vel);
 void l6470_set_steppersec(MotorSetTypedef stepper_motor,uint8_t motor_id, uint16_t step);

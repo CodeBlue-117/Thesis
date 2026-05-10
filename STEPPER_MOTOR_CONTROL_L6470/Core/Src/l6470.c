@@ -18,7 +18,7 @@
  * @brief enable l6470 motor driver
  * @param stepper_motor: stepper motor handler
  */
-void l6470_enable(MotorSetTypedef* stepper_motor)
+void l6470_Soft_Stop(MotorSetTypedef* stepper_motor)
 {
     uint8_t tx[2] = { SOFT_STOP, SOFT_STOP };
     uint8_t rx[2] = { 0 };
@@ -38,7 +38,7 @@ void l6470_enable(MotorSetTypedef* stepper_motor)
  * @brief disable l6470 motor driver
  * @param stepper_motor: stepper motor handler
  */
-void l6470_disable(MotorSetTypedef* stepper_motor)
+void l6470_Hard_Stop(MotorSetTypedef* stepper_motor)
 {
 
     uint8_t tx[2] = { HARD_HIZ, HARD_HIZ };
@@ -116,7 +116,7 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor)
  * @brief l6470 motor driver initialization
  * @param stepper_motor: stepper motor handler
  */
-void l6470_init_chip_1(MotorSetTypedef* stepper_motor)
+void L6470_Init_IHM02A1_1(MotorSetTypedef* stepper_motor)
 {
     uint8_t reg_temp_1;
     uint8_t reg_temp_2[2];
@@ -205,7 +205,7 @@ void l6470_init_chip_1(MotorSetTypedef* stepper_motor)
  * @brief l6470 motor driver initialization
  * @param stepper_motor: stepper motor handler
  */
-void l6470_init_chip_2(MotorSetTypedef* stepper_motor)
+void L6470_Init_IHM02A1_2(MotorSetTypedef* stepper_motor)
 {
     uint8_t reg_temp_1;
     uint8_t reg_temp_2[2];
@@ -221,7 +221,7 @@ void l6470_init_chip_2(MotorSetTypedef* stepper_motor)
 // Zero ABS_POS and EL_POS
     l6470_set_param_chip_1(stepper_motor, ABS_POS, reg_temp_3, 3);
     HAL_Delay(10);
-    l6470_set_param_chip_1(stepper_motor, EL_POS, reg_temp_3, 3);
+    l6470_set_param_chip_1(stepper_motor, EL_POS, reg_temp_2, 2);
     HAL_Delay(10);
 
 // Set max ACC and DEC: 0x0FFE = 4094 (59559 step/s²)
@@ -270,10 +270,11 @@ void l6470_init_chip_2(MotorSetTypedef* stepper_motor)
     l6470_set_param_chip_1(stepper_motor, INT_SPEED, reg_temp_2, 2);
     HAL_Delay(10);
 
-// Set overcurrent threshold for 1A (OCD_TH = 1)
-    reg_temp_1 = OVERCURRENT_THRESHOLD_VAL; // was 0x01
-    l6470_set_param_chip_1(stepper_motor, OCD_TH, &reg_temp_1, 1);
-    HAL_Delay(10);
+//    // TODO: THIS WAS A PROBLEM THAT PREVENTED OPERATION
+////// Set overcurrent threshold for 1A (OCD_TH = 1)
+////    reg_temp_1 = OVERCURRENT_THRESHOLD_VAL; // was 0x01
+////    l6470_set_param_chip_1(stepper_motor, OCD_TH, &reg_temp_1, 1);
+////    HAL_Delay(10);
 
 // Set CONFIG register: 0x2E88 → internal oscillator, 2MHz, OC shutdown, slew rate = 320V/μs
     reg_temp_2[0] = (CONFIG_REG_VAL >> 8) & 0xFF; // 0x2E;

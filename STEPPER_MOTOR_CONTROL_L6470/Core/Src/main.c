@@ -401,34 +401,11 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 
+	 // ======================================= ADC_DMA_INIT ============================== //
+
   	 HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buffer, 2);
 
-	 // Reset L6470s (shared line)
-	 HAL_GPIO_WritePin(STEPPER_RST_GPIO_Port, STEPPER_RST_Pin, GPIO_PIN_RESET);
-	 HAL_Delay(100);
-	 HAL_GPIO_WritePin(STEPPER_RST_GPIO_Port, STEPPER_RST_Pin, GPIO_PIN_SET);
-	 HAL_Delay(100);
-
-  	 // ***NOW*** do sync + init
-  	 l6470_sync_daisy_chain(&motor_set_1);
-  	 l6470_sync_daisy_chain(&motor_set_2);
-
-  	 l6470_init_chip_1(&motor_set_1);
-  	 l6470_init_chip_2(&motor_set_2);
-
-  	 l6470_disable(&motor_set_1);
-  	 l6470_disable(&motor_set_2);
-
-  	 l6470_dump_params_chip1(&motor_set_1);
-  	 l6470_dump_params_chip2(&motor_set_2);
-
- 	 // --- Enable motors in safe state (e.g. holding position, no motion) ---
-	 l6470_enable(&motor_set_1);
-	 l6470_enable(&motor_set_2);
-
-  	 l6470_disable(&motor_set_1);
-  	 l6470_disable(&motor_set_2);
-
+  	 // ======================================= IMU_INIT ============================== //
 	 uint8_t retVal = initializeIMU();
 	 if(retVal == HAL_OK)
 	 {
@@ -440,6 +417,32 @@ int main(void)
 	 }
 
 	 last = HAL_GetTick();
+
+	 // ======================================= L6470_INIT ============================== //
+
+	 // Reset L6470s (shared line)
+	 HAL_GPIO_WritePin(STEPPER_RST_GPIO_Port, STEPPER_RST_Pin, GPIO_PIN_RESET);
+	 HAL_Delay(100);
+	 HAL_GPIO_WritePin(STEPPER_RST_GPIO_Port, STEPPER_RST_Pin, GPIO_PIN_SET);
+	 HAL_Delay(100);
+
+  	 // ***NOW*** do sync + init
+  	 l6470_sync_daisy_chain(&motor_set_1);
+  	 l6470_sync_daisy_chain(&motor_set_2);
+
+  	 uint16_t m1_status, m2_status;
+  	 l6470_get_status(&motor_set_1, &m1_status, &m2_status);
+
+  	 L6470_Init_IHM02A1_1(&motor_set_1);
+  	 L6470_Init_IHM02A1_2(&motor_set_2);
+
+  	 l6470_dump_params_chip1(&motor_set_1);
+  	 l6470_dump_params_chip2(&motor_set_2);
+
+  	 l6470_get_status(&motor_set_1, &m1_status, &m2_status);
+
+  	// ======================================== MOTOR TEST ================================ //
+
 
   /* USER CODE END 2 */
 
@@ -458,8 +461,8 @@ int main(void)
 		  l6470_soft_stop(&motor_set_1);
 		  l6470_soft_stop(&motor_set_2);
 
-		  l6470_disable(&motor_set_1);
-		  l6470_disable(&motor_set_2);
+		  l6470_Hard_Stop(&motor_set_1);
+		  l6470_Hard_Stop(&motor_set_2);
 
 	  }
 
