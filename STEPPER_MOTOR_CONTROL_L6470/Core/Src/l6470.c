@@ -181,10 +181,11 @@ void L6470_Init_IHM02A1_1(MotorSetTypedef* stepper_motor)
     l6470_set_param_chip_1(stepper_motor, INT_SPEED, reg_temp_2, 2);
     HAL_Delay(10);
 
-// Set overcurrent threshold for 1A (OCD_TH = 1)
-    reg_temp_1 = OVERCURRENT_THRESHOLD_VAL; // was 0x01
-    l6470_set_param_chip_1(stepper_motor, OCD_TH, &reg_temp_1, 1);
-    HAL_Delay(10);
+    //// TODO: THIS WAS A PROBLEM THAT PREVENTED OPERATION
+////// Set overcurrent threshold for 1A (OCD_TH = 1)
+////    reg_temp_1 = OVERCURRENT_THRESHOLD_VAL; // was 0x01
+////    l6470_set_param_chip_1(stepper_motor, OCD_TH, &reg_temp_1, 1);
+////    HAL_Delay(10);
 
 // Set CONFIG register: 0x2E88 → internal oscillator, 2MHz, OC shutdown, slew rate = 320V/μs
     reg_temp_2[0] = (CONFIG_REG_VAL >> 8) & 0xFF; // 0x2E; (Highest slew rate causes more noise, less smooth current

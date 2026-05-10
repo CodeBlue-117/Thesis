@@ -426,23 +426,47 @@ int main(void)
 	 HAL_GPIO_WritePin(STEPPER_RST_GPIO_Port, STEPPER_RST_Pin, GPIO_PIN_SET);
 	 HAL_Delay(100);
 
+	 HAL_Delay(1000);
+
   	 // ***NOW*** do sync + init
   	 l6470_sync_daisy_chain(&motor_set_1);
+  	 HAL_Delay(100);
   	 l6470_sync_daisy_chain(&motor_set_2);
+  	 HAL_Delay(100);
 
   	 uint16_t m1_status, m2_status;
   	 l6470_get_status(&motor_set_1, &m1_status, &m2_status);
+  	 HAL_Delay(100);
 
   	 L6470_Init_IHM02A1_1(&motor_set_1);
-  	 L6470_Init_IHM02A1_2(&motor_set_2);
+  	 HAL_Delay(100);
+
+//  	 L6470_Init_IHM02A1_2(&motor_set_2);
+//  	 HAL_Delay(100);
 
   	 l6470_dump_params_chip1(&motor_set_1);
-  	 l6470_dump_params_chip2(&motor_set_2);
+  	 HAL_Delay(100);
 
-  	 l6470_get_status(&motor_set_1, &m1_status, &m2_status);
+//  	 l6470_dump_params_chip2(&motor_set_2);
+//   	 HAL_Delay(100);
 
+   	 l6470_get_status(&motor_set_1, &m1_status, &m2_status);
+   	 HAL_Delay(100);
   	// ======================================== MOTOR TEST ================================ //
+ 	// Wheel mapping to motor sets
+ 	float motor_set_1_speed[2] = {3.0f, 3.0f}; // Motor 3 and motor 1 on motor_set_1
+// 	float motor_set_2_speed[2] = {0, w[0]};    // motor 2 on motor_set_2
 
+ 	// TODO: Place BUSY check here
+ 	// Transmit velocities to motor driver
+ 	l6470_set_vel(&motor_set_1, motor_set_1_speed);
+
+ 	HAL_Delay(3000);
+
+	l6470_soft_stop(&motor_set_1);
+	l6470_Hard_Stop(&motor_set_1);
+
+// 	l6470_set_vel(&motor_set_2, motor_set_2_speed);
 
   /* USER CODE END 2 */
 
