@@ -309,7 +309,7 @@ void omni_drive(float Vx, float Vy, float omega)
 
 	// Wheel mapping to motor sets
 	float motor_set_1_speed[2] = {w[1], w[2]}; // Motor 3 and motor 1 on motor_set_1
-	float motor_set_2_speed[2] = {0, w[0]};    // motor 2 on motor_set_2
+	float motor_set_2_speed[2] = {w[0], 0};    // motor 2 on motor_set_2
 
 	// TODO: Place BUSY check here
 	// Transmit velocities to motor driver
@@ -402,21 +402,20 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
 	 // ======================================= ADC_DMA_INIT ============================== //
-
   	 HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buffer, 2);
 
   	 // ======================================= IMU_INIT ============================== //
-	 uint8_t retVal = initializeIMU();
-	 if(retVal == HAL_OK)
-	 {
-		 printf("\n\rIMU initialized!\n\r");
-	 }
-	 else
-	 {
-		 printf("IMU FAILED to initialize, retVal: %d\n\r", retVal);
-	 }
-
-	 last = HAL_GetTick();
+//	 uint8_t retVal = initializeIMU();
+//	 if(retVal == HAL_OK)
+//	 {
+//		 printf("\n\rIMU initialized!\n\r");
+//	 }
+//	 else
+//	 {
+//		 printf("IMU FAILED to initialize, retVal: %d\n\r", retVal);
+//	 }
+//
+//	 last = HAL_GetTick();
 
 	 // ======================================= L6470_INIT ============================== //
 
@@ -448,18 +447,22 @@ int main(void)
   	 L6470_Init_IHM02A1_2(&motor_set_2);
   	 HAL_Delay(100);
 
-  	 l6470_dump_params_chip1(&motor_set_1);
-  	 HAL_Delay(100);
+  	 // TODO: Check to see if step loss is the issue
+  	 uint8_t alarm = 0xCF; // disable STEP_LOSS_A/B alarms
+  	 l6470_set_param_chip_1(&motor_set_1, ALARM_EN, &alarm, 1);
+  	 l6470_set_param_chip_1(&motor_set_2, ALARM_EN, &alarm, 1);
 
-  	 l6470_dump_params_chip2(&motor_set_2);
-   	 HAL_Delay(100);
+ 	 l6470_dump_params_chip1(&motor_set_1);
+ 	 HAL_Delay(100);
+
+ 	 l6470_dump_params_chip2(&motor_set_2);
+  	 HAL_Delay(100);
 
    	 l6470_get_status(&motor_set_1, &m1_status_1, &m2_status_1);
    	 HAL_Delay(100);
 
   	 l6470_get_status(&motor_set_2, &m1_status_2, &m2_status_2);
   	 HAL_Delay(100);
-
 //  	// ======================================== MOTOR TEST ================================ //
 // 	// Wheel mapping to motor sets
 // 	float motor_set_1_speed[2] = {3.0f, 3.0f}; // Motor 3 and motor 1 on motor_set_1
@@ -614,6 +617,7 @@ int main(void)
 
 			  myControlVariables.prevCommandedCartVelocityX = myControlVariables.curCommandedCartVelocityX;
 			  myControlVariables.prevCommandedCartVelocityY = myControlVariables.curCommandedCartVelocityY;
+
 
 		  }
 	  }

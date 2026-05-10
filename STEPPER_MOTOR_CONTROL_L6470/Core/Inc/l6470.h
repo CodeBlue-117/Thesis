@@ -33,12 +33,12 @@
 #define KVAL_HOLD_PERCENT           	60  	// TODO: Optimize these
 #define KVAL_RUN_PERCENT            	90 		// TODO: Optimize these --- lower values allow for smoother motor motion, higher values allow for larger torque
 #define KVAL_ACCDEC_PERCENT         	95 		// TODO: Optimize these --- lower values allow for smoother motor motion, higher values allow for larger torque
-#define ST_SLP_VAL						0x1C 	// These do not govern reaction speed or correction force, only how smooth motors move at low speed // try  0x17
-#define FN_SLP_ACC_VAL					0x30 	// try 0x24
-#define FN_SLP_DEC_VAL					0x30 	// try 0x24
-#define INT_SPEED_VAL					0x0500
-#define OVERCURRENT_THRESHOLD_VAL		0x03 	// 0011 -> 1.5A
-#define CONFIG_REG_VAL					0x2E80 	// Try 0x3D90 next for better performance
+#define ST_SLP_VAL						0x1C // 0x17 	// These do not govern reaction speed or correction force, only how smooth motors move at low speed // try  0x17
+#define FN_SLP_ACC_VAL					0x30 // 0x24	// try 0x24
+#define FN_SLP_DEC_VAL					0x30 // 0x24	// try 0x24
+#define INT_SPEED_VAL					0x0500 // 0x0488
+//#define OVERCURRENT_THRESHOLD_VAL		0x03 	// 0011 -> 1.5A
+#define CONFIG_REG_VAL					0x2E80 // 0x2E88	// Try 0x3D90 next for better performance
 
 
 ////////////////////////////////////////////////////////////
