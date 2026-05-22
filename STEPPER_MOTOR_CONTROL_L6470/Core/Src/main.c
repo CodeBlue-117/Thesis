@@ -104,6 +104,7 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 // TODO: Tune this
 #define CONTROL_LOOP_TIME	10
 
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/

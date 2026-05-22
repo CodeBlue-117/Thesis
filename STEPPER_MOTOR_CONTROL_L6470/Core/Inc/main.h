@@ -25,6 +25,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
+#include "stdbool.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -38,6 +39,12 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* USER CODE BEGIN EC */
+// ======================== ENABLE PRINT ======================== //
+
+#define PRINT_OUTPUT_ENABLED  false
+
+// ============================================================== //
+
 #define NUM_MOTORS		2
 
 #define WHEEL_RADIUS 	 0.03f // each wheel has a radius of 30mm = 0.03m

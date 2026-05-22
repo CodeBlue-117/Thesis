@@ -38,7 +38,10 @@ uint8_t initializeIMU(void)
 	  status = IMU_Read(reg, &receiveData, 1);
 	  if(status != HAL_OK)
 	  {
-		  printf("Error reading WhoAmI register\n\r");
+		  if(PRINT_OUTPUT_ENABLED)
+		  {
+			  printf("Error reading WhoAmI register\n\r");
+		  }
 		  return 1;
 	  }
 
@@ -46,7 +49,10 @@ uint8_t initializeIMU(void)
 
 	  if(receiveData != 0x68)
 	  {
-		  printf("Error reading WhoAmI register\n\r");
+		  if(PRINT_OUTPUT_ENABLED)
+		  {
+			  printf("Error reading WhoAmI register\n\r");
+		  }
 		  return 1;
 	  }
 
@@ -58,7 +64,10 @@ uint8_t initializeIMU(void)
 	  status = IMU_Write(PWR_MGMT_REG_1, 0x80); // 1000-0000
 	  if(status != HAL_OK)
 	  {
-		  printf("Error in Device Reset\n\r");
+		  if(PRINT_OUTPUT_ENABLED)
+		  {
+			  printf("Error in Device Reset\n\r");
+		  }
 		  return 1;
 	  }
 
@@ -70,7 +79,11 @@ uint8_t initializeIMU(void)
 	  status = IMU_Write(SIGNAL_PATH_REG, 0x07); // Reset GYRO, ACCEL and TEMP 0000-0111 = 0x07
 	  if(status != HAL_OK)
 	  {
-		  printf("Error resetting accel and gyro\n\r");
+
+		  if(PRINT_OUTPUT_ENABLED)
+		  {
+			  printf("Error resetting accel and gyro\n\r");
+		  }
 		  return 1;
 	  }
 
@@ -82,7 +95,10 @@ uint8_t initializeIMU(void)
 	  status = IMU_Write(PWR_MGMT_REG_1, 0x01); // Clock Source PLL from x-axis
 	  if(status != HAL_OK)
 	  {
-		  printf("Error setting clock source\n\r");
+		  if(PRINT_OUTPUT_ENABLED)
+		  {
+			  printf("Error setting clock source\n\r");
+		  }
 		  return 1;
 	  }
 
@@ -94,7 +110,10 @@ uint8_t initializeIMU(void)
 	  status = IMU_Write(CONFIG_REG, 0x02); // DLPF in CONFIG REG set to 94Hz bandwidth and 3ms delay (try 0x01 for 184Hz BW and 2ms delay)
 	  if(status != HAL_OK)
 	  {
-		  printf("Error setting DLPF\n\r");
+		  if(PRINT_OUTPUT_ENABLED)
+		  {
+			  printf("Error setting DLPF\n\r");
+		  }
 		  return 1;
 	  }
 	  HAL_Delay(10);
@@ -105,7 +124,10 @@ uint8_t initializeIMU(void)
 	  status = IMU_Write(ACCEL_CONFIG_REG, 0x00); // Configure Accel for full scale range +2g
 	  if(status != HAL_OK)
 	  {
-		  printf("Error setting Accel Config/Full Scale Range\n\r");
+		  if(PRINT_OUTPUT_ENABLED)
+		  {
+			  printf("Error setting Accel Config/Full Scale Range\n\r");
+		  }
 		  return 1;
 	  }
 	  HAL_Delay(10);
@@ -116,7 +138,10 @@ uint8_t initializeIMU(void)
 	  status = IMU_Write(GYRO_CONFIG_REG, 0x00); // Configure Accel for full scale range +2g
 	  if(status != HAL_OK)
 	  {
-		  printf("Error setting Gyro Config/Full Scale Range\n\r");
+		  if(PRINT_OUTPUT_ENABLED)
+		  {
+			  printf("Error setting Gyro Config/Full Scale Range\n\r");
+		  }
 		  return 1;
 	  }
 	  HAL_Delay(10);
