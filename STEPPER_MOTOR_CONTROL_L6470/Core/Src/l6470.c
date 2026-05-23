@@ -123,8 +123,7 @@ void L6470_Init_IHM02A1_1(MotorSetTypedef* stepper_motor)
     uint8_t reg_temp_3[3] = {0, 0, 0};
 
 // TODO: Tune this
-// reg_temp_1 = (uint8_t)ONE_HUNDRED_TWENTY_EIGHTH_STEP;
-    reg_temp_1 = (uint8_t)THIRTY_SECOND_STEP;
+    reg_temp_1 = (uint8_t)STEP_MODE_VAL;
     l6470_set_param_chip_1(stepper_motor, STEP_MODE, &reg_temp_1, 1);
     HAL_Delay(10);
 
@@ -213,8 +212,7 @@ void L6470_Init_IHM02A1_2(MotorSetTypedef* stepper_motor)
     uint8_t reg_temp_3[3] = {0, 0, 0};
 
 //  TODO: Tune this
-//  reg_temp_1 = (uint8_t)ONE_HUNDRED_TWENTY_EIGHTH_STEP;
-    reg_temp_1 = (uint8_t)THIRTY_SECOND_STEP;
+    reg_temp_1 = (uint8_t)STEP_MODE_VAL;
 // TODO: Note that I use l6470_set_param_chip_1 function also for chip 2, as this sends the proper bytes to turn on the front motor
     l6470_set_param_chip_1(stepper_motor, STEP_MODE, &reg_temp_1, 1);
     HAL_Delay(10);

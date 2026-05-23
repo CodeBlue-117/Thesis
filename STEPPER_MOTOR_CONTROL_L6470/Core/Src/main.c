@@ -79,10 +79,10 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 /* USER CODE BEGIN PD */
 
 // TODO: Tune these PID parameters
-#define K_P_X 				35.0f // Proportional constant for x-dir
-#define K_P_Y 				35.0f // proportional constant for y-dir
-#define K_I_X 				4.0f  //2.0f // 0.01f // Integral constant for x-dir
-#define K_I_Y 				4.0f  // 2.0f //0.01f // Integral constant for y-dir
+#define K_P_X 				30.5f // Proportional constant for x-dir
+#define K_P_Y 				30.5f // proportional constant for y-dir
+#define K_I_X 				3.0f  //2.0f // 0.01f // Integral constant for x-dir
+#define K_I_Y 				3.0f  // 2.0f //0.01f // Integral constant for y-dir
 #define K_D_X 				0.0f  // 5.0f
 #define K_D_Y 				0.0f  // 5.0f
 
@@ -98,11 +98,11 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 //#define POT_FC_HZ	  		15.0f // TODO: Tune this
 
 // TODO: TUNE the DEADBAND
- #define DEADBAND 	  		(0.25f * M_PI/180.0f)  // 0.5 degree for the dead band (no integral)
-//#define DEADBAND 	  		(0.5f * M_PI/180.0f)  // 1.0 degree for the dead band (no integral)
+//  #define DEADBAND 	  		(0.25f * M_PI/180.0f)  // 0.5 degree for the dead band (no integral)
+ #define DEADBAND 	  		(0.5f * M_PI/180.0f)  // 1.0 degree for the dead band (no integral)
 
 // TODO: Tune this
-#define CONTROL_LOOP_TIME	10
+#define CONTROL_LOOP_TIME	20
 
 
 /* USER CODE END PD */

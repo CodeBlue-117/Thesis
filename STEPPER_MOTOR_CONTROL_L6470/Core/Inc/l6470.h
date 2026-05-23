@@ -29,10 +29,11 @@
 
 ////////////////////////////////////////////////////////
 //TODO: Tune these
+#define STEP_MODE_VAL					ONE_HUNDRED_TWENTY_EIGHTH_STEP
 #define ACC_SMOOTH_VAL					0x07FF 	// Try 0x05FF (wild card)
 #define KVAL_HOLD_PERCENT           	60  	// TODO: Optimize these
-#define KVAL_RUN_PERCENT            	90 		// TODO: Optimize these --- lower values allow for smoother motor motion, higher values allow for larger torque
-#define KVAL_ACCDEC_PERCENT         	95 		// TODO: Optimize these --- lower values allow for smoother motor motion, higher values allow for larger torque
+#define KVAL_RUN_PERCENT            	96 		// TODO: Optimize these --- lower values allow for smoother motor motion, higher values allow for larger torque
+#define KVAL_ACCDEC_PERCENT         	96 		// TODO: Optimize these --- lower values allow for smoother motor motion, higher values allow for larger torque
 #define ST_SLP_VAL						0x1C // 0x17 	// These do not govern reaction speed or correction force, only how smooth motors move at low speed // try  0x17
 #define FN_SLP_ACC_VAL					0x30 // 0x24	// try 0x24
 #define FN_SLP_DEC_VAL					0x30 // 0x24	// try 0x24
