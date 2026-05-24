@@ -108,8 +108,10 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor)
         HAL_GPIO_WritePin(stepper_motor->gpio_cs_port, stepper_motor->gpio_cs_pin, GPIO_PIN_SET);
         HAL_Delay(2);
     }
-
-// printf("SPI Daisy-chain sync complete\n\r");
+//    if(PRINT_OUTPUT_ENABLED)
+//    {
+    	// printf("SPI Daisy-chain sync complete\n\r");
+//    }
 }
 
 /*
@@ -611,7 +613,10 @@ void l6470_get_param_chip_1(MotorSetTypedef* stepper_motor, uint8_t param, uint8
         result_motor1 = (result_motor1 << 8) | rx[0];  // Motor1 (first in chain)
         result_motor2 = (result_motor2 << 8) | rx[1];  // Motor2 (second in chain)
 
-// printf("Byte %d - Motor1: 0x%04X  Motor2: 0x%04X\n\r", i, rx[0], rx[1]);
+//		  if(PRINT_OUTPUT_ENABLED)
+//		  {
+			  // printf("Byte %d - Motor1: 0x%04X  Motor2: 0x%04X\n\r", i, rx[0], rx[1]);
+//		  }
     }
 
     if(PRINT_OUTPUT_ENABLED)
@@ -658,10 +663,17 @@ uint32_t l6470_get_param_chip_2(MotorSetTypedef* stepper_motor, uint8_t param, u
         HAL_Delay(2);
 
         result = (result << 8) | rx[0];
-// printf("Byte %d read: 0x%04X\n\r", i, rx[1]);
+
+//    	if(PRINT_OUTPUT_ENABLED)
+//    	{
+    		// printf("Byte %d read: 0x%04X\n\r", i, rx[1]);
+//    	}
     }
 
-    printf("Chip2: Motor1 result: 0x%06lX\n\r", result);
+	if(PRINT_OUTPUT_ENABLED)
+	{
+	    printf("Chip2: Motor1 result: 0x%06lX\n\r", result);
+	}
     return result;
 }
 
@@ -703,13 +715,19 @@ void l6470_get_status(MotorSetTypedef* stepper_motor, uint16_t* m1_status, uint1
 
     if(stepper_motor->identifier == 1)
     {
-        printf("Chip1: Motor1 STATUS = 0x%04X\n\r", *m1_status);
-        printf("Chip1: Motor2 STATUS = 0x%04X\n\r", *m2_status);
+    	if(PRINT_OUTPUT_ENABLED)
+    	{
+            printf("Chip1: Motor1 STATUS = 0x%04X\n\r", *m1_status);
+            printf("Chip1: Motor2 STATUS = 0x%04X\n\r", *m2_status);
+    	}
     }
     else if(stepper_motor->identifier == 2)
     {
-        printf("Chip2: Motor1 STATUS = 0x%04X\n\r", *m1_status);
-        printf("Chip2: Motor2 STATUS = 0x%04X\n\r", *m2_status);
+    	if(PRINT_OUTPUT_ENABLED)
+    	{
+            printf("Chip2: Motor1 STATUS = 0x%04X\n\r", *m1_status);
+            printf("Chip2: Motor2 STATUS = 0x%04X\n\r", *m2_status);
+    	}
     }
 
 }

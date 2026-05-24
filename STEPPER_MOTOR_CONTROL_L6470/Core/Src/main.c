@@ -13,6 +13,15 @@
   ******************************************************************************
   */
 
+// ======================== NOTES ===========================//
+
+// -> Orientation of robot is:
+// -> +y to the front (side with battery plugs)
+// -> +x clockwise 90 degrees from +y
+
+// ==========================================================//
+
+
 // Use speeds 0 - 10PI
 // NOTE: 10 PI is the highest achievable speed with one motor (5rps)
 
@@ -94,9 +103,6 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 #define MAX_INTEGRAL  		6.5f // anti-windup cap on integral, tune
 #define MIN_INTEGRAL 	   -6.5f
 
-// TODO: Remove input POT filter until tested -> Model filter with random data and see what the output is.
-//#define POT_FC_HZ	  		15.0f // TODO: Tune this
-
 // TODO: TUNE the DEADBAND
 //  #define DEADBAND 	  		(0.25f * M_PI/180.0f)  // 0.5 degree for the dead band (no integral)
  #define DEADBAND 	  		(0.5f * M_PI/180.0f)  // 1.0 degree for the dead band (no integral)
@@ -144,11 +150,6 @@ float pot_X_voltage 				= 0.0f;		// X POT VOLTAGE
 // JACOBIAN and INVERSE JACOBIAN for the transformation matrix mapping x and y to the three wheels (pi / 3) [120 deg] offset
 const float J[3][3] 	= {{-1, 0.5, 0.5}, {0, 0.866, -0.866}, {-0.333, -0.333, -0.333}};
 const float J_Inv[3][3] = {{0.667, 0, 1}, {-0.333, 0.577, 1}, {-0.333, -0.577, 1}};
-
-// TODO: Remove these until tested
-// FIltered X,Y POT values
-//static float potX_filt = 0.0f;
-//static float potY_filt = 0.0f;
 
 uint16_t adc_buffer[2];  						// NOTE: adc_buffer[0] = Z-X pot, adc_buffer[1] = Z-Y pot
 int16_t ax, ay, az;  							// IMU accel variables
@@ -276,12 +277,18 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef * hspi)
 {
 	if(hspi == motor_set_1.hspi_l6470)
 	{
-		// printf("MOTOR SET 1 SPI COMPLETE\n\r");
+		//    	if(PRINT_OUTPUT_ENABLED)
+		//    	{
+		// 			printf("MOTOR SET 1 SPI COMPLETE\n\r");
+		//		}
 	}
 
 	else if(hspi == motor_set_2.hspi_l6470)
 	{
-		//printf("MOTOR SET 2 SPI COMPLETE\n\r");
+//    	if(PRINT_OUTPUT_ENABLED)
+//    	{
+    		//printf("MOTOR SET 2 SPI COMPLETE\n\r");
+//    	}
 	}
 }
 
@@ -319,45 +326,16 @@ void omni_drive(float Vx, float Vy, float omega)
 
 }
 
-//static inline void update_pot_filter(float rawX, float rawY, float dt)
-//{
-//
-//	// Computer alpha from cutoff
-//	float tau = 1.0f / (2.0 * M_PI * POT_FC_HZ);
-//	float alpha = dt / (tau + dt);
-//
-//	// First time filter initialization (no sudden jump)
-//	static bool initialized = false;
-//	if(!initialized)
-//	{
-//		potX_filt = rawX;
-//		potY_filt = rawY;
-//		initialized = true;
-//	}
-//
-//	// exponential smoothing
-//	potX_filt += alpha * (rawX - potX_filt);
-//	potY_filt += alpha * (rawY - potY_filt);
-//}
-
+// Map voltages to degrees using linearization
+static inline float map_Y_VoltageToAngle(float v_centered)
+{
+	return v_centered * Y_RAD_PER_VOLT;
+}
 
 // Map voltages to degrees using linearization
-static inline float mapVoltageToAngle(float v, float vMin, float vMax)
+static inline float map_X_VoltageToAngle(float v_centered)
 {
-	if(v < vMin)
-	{
-		v = vMin;
-	}
-	if(v > vMax)
-	{
-		v = vMax;
-	}
-
-	scale = (v - vMin) / (vMax - vMin); // Normalized
-	scale = ((scale * 60.0f) - 30.0f); // [0,1] * 60 = [0, 60] - 30 = [-30,30] --> [-30 ... +30]
-	scale *= (M_PI / 180.0f); // Convert degrees to radians
-	return scale;
-
+	return v_centered * X_RAD_PER_VOLT;
 }
 
 
@@ -406,17 +384,23 @@ int main(void)
   	 HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buffer, 2);
 
   	 // ======================================= IMU_INIT ============================== //
-//	 uint8_t retVal = initializeIMU();
-//	 if(retVal == HAL_OK)
-//	 {
-//		 printf("\n\rIMU initialized!\n\r");
-//	 }
-//	 else
-//	 {
-//		 printf("IMU FAILED to initialize, retVal: %d\n\r", retVal);
-//	 }
-//
-//	 last = HAL_GetTick();
+	 uint8_t retVal = initializeIMU();
+	 if(retVal == HAL_OK)
+	 {
+		    if(PRINT_OUTPUT_ENABLED)
+		    {
+				 printf("\n\rIMU initialized!\n\r");
+		    }
+	 }
+	 else
+	 {
+		    if(PRINT_OUTPUT_ENABLED)
+		    {
+				 printf("IMU FAILED to initialize, retVal: %d\n\r", retVal);
+		    }
+	 }
+
+	 last = HAL_GetTick();
 
 	 // ======================================= L6470_INIT ============================== //
 
@@ -464,7 +448,9 @@ int main(void)
 
   	 l6470_get_status(&motor_set_2, &m1_status_2, &m2_status_2);
   	 HAL_Delay(100);
-//  	// ======================================== MOTOR TEST ================================ //
+
+
+  	 //  	// ======================================== MOTOR TEST ================================ //
 // 	// Wheel mapping to motor sets
 // 	float motor_set_1_speed[2] = {3.0f, 3.0f}; // Motor 3 and motor 1 on motor_set_1
 //// 	float motor_set_2_speed[2] = {0, w[0]};    // motor 2 on motor_set_2
@@ -479,6 +465,8 @@ int main(void)
 //	l6470_Hard_Stop(&motor_set_1);
 
 // 	l6470_set_vel(&motor_set_2, motor_set_2_speed);
+
+  	 //================================================================================================= //
 
   /* USER CODE END 2 */
 
@@ -510,16 +498,19 @@ int main(void)
 
 			  //////////////////////////////////////////////////////////////////////
 
-//			  if(IMU_ReadAccel(&ax, &ay, &az) == 0)
-//			  {
-//				  float xg = ax / 16384.0f;
-//				  float yg = ay / 16384.0f;
-//				  float zg = az / 16384.0f;
-//
-//				  printf("AX: %.2f, AY: %.2f, AZ %.2f\n\r", xg, yg, zg);
-//
-//				  HAL_Delay(5);
-//			  }
+			  if(IMU_ReadAccel(&ax, &ay, &az) == 0)
+			  {
+				  // Have to multiply ax by -1 to transform coordinate system to be equal to the hall effect sensor joystick orientation
+				  float xg = -(ax / 16384.0f); // 0.055f is the offset to
+
+				  // TODO: May have to add 0.017 instead of subtracting
+				  float yg = (ay / 16384.0f); // 0.017f is the offset to make y level
+				  float zg = -(az / 16384.0f);
+
+//				  printf("\n\r\n\rAX: %.2f,\n\r AY: %.2f,\n\r AZ %.2f\n\r", xg, yg, zg);
+
+				  HAL_Delay(200);
+			  }
 
 //			  if(IMU_ReadGyro(&wx, &wy, &wz) == 0)
 //			  {
@@ -539,10 +530,17 @@ int main(void)
 
 			  pot_Y_voltage = (3.3f * adc_buffer[0]) / 4095.0f; // Y - axis (forward/backward) angle
 			  pot_X_voltage = (3.3f * adc_buffer[1]) / 4095.0f; // X -Axis (Left/Right) angle
+//
+//			  printf("(RAW: VOLTAGE): Z-X: %.3f V\n\r", pot_X_voltage);
+//			  printf("(RAW: VOLTAGE): Z-Y: %.3f V\n\r", pot_Y_voltage);
+			  HAL_Delay(100);
 
-	//		  printf("(VOLTAGE): Z-X: %.2f V\n\r", pot_X_voltage);
-	//		  printf("(VOLTAGE): Z-Y: %.2f V\n\r", pot_Y_voltage);
-	//		  HAL_Delay(100);
+			  pot_Y_voltage -= POT_Y_CENTER_V; // offset
+			  pot_X_voltage -= POT_X_CENTER_V; // offset
+
+//			  printf("(AFTER: VOLTAGE): Z-X: %.3f V\n\r", pot_X_voltage);
+//			  printf("(AFTER: VOLTAGE): Z-Y: %.3f V\n\r", pot_Y_voltage);
+
 
 	// 		  update_pot_filter(pot_X_voltage, pot_Y_voltage, dt); // TODO: REPLACE ALL INSTANCES OF potX_filt and potY_filt with pot_X_voltage, pot_Y_voltage
 
@@ -550,15 +548,25 @@ int main(void)
 	//        printf("AFTER: Z-Y: %.2f V\n\r", potY_filt);
 
 			  // Parse X and Y voltages and convert them to angles asymmetrically, then to x,y values, then to Vx, Vy valuse
-			  myControlVariables.curThetaX = mapVoltageToAngle(pot_X_voltage, X_MIN_V, X_MAX_V);
-			  myControlVariables.curThetaY = mapVoltageToAngle(pot_Y_voltage, Y_MIN_V, Y_MAX_V);
+			  myControlVariables.curThetaX = map_X_VoltageToAngle(pot_X_voltage);
+			  myControlVariables.curThetaY = map_Y_VoltageToAngle(pot_Y_voltage);
 
 			  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 			  myControlVariables.curThetaY = -myControlVariables.curThetaY; // Need to take negative of angle due to orientation. Or can change the rotation matrix ???
 			  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//			  printf("(ANGLE): Z-X: %.2f radians\n\r", myControlVariables.curThetaX);
-//			  printf("(ANGLE): Z-Y: %.2f radians\n\r", myControlVariables.curThetaY);
+//			  printf("(ANGLE): Z-X: %.3f radians\n\r", myControlVariables.curThetaX);
+//			  printf("(ANGLE): Z-Y: %.3f radians\n\r", myControlVariables.curThetaY);
+
+			  float angle_deg_x = myControlVariables.curThetaX * 180.0f / M_PI;
+			  float angle_deg_y = myControlVariables.curThetaY * 180.0f / M_PI;
+
+
+			  printf("(ANGLE): Z-X: %.3f degrees\n\r", angle_deg_x);
+			  printf("(ANGLE): Z-Y: %.3f degrees\n\r", angle_deg_y);
+
+			  HAL_Delay(200);
+
 
 			  // Deadband
 			  if(fabs(myControlVariables.curThetaX) < DEADBAND)
@@ -606,7 +614,7 @@ int main(void)
 			  if (myControlVariables.curCommandedCartVelocityY < MIN_CART_VEL) myControlVariables.curCommandedCartVelocityY = MIN_CART_VEL;
 
 			  // Send Commands to Motors
-			  omni_drive(myControlVariables.curCommandedCartVelocityX, myControlVariables.curCommandedCartVelocityY, 0.0f);
+//			  omni_drive(myControlVariables.curCommandedCartVelocityX, myControlVariables.curCommandedCartVelocityY, 0.0f);
 
 			  // Update previous values
 			  myControlVariables.prevThetaX = myControlVariables.curThetaX;
