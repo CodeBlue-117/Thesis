@@ -27,6 +27,8 @@
 
 // MASTER TODO:
 // TODO: Implement DMA
+// TODO: Replace all instances of pot with hall
+// TODO: General codebase cleanup, go over all todos
 
 // --------------------------------------------------- FROM MATLAB ------------------------------------------------------------ //
 //%% System Parameters
@@ -108,8 +110,10 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
  #define DEADBAND 	  		(0.5f * M_PI/180.0f)  // 1.0 degree for the dead band (no integral)
 
 // TODO: Tune this
-#define CONTROL_LOOP_TIME	20
+#define CONTROL_LOOP_TIME			20
 
+#define POT_FILTER_SAMPLE_TIME_MS	1
+#define POT_AVG_WINDOW_SIZE			10 // Start with 10, then try 20
 
 /* USER CODE END PD */
 
@@ -222,6 +226,21 @@ uint16_t  m4_status = 0; // L6470 #4
 
 static uint32_t last = 0;
 static uint32_t now  = 0;
+
+static float pot_x_buf[POT_AVG_WINDOW_SIZE] = {0};
+static float pot_y_buf[POT_AVG_WINDOW_SIZE] = {0};
+
+static float pot_x_sum 				 		= 0.0f;
+static float pot_y_sum 				 		= 0.0f;
+
+static uint16_t pot_buf_index 		 		= 0;
+static uint16_t pot_sample_count 	 		= 0;
+
+static bool pot_filter_wrapped 		 		= false;
+static uint32_t pot_filter_overwrite_count  = 0;
+
+static uint32_t last_pot_sample_time = 0;
+
 
 /* USER CODE END PV */
 
@@ -338,7 +357,49 @@ static inline float map_X_VoltageToAngle(float v_centered)
 	return v_centered * X_RAD_PER_VOLT;
 }
 
+static inline void update_pot_background_average(void)
+{
+	uint32_t t = HAL_GetTick();
 
+	if((t - last_pot_sample_time) >= POT_FILTER_SAMPLE_TIME_MS)
+	{
+		last_pot_sample_time = t;
+
+		float raw_x = (3.3f * adc_buffer[1]) / 4095.0f;
+		float raw_y = (3.3f * adc_buffer[0]) / 4095.0f;
+
+		// If buffer is full, remove oldest sample from sum before overwriting
+		if(pot_sample_count >= POT_AVG_WINDOW_SIZE)
+		{
+			// remove oldest sample from sum
+			pot_x_sum -= pot_x_buf[pot_buf_index];
+			pot_y_sum -= pot_y_buf[pot_buf_index];
+
+			pot_filter_wrapped = true;
+			pot_filter_overwrite_count++;
+
+		}
+		else
+		{
+			pot_sample_count++;
+		}
+
+		// store newest sample in buffer
+		pot_x_buf[pot_buf_index] = raw_x;
+		pot_y_buf[pot_buf_index] = raw_y;
+
+		// Add newest sample to sum
+		pot_x_sum += raw_x;
+		pot_y_sum += raw_y;
+
+		pot_buf_index++;
+
+		if(pot_buf_index >= POT_AVG_WINDOW_SIZE)
+		{
+			pot_buf_index = 0;
+		}
+	}
+}
 
 /* USER CODE END 0 */
 
@@ -477,6 +538,8 @@ int main(void)
 
 	  now = HAL_GetTick();
 
+	  update_pot_background_average();
+
 	  if(stopNow)
 	  {
 
@@ -496,21 +559,23 @@ int main(void)
 		  if((now - last) >= CONTROL_LOOP_TIME)
 		  {
 
+			  dt = (now - last) * 0.001f;
+			  last = now;
+
 			  //////////////////////////////////////////////////////////////////////
 
-			  if(IMU_ReadAccel(&ax, &ay, &az) == 0)
-			  {
-				  // Have to multiply ax by -1 to transform coordinate system to be equal to the hall effect sensor joystick orientation
-				  float xg = -(ax / 16384.0f); // 0.055f is the offset to
-
-				  // TODO: May have to add 0.017 instead of subtracting
-				  float yg = (ay / 16384.0f); // 0.017f is the offset to make y level
-				  float zg = -(az / 16384.0f);
-
-//				  printf("\n\r\n\rAX: %.2f,\n\r AY: %.2f,\n\r AZ %.2f\n\r", xg, yg, zg);
-
-				  HAL_Delay(200);
-			  }
+//			  if(IMU_ReadAccel(&ax, &ay, &az) == 0)
+//			  {
+//				  // Have to multiply ax by -1 to transform coordinate system to be equal to the hall effect sensor joystick orientation
+//				  float xg = -(ax / 16384.0f); // 0.055f is the offset to
+//
+//				  // TODO: May have to add 0.017 instead of subtracting
+//				  float yg = (ay / 16384.0f); // 0.017f is the offset to make y level
+//				  float zg = -(az / 16384.0f);
+//
+////				  printf("\n\r\n\rAX: %.2f,\n\r AY: %.2f,\n\r AZ %.2f\n\r", xg, yg, zg);
+////				  HAL_Delay(200);
+//			  }
 
 //			  if(IMU_ReadGyro(&wx, &wy, &wz) == 0)
 //			  {
@@ -519,33 +584,33 @@ int main(void)
 //				  float z_dps = wz / 131.0f;
 //
 //				  printf("WX: %.2f, WY: %.2f, WZ %.2f\n\r", x_dps, y_dps, z_dps);
-//
 //				  HAL_Delay(5);
 //			  }
 
 			  /////////////////////////////////////////////////////////////////////
 
-			  dt = (now - last) * 0.001f;
-			  last = now;
-
-			  pot_Y_voltage = (3.3f * adc_buffer[0]) / 4095.0f; // Y - axis (forward/backward) angle
-			  pot_X_voltage = (3.3f * adc_buffer[1]) / 4095.0f; // X -Axis (Left/Right) angle
-//
+			  if(pot_sample_count > 0)
+			  {
+				  pot_X_voltage = pot_x_sum / pot_sample_count;
+				  pot_Y_voltage = pot_y_sum / pot_sample_count;
+			  }
+			  else
+			  {
+				  pot_X_voltage = (3.3f * adc_buffer[1]) / 4095.0f;
+				  pot_Y_voltage = (3.3f * adc_buffer[0]) / 4095.0f;
+			  }
+//			  pot_Y_voltage = (3.3f * adc_buffer[0]) / 4095.0f; // Y - axis (forward/backward) angle
+//			  pot_X_voltage = (3.3f * adc_buffer[1]) / 4095.0f; // X -Axis (Left/Right) angle
+////
 //			  printf("(RAW: VOLTAGE): Z-X: %.3f V\n\r", pot_X_voltage);
 //			  printf("(RAW: VOLTAGE): Z-Y: %.3f V\n\r", pot_Y_voltage);
-			  HAL_Delay(100);
+//			  HAL_Delay(100);
 
-			  pot_Y_voltage -= POT_Y_CENTER_V; // offset
 			  pot_X_voltage -= POT_X_CENTER_V; // offset
+			  pot_Y_voltage -= POT_Y_CENTER_V; // offset
 
 //			  printf("(AFTER: VOLTAGE): Z-X: %.3f V\n\r", pot_X_voltage);
 //			  printf("(AFTER: VOLTAGE): Z-Y: %.3f V\n\r", pot_Y_voltage);
-
-
-	// 		  update_pot_filter(pot_X_voltage, pot_Y_voltage, dt); // TODO: REPLACE ALL INSTANCES OF potX_filt and potY_filt with pot_X_voltage, pot_Y_voltage
-
-	// 		  printf("AFTER: Z-X: %.2f V\n\r", potX_filt);
-	//        printf("AFTER: Z-Y: %.2f V\n\r", potY_filt);
 
 			  // Parse X and Y voltages and convert them to angles asymmetrically, then to x,y values, then to Vx, Vy valuse
 			  myControlVariables.curThetaX = map_X_VoltageToAngle(pot_X_voltage);
@@ -558,23 +623,21 @@ int main(void)
 //			  printf("(ANGLE): Z-X: %.3f radians\n\r", myControlVariables.curThetaX);
 //			  printf("(ANGLE): Z-Y: %.3f radians\n\r", myControlVariables.curThetaY);
 
-			  float angle_deg_x = myControlVariables.curThetaX * 180.0f / M_PI;
-			  float angle_deg_y = myControlVariables.curThetaY * 180.0f / M_PI;
-
-
-			  printf("(ANGLE): Z-X: %.3f degrees\n\r", angle_deg_x);
-			  printf("(ANGLE): Z-Y: %.3f degrees\n\r", angle_deg_y);
-
-			  HAL_Delay(200);
-
+//			  float angle_deg_x = myControlVariables.curThetaX * 180.0f / M_PI;
+//			  float angle_deg_y = myControlVariables.curThetaY * 180.0f / M_PI;
+//
+//			  printf("(ANGLE): Z-X: %.3f degrees\n\r", angle_deg_x);
+//			  printf("(ANGLE): Z-Y: %.3f degrees\n\r", angle_deg_y);
+//
+//			  HAL_Delay(200);
 
 			  // Deadband
-			  if(fabs(myControlVariables.curThetaX) < DEADBAND)
+			  if(fabsf(myControlVariables.curThetaX) < DEADBAND)
 			  {
 				  myControlVariables.curThetaX = 0.0f;
 				  myControlVariables.integralX = 0.0f;
 			  }
-			  if(fabs(myControlVariables.curThetaY) < DEADBAND)
+			  if(fabsf(myControlVariables.curThetaY) < DEADBAND)
 			  {
 				  myControlVariables.curThetaY = 0.0f;
 				  myControlVariables.integralY = 0.0f;
