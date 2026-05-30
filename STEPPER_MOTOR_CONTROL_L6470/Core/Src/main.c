@@ -677,7 +677,7 @@ int main(void)
 			  if (myControlVariables.curCommandedCartVelocityY < MIN_CART_VEL) myControlVariables.curCommandedCartVelocityY = MIN_CART_VEL;
 
 			  // Send Commands to Motors
-//			  omni_drive(myControlVariables.curCommandedCartVelocityX, myControlVariables.curCommandedCartVelocityY, 0.0f);
+			  omni_drive(myControlVariables.curCommandedCartVelocityX, myControlVariables.curCommandedCartVelocityY, 0.0f);
 
 			  // Update previous values
 			  myControlVariables.prevThetaX = myControlVariables.curThetaX;
