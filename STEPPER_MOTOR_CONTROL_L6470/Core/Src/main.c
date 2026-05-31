@@ -90,10 +90,10 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 /* USER CODE BEGIN PD */
 
 // TODO: Tune these PID parameters
-#define K_P_X 				30.5f // Proportional constant for x-dir
-#define K_P_Y 				30.5f // proportional constant for y-dir
-#define K_I_X 				3.0f  //2.0f // 0.01f // Integral constant for x-dir
-#define K_I_Y 				3.0f  // 2.0f //0.01f // Integral constant for y-dir
+#define K_P_X 				31.5f // Proportional constant for x-dir
+#define K_P_Y 				31.5f // proportional constant for y-dir
+#define K_I_X 				3.5f  //2.0f // 0.01f // Integral constant for x-dir
+#define K_I_Y 				3.5f  // 2.0f //0.01f // Integral constant for y-dir
 #define K_D_X 				0.0f  // 5.0f
 #define K_D_Y 				0.0f  // 5.0f
 
@@ -110,7 +110,7 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
  #define DEADBAND 	  		(0.5f * M_PI/180.0f)  // 1.0 degree for the dead band (no integral)
 
 // TODO: Tune this
-#define CONTROL_LOOP_TIME			20
+#define CONTROL_LOOP_TIME			10 // 20
 
 #define POT_FILTER_SAMPLE_TIME_MS	1
 #define POT_AVG_WINDOW_SIZE			10 // Start with 10, then try 20
@@ -550,6 +550,28 @@ int main(void)
 
 		  l6470_Hard_Stop(&motor_set_1);
 		  l6470_Hard_Stop(&motor_set_2);
+
+		  vel_temp_1[0]  								= 0.0f;	// motor 2, 3
+		  vel_temp_1[1]  								= 0.0f;	// motor 2, 3
+		  vel_temp_2[0]  								= 0.0f;	// motor 1 (second element, had to troubleshoot)
+		  vel_temp_2[1]  								= 0.0f;	// motor 1 (second element, had to troubleshoot)
+		  pot_Y_voltage  								= 0.0f; // Y POT VOLTAGE
+		  pot_X_voltage  								= 0.0f; // X POT VOLTAGE
+
+		  myControlVariables.curCommandedCartVelocityX 	= 0;
+		  myControlVariables.curCommandedCartVelocityY 	= 0;
+		  myControlVariables.curInputU_X 				= 0.0f;
+		  myControlVariables.curInputU_Y 				= 0.0f;
+		  myControlVariables.curThetaX 					= 0.0f;
+		  myControlVariables.curThetaY 					= 0.0f;
+		  myControlVariables.integralX 					= 0.0f;
+		  myControlVariables.integralY 					= 0.0f;
+		  myControlVariables.prevCommandedCartVelocityX = 0.0f;
+		  myControlVariables.prevCommandedCartVelocityY = 0.0f;
+		  myControlVariables.prevInputU_X 				= 0.0f;
+		  myControlVariables.prevInputU_Y 				= 0.0f;
+		  myControlVariables.prevThetaX					= 0.0f;
+		  myControlVariables.prevThetaY 				= 0.0f;
 
 	  }
 
