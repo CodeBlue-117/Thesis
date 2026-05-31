@@ -55,8 +55,8 @@ extern "C" {
 #define X_RAD_PER_VOLT   0.34f
 #define Y_RAD_PER_VOLT   0.34f
 
-#define POT_X_CENTER_V    1.656f // 1.637f
-#define POT_Y_CENTER_V    1.692f // 1.675f
+#define POT_X_CENTER_V    1.650f // 1.637f
+#define POT_Y_CENTER_V    1.650f // 1.675f
 
 /* USER CODE END EC */
 
