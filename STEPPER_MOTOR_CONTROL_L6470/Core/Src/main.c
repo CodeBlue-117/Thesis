@@ -90,24 +90,24 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 /* USER CODE BEGIN PD */
 
 // TODO: Tune these PID parameters
-#define K_P_X 				31.5f // Proportional constant for x-dir
-#define K_P_Y 				31.5f // proportional constant for y-dir
+#define K_P_X 				35.0f // Proportional constant for x-dir
+#define K_P_Y 				35.0f // proportional constant for y-dir
 #define K_I_X 				3.5f  //2.0f // 0.01f // Integral constant for x-dir
 #define K_I_Y 				3.5f  // 2.0f //0.01f // Integral constant for y-dir
 #define K_D_X 				0.0f  // 5.0f
 #define K_D_Y 				0.0f  // 5.0f
 
 // TODO: Tune the max vel
-#define MAX_CART_VEL 		0.60f //0.525f // 0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)
-#define MIN_CART_VEL 	   -0.60f // -0.525f //-0.9f
+#define MAX_CART_VEL 		0.70f //0.525f // 0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)
+#define MIN_CART_VEL 	   -0.70f // -0.525f //-0.9f
 
 // TODO: Tune the max integral???
-#define MAX_INTEGRAL  		6.5f // anti-windup cap on integral, tune
-#define MIN_INTEGRAL 	   -6.5f
+#define MAX_INTEGRAL  		7.0f // anti-windup cap on integral, tune
+#define MIN_INTEGRAL 	   -7.0f
 
 // TODO: TUNE the DEADBAND
-//  #define DEADBAND 	  		(0.25f * M_PI/180.0f)  // 0.5 degree for the dead band (no integral)
- #define DEADBAND 	  		(0.5f * M_PI/180.0f)  // 1.0 degree for the dead band (no integral)
+  #define DEADBAND 	  		(0.25f * M_PI/180.0f)  // 0.5 degree for the dead band (no integral)
+// #define DEADBAND 	  		(0.5f * M_PI/180.0f)  // 1.0 degree for the dead band (no integral)
 
 // TODO: Tune this
 #define CONTROL_LOOP_TIME			10 // 20
