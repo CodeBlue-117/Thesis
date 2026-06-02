@@ -90,16 +90,16 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 /* USER CODE BEGIN PD */
 
 // TODO: Tune these PID parameters
-#define K_P_X 				46.5f // 41.0f // Proportional constant for x-dir
-#define K_P_Y 				46.5f // 41.0f // proportional constant for y-dir
-#define K_I_X 				3.6f  //2.0f // 0.01f // Integral constant for x-dir
-#define K_I_Y 				3.6f  // 2.0f //0.01f // Integral constant for y-dir
+#define K_P_X 				45.0f // 41.0f // Proportional constant for x-dir
+#define K_P_Y 				45.0f // 41.0f // proportional constant for y-dir
+#define K_I_X 				5.0f  //2.0f // 0.01f // Integral constant for x-dir
+#define K_I_Y 				5.0f  // 2.0f //0.01f // Integral constant for y-dir
 #define K_D_X 				0.0f  // 5.0f
 #define K_D_Y 				0.0f  // 5.0f
 
 // TODO: Tune the max vel
-#define MAX_CART_VEL 		0.86f //0.525f // 0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)
-#define MIN_CART_VEL 	   -0.86f // -0.525f //-0.9f
+#define MAX_CART_VEL 		0.80f //0.525f // 0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)
+#define MIN_CART_VEL 	   -0.80f // -0.525f //-0.9f
 
 // TODO: Tune the max integral???
 #define MAX_INTEGRAL  		4.5f // anti-windup cap on integral, tune
@@ -110,7 +110,7 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 // #define DEADBAND 	  		(0.5f * M_PI/180.0f)  // 1.0 degree for the dead band (no integral)
 
 // TODO: Tune this
-#define CONTROL_LOOP_TIME			20 // 10 // 20
+#define CONTROL_LOOP_TIME			25 // 10 // 20
 
 #define POT_FILTER_SAMPLE_TIME_MS	1
 #define POT_AVG_WINDOW_SIZE			10 // Start with 10, then try 20
