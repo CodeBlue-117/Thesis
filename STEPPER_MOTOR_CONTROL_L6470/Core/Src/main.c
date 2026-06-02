@@ -90,16 +90,16 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 /* USER CODE BEGIN PD */
 
 // TODO: Tune these PID parameters
-#define K_P_X 				45.0f // 41.0f // Proportional constant for x-dir
-#define K_P_Y 				45.0f // 41.0f // proportional constant for y-dir
+#define K_P_X 				75.0f // 41.0f // Proportional constant for x-dir
+#define K_P_Y 				75.0f // 41.0f // proportional constant for y-dir
 #define K_I_X 				2.0f  //2.0f // 0.01f // Integral constant for x-dir
 #define K_I_Y 				2.0f  // 2.0f //0.01f // Integral constant for y-dir
 #define K_D_X 				0.0f  // 5.0f
 #define K_D_Y 				0.0f  // 5.0f
 
 // TODO: Tune the max vel
-#define MAX_CART_VEL 		0.70f // 0.80f //0.525f // 0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)
-#define MIN_CART_VEL 	   -0.70f // -0.80f // -0.525f //-0.9f
+#define MAX_CART_VEL 		0.68f // 0.80f //0.525f // 0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)
+#define MIN_CART_VEL 	   -0.68f // -0.80f // -0.525f //-0.9f
 
 // TODO: Tune the max integral???
 #define MAX_INTEGRAL  		4.5f // anti-windup cap on integral, tune
