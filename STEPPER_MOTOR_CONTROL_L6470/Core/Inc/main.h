@@ -41,7 +41,7 @@ extern "C" {
 /* USER CODE BEGIN EC */
 // ======================== ENABLE PRINT ======================== //
 
-#define PRINT_OUTPUT_ENABLED  false
+#define PRINT_OUTPUT_ENABLED  true
 
 // ============================================================== //
 

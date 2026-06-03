@@ -98,8 +98,8 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 #define K_D_Y 				0.0f  // 5.0f
 
 // TODO: Tune the max vel
-#define MAX_CART_VEL 		0.68f // 0.80f //0.525f // 0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)
-#define MIN_CART_VEL 	   -0.68f // -0.80f // -0.525f //-0.9f
+#define MAX_CART_VEL 		0.68f //0.525f // 0.9f  // m/s, tune for safety (v = rw => v m/s = (0.03m) * (10)*PI = 0.94 m/s)
+#define MIN_CART_VEL 	   -0.68f // -0.525f //-0.9f
 
 // TODO: Tune the max integral???
 #define MAX_INTEGRAL  		4.5f // anti-windup cap on integral, tune
@@ -110,7 +110,7 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 // #define DEADBAND 	  		(0.5f * M_PI/180.0f)  // 1.0 degree for the dead band (no integral)
 
 // TODO: Tune this
-#define CONTROL_LOOP_TIME			30 // 10 // 20
+#define CONTROL_LOOP_TIME			50 // 30 // 10 // 20
 
 #define POT_FILTER_SAMPLE_TIME_MS	1
 #define POT_AVG_WINDOW_SIZE			10 // Start with 10, then try 20
