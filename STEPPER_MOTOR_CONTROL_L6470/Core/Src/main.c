@@ -115,6 +115,42 @@ void l6470_sync_daisy_chain(MotorSetTypedef *stepper_motor);
 #define POT_FILTER_SAMPLE_TIME_MS	1
 #define POT_AVG_WINDOW_SIZE			10 // Start with 10, then try 20
 
+//////////////////////////////////////////////////////////////////////////////////
+
+// ======================== SLIP FORCE ESTIMATION ======================== //
+// Effective slip-related force loss:
+// F_loss = M * (commanded_acceleration - measured_acceleration)
+
+#define SLIP_EST_MASS_KG             1.778f
+#define GRAVITY_MPS2                 9.80665f
+#define IMU_ACCEL_COUNTS_PER_G       16384.0f
+
+// Match the signs to your existing IMU test convention.
+// Your old test code used xg = -(ax / 16384.0f), yg = (ay / 16384.0f).
+#define IMU_X_SIGN                   (-1.0f)
+#define IMU_Y_SIGN                   ( 1.0f)
+
+// Measure these while the robot is sitting still and level.
+// Biases are in signed g-units after applying IMU_X_SIGN and IMU_Y_SIGN.
+#define IMU_ACCEL_X_BIAS_G           0.0f
+#define IMU_ACCEL_Y_BIAS_G           0.0f
+
+// 0.0 = no new data accepted, 1.0 = no filtering.
+#define SLIP_ACCEL_FILTER_ALPHA      0.25f
+
+// 50 ms loop = 20 samples/second.
+// 256 samples gives about 12.8 seconds of data.
+#define SLIP_LOG_SIZE                256
+
+#define BUTTON_PRESSED_STATE         GPIO_PIN_SET
+#define BUTTON_DEBOUNCE_MS           50
+#define BUTTON_LONG_HOLD_MS          5000
+
+#define FALL_ANGLE_RAD               (20.0f * M_PI / 180.0f)
+#define SLIP_AUTO_STOP_ON_FALL       1
+
+//////////////////////////////////////////////////////////////////
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -187,6 +223,70 @@ typedef struct controlVariables 				// PID Control System Variables
 } controlVariables;
 
 controlVariables myControlVariables = {0};
+
+///////////////////////////////////////////////////////////////////
+
+typedef struct slipEstimateVariables
+{
+    float cmdAccelX_mps2;
+    float cmdAccelY_mps2;
+
+    float imuAccelX_mps2;
+    float imuAccelY_mps2;
+
+    float filtImuAccelX_mps2;
+    float filtImuAccelY_mps2;
+
+    float slipAccelLossX_mps2;
+    float slipAccelLossY_mps2;
+
+    float slipForceLossX_N;
+    float slipForceLossY_N;
+
+    bool imuValid;
+    uint32_t sampleCount;
+
+} slipEstimateVariables;
+
+typedef struct slipLogSample
+{
+    uint32_t time_ms;
+
+    float dt_s;
+
+    float thetaX_rad;
+    float thetaY_rad;
+
+    float cmdVelX_mps;
+    float cmdVelY_mps;
+
+    float cmdAccelX_mps2;
+    float cmdAccelY_mps2;
+
+    float imuAccelX_mps2;
+    float imuAccelY_mps2;
+
+    float slipAccelLossX_mps2;
+    float slipAccelLossY_mps2;
+
+    float slipForceLossX_N;
+    float slipForceLossY_N;
+
+} slipLogSample;
+
+slipEstimateVariables mySlipEstimate = {0};
+
+static slipLogSample slipLog[SLIP_LOG_SIZE] = {0};
+static uint16_t slipLogIndex = 0;
+static bool slipLogWrapped = false;
+static bool slipLoggingActive = false;
+static bool slipLogReadyToDump = false;
+
+static bool userButtonWasPressed = false;
+static bool userButtonLongHandled = false;
+static uint32_t userButtonPressStart_ms = 0;
+
+/////////////////////////////////////////////////////////
 
 MotorSetTypedef motor_set_1 = { // TODO: Finish initializing the structs
 
